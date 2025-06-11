@@ -1,86 +1,130 @@
 <template>
-  <div class="h-full bg-gray-800/40 backdrop-blur border-r border-gray-700/50 p-4">
-    <h2 class="text-lg font-semibold text-white mb-4">Mapper</h2>
-    
-    <!-- Default folders -->
-    <div class="space-y-1 mb-4">
-      <button
-        v-for="folder in defaultFolders"
-        :key="folder.id"
-        :class="[
-          'w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between',
-          selectedFolderId === folder.id 
-            ? 'bg-gray-600 text-white' 
-            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-        ]"
-        @click="$emit('folderSelect', folder.id)"
-      >
-        <div class="flex items-center gap-2">
-          <component :is="folder.icon" class="w-4 h-4" />
-          <span>{{ folder.name }}</span>
-        </div>
-        <span v-if="noteCounts[folder.id]" class="text-xs bg-gray-600 px-2 py-0.5 rounded">
-          {{ noteCounts[folder.id] }}
-        </span>
-      </button>
+  <div class="h-full bg-gray-800/95 border-r border-gray-700/50 flex flex-col">
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-700/50">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-medium text-white flex items-center gap-2">
+          <FolderOpen class="w-4 h-4" />
+          Mapper
+        </h2>
+        <button
+          @click="showCreateForm = true"
+          class="p-1 hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-white"
+        >
+          <Plus class="w-4 h-4" />
+        </button>
+      </div>
     </div>
 
-    <!-- Custom folders -->
-    <div v-if="folders.length > 0" class="space-y-1 mb-4">
-      <h3 class="text-sm font-medium text-gray-400 mb-2">Egne mapper</h3>
-      <div
-        v-for="folder in folders"
-        :key="folder.id"
-        :class="[
-          'group px-3 py-2 rounded-lg transition-colors flex items-center justify-between',
-          selectedFolderId === folder.id 
-            ? 'bg-gray-600 text-white' 
-            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-        ]"
-      >
-        <button
-          class="flex items-center gap-2 flex-1 text-left"
-          @click="$emit('folderSelect', folder.id)"
-        >
-          <div 
-            class="w-3 h-3 rounded-full"
-            :style="{ backgroundColor: folder.color }"
+    <!-- Create Folder Form -->
+    <div v-if="showCreateForm" class="p-3 border-b border-gray-700/50 bg-gray-700/30">
+      <div class="space-y-2">
+        <input
+          v-model="newFolderName"
+          type="text"
+          placeholder="Mappenavn..."
+          class="w-full px-2 py-1 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 text-xs"
+          @keypress.enter="handleCreateFolder"
+          ref="folderNameInput"
+        />
+        <div class="flex gap-1 flex-wrap">
+          <button
+            v-for="color in folderColors"
+            :key="color.name"
+            @click="newFolderColor = color.name"
+            :class="[
+              'w-6 h-6 rounded border-2 transition-all',
+              newFolderColor === color.name ? 'border-white' : 'border-transparent',
+              color.class
+            ]"
           />
-          <span>{{ folder.name }}</span>
-        </button>
-        <div class="flex items-center gap-1">
-          <span v-if="noteCounts[folder.id]" class="text-xs bg-gray-600 px-2 py-0.5 rounded">
-            {{ noteCounts[folder.id] }}
-          </span>
-          <BaseButton
-            variant="ghost"
-            size="sm"
-            class="opacity-0 group-hover:opacity-100"
-            @click="$emit('folderDelete', folder.id)"
+        </div>
+        <div class="flex gap-1">
+          <button
+            @click="handleCreateFolder"
+            :disabled="!newFolderName.trim()"
+            class="flex-1 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500 transition-colors text-xs disabled:opacity-50"
           >
-            <Trash2 class="w-3 h-3" />
-          </BaseButton>
+            Opret
+          </button>
+          <button
+            @click="cancelCreateFolder"
+            class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors text-xs"
+          >
+            Annuller
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Add folder button -->
-    <BaseButton
-      variant="ghost"
-      size="sm"
-      class="w-full justify-start"
-      @click="handleCreateFolder"
-    >
-      <Plus class="w-4 h-4" />
-      Tilføj mappe
-    </BaseButton>
+    <!-- Folders List -->
+    <div class="flex-1 overflow-auto">
+      <!-- Default folders -->
+      <div class="p-2">
+        <div
+          v-for="folder in defaultFolders"
+          :key="folder.id"
+          :class="[
+            'group flex items-center gap-2 p-2 mx-1 my-1 rounded cursor-pointer transition-all',
+            selectedFolderId === folder.id 
+              ? 'bg-gray-700/80 text-white' 
+              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+          ]"
+          @click="$emit('folderSelect', folder.id)"
+        >
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <component :is="folder.icon" class="w-3 h-3" />
+          </div>
+          <span class="flex-1 text-xs font-medium truncate">{{ folder.name }}</span>
+          <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right">
+            {{ noteCounts[folder.id] || 0 }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Custom folders -->
+      <div v-if="folders.length > 0" class="p-2">
+        <h3 class="text-xs font-medium text-gray-400 mb-2 px-1">Egne mapper</h3>
+        <div
+          v-for="folder in folders"
+          :key="folder.id"
+          :class="[
+            'group flex items-center gap-2 p-2 mx-1 my-1 rounded cursor-pointer transition-all',
+            selectedFolderId === folder.id 
+              ? 'bg-gray-700/80 text-white' 
+              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+          ]"
+          @click="$emit('folderSelect', folder.id)"
+        >
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <div 
+              class="w-3 h-3 rounded"
+              :class="getColorClass(folder.color)"
+            />
+          </div>
+          <span class="flex-1 text-xs font-medium truncate">{{ folder.name }}</span>
+          
+          <div class="flex items-center gap-0.5" @click.stop>
+            <button
+              @click="$emit('folderDelete', folder.id)"
+              class="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-600 rounded text-red-400 hover:text-red-300"
+            >
+              <Trash2 class="w-3 h-3" />
+            </button>
+          </div>
+          
+          <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right">
+            {{ noteCounts[folder.id] || 0 }}
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, nextTick, watch } from 'vue'
 import { FolderOpen, Archive, Shield, Plus, Trash2 } from 'lucide-vue-next'
-import BaseButton from '../base/BaseButton.vue'
 
 defineProps({
   folders: {
@@ -103,6 +147,22 @@ defineProps({
 
 const emit = defineEmits(['folderSelect', 'folderCreate', 'folderUpdate', 'folderDelete', 'unlockFolder', 'masterPasswordUnlock'])
 
+// Create folder form state
+const showCreateForm = ref(false)
+const newFolderName = ref('')
+const newFolderColor = ref('blue')
+const folderNameInput = ref(null)
+
+// Folder colors like React version
+const folderColors = [
+  { name: 'blue', class: 'text-blue-400 bg-blue-500/20' },
+  { name: 'green', class: 'text-green-400 bg-green-500/20' },
+  { name: 'purple', class: 'text-purple-400 bg-purple-500/20' },
+  { name: 'red', class: 'text-red-400 bg-red-500/20' },
+  { name: 'yellow', class: 'text-yellow-400 bg-yellow-500/20' },
+  { name: 'pink', class: 'text-pink-400 bg-pink-500/20' }
+]
+
 const defaultFolders = computed(() => [
   {
     id: 'all',
@@ -121,12 +181,35 @@ const defaultFolders = computed(() => [
   }
 ])
 
-const handleCreateFolder = () => {
-  const name = window.prompt('Mappenavn:')
-  if (name?.trim()) {
-    const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4']
-    const color = colors[Math.floor(Math.random() * colors.length)]
-    emit('folderCreate', name.trim(), color)
+const getColorClass = (color) => {
+  const colorObj = folderColors.find(c => c.name === color)
+  return colorObj ? colorObj.class : 'text-gray-400 bg-gray-500/20'
+}
+
+const handleCreateFolder = async () => {
+  if (newFolderName.value.trim()) {
+    emit('folderCreate', newFolderName.value.trim(), newFolderColor.value)
+    newFolderName.value = ''
+    newFolderColor.value = 'blue'
+    showCreateForm.value = false
   }
 }
+
+const cancelCreateFolder = () => {
+  showCreateForm.value = false
+  newFolderName.value = ''
+  newFolderColor.value = 'blue'
+}
+
+// Auto-focus input when form opens
+const showCreateFormWatcher = () => {
+  if (showCreateForm.value) {
+    nextTick(() => {
+      folderNameInput.value?.focus()
+    })
+  }
+}
+
+// Watch for form visibility changes
+watch(showCreateForm, showCreateFormWatcher)
 </script>

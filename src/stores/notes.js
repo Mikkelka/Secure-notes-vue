@@ -45,7 +45,7 @@ export const useNotesStore = defineStore('notes', () => {
   const performanceStats = ref(null)
   const searchTerm = ref('')
   const editingNote = ref(null)
-  const loading = ref(true)
+  const loading = ref(false)
 
   const filteredNotes = computed(() => {
     let filtered = allNotes.value
@@ -316,6 +316,7 @@ export const useNotesStore = defineStore('notes', () => {
     performanceStats.value = null
     searchTerm.value = ''
     editingNote.value = null
+    loading.value = false
   }
 
   const setSearchTerm = (term) => {

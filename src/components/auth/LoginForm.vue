@@ -132,26 +132,31 @@ const error = ref('')
 const handleSubmit = async (action) => {
   error.value = ''
   
-  const result = action === 'login' 
-    ? await emit('login', email.value, password.value)
-    : await emit('register', email.value, password.value)
-  
-  if (result?.success) {
-    email.value = ''
-    password.value = ''
-    error.value = ''
+  if (action === 'login') {
+    emit('login', email.value, password.value)
   } else {
-    error.value = result?.error || 'Der opstod en fejl'
+    emit('register', email.value, password.value)
   }
 }
 
 const handleGoogleSubmit = async () => {
   error.value = ''
-  
-  const result = await emit('googleLogin')
-  
-  if (!result?.success) {
-    error.value = result?.error || 'Google login fejlede'
-  }
+  emit('googleLogin')
 }
+
+// Expose method to set error from parent
+const setError = (errorMessage) => {
+  error.value = errorMessage
+}
+
+const clearForm = () => {
+  email.value = ''
+  password.value = ''
+  error.value = ''
+}
+
+defineExpose({
+  setError,
+  clearForm
+})
 </script>

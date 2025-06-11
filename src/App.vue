@@ -2,6 +2,7 @@
   <ErrorBoundary>
     <div v-if="!authStore.isLoggedIn">
       <LoginForm
+        ref="loginFormRef"
         :loading="authStore.loading"
         @login="handleLogin"
         @register="handleRegister"
@@ -211,7 +212,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted, ref } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
 
 // Stores
@@ -246,6 +247,9 @@ const notesStore = useNotesStore()
 const foldersStore = useFoldersStore()
 const uiStore = useUIStore()
 
+// Template refs
+const loginFormRef = ref(null)
+
 // Computed
 const filteredNotes = computed(() => {
   return notesStore.filterNotesByFolder(foldersStore.selectedFolderId)
@@ -257,15 +261,28 @@ const noteCounts = computed(() => {
 
 // Auth handlers
 const handleLogin = async (email, password) => {
-  return await authStore.handleLogin(email, password)
+  const result = await authStore.handleLogin(email, password)
+  if (result.success) {
+    loginFormRef.value?.clearForm()
+  } else {
+    loginFormRef.value?.setError(result.error)
+  }
 }
 
 const handleRegister = async (email, password) => {
-  return await authStore.handleRegister(email, password)
+  const result = await authStore.handleRegister(email, password)
+  if (result.success) {
+    loginFormRef.value?.clearForm()
+  } else {
+    loginFormRef.value?.setError(result.error)
+  }
 }
 
 const handleGoogleLogin = async () => {
-  return await authStore.handleGoogleLogin()
+  const result = await authStore.handleGoogleLogin()
+  if (!result.success) {
+    loginFormRef.value?.setError(result.error)
+  }
 }
 
 // Note handlers
@@ -428,22 +445,43 @@ const handleImportComplete = () => {
 let unsubscribeAuth = null
 let cleanupActivityListeners = null
 
-onMounted(async () => {
-  // Initialize auth state listener
-  unsubscribeAuth = authStore.initializeAuth()
-  
-  // Setup activity listeners when encryption key is available
-  if (authStore.encryptionKey) {
+// Watch for auth state changes and load data when ready
+watch([() => authStore.user, () => authStore.encryptionKey], async ([user, encryptionKey]) => {
+  if (user && encryptionKey) {
+    console.log('Auth ready, loading data...', user.email)
+    try {
+      await Promise.all([
+        notesStore.loadNotes(user, encryptionKey),
+        foldersStore.loadFolders(user, encryptionKey)
+      ])
+      console.log('Data loaded successfully')
+    } catch (error) {
+      console.error('Error loading data:', error)
+    }
+  } else {
+    console.log('Auth not ready, user:', !!user, 'key:', !!encryptionKey)
+    // Reset data when auth is lost
+    notesStore.resetNotes()
+    foldersStore.resetFolders()
+  }
+}, { immediate: true })
+
+// Watch for encryption key changes to setup activity listeners
+watch(() => authStore.encryptionKey, (encryptionKey) => {
+  if (encryptionKey && !cleanupActivityListeners) {
+    console.log('Setting up activity listeners')
     cleanupActivityListeners = authStore.setupActivityListeners()
+  } else if (!encryptionKey && cleanupActivityListeners) {
+    console.log('Cleaning up activity listeners')
+    cleanupActivityListeners()
+    cleanupActivityListeners = null
   }
-  
-  // Load data when logged in
-  if (authStore.user && authStore.encryptionKey) {
-    await Promise.all([
-      notesStore.loadNotes(authStore.user, authStore.encryptionKey),
-      foldersStore.loadFolders(authStore.user, authStore.encryptionKey)
-    ])
-  }
+})
+
+onMounted(() => {
+  // Initialize auth state listener
+  console.log('Initializing auth listener')
+  unsubscribeAuth = authStore.initializeAuth()
 })
 
 onUnmounted(() => {
