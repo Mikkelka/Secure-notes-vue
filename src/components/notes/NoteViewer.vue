@@ -543,9 +543,10 @@ const convertLexicalToHtml = (content) => {
         switch (node.type) {
           case 'paragraph':
             return children ? `<p>${children}</p>` : '<p><br></p>'
-          case 'heading':
+          case 'heading': {
             const level = node.tag?.substring(1) || '1'
             return `<h${level}>${children}</h${level}>`
+          }
           case 'list':
             return node.listType === 'bullet' ? `<ul>${children}</ul>` : `<ol>${children}</ol>`
           case 'listitem':
@@ -625,7 +626,7 @@ const convertHtmlToLexical = (html) => {
         
         // Handle different HTML elements
         switch (tagName) {
-          case 'p':
+          case 'p': {
             const pChildren = Array.from(node.childNodes)
               .map(child => convertNode(child, newFormatContext))
               .filter(Boolean)
@@ -650,9 +651,10 @@ const convertHtmlToLexical = (html) => {
               type: 'paragraph',
               version: 1
             }
+          }
             
           case 'h1':
-          case 'h2':
+          case 'h2': {
             const hChildren = Array.from(node.childNodes)
               .map(child => convertNode(child, newFormatContext))
               .filter(Boolean)
@@ -666,8 +668,9 @@ const convertHtmlToLexical = (html) => {
               version: 1,
               tag: tagName
             }
+          }
             
-          case 'ul':
+          case 'ul': {
             const ulChildren = Array.from(node.childNodes)
               .map(child => convertNode(child, formatContext))
               .filter(Boolean)
@@ -682,8 +685,9 @@ const convertHtmlToLexical = (html) => {
               listType: 'bullet',
               start: 1
             }
+          }
             
-          case 'ol':
+          case 'ol': {
             const olChildren = Array.from(node.childNodes)
               .map(child => convertNode(child, formatContext))
               .filter(Boolean)
@@ -698,8 +702,9 @@ const convertHtmlToLexical = (html) => {
               listType: 'number',
               start: 1
             }
+          }
             
-          case 'li':
+          case 'li': {
             const liChildren = Array.from(node.childNodes)
               .map(child => convertNode(child, formatContext))
               .filter(Boolean)
@@ -713,6 +718,7 @@ const convertHtmlToLexical = (html) => {
               version: 1,
               value: 1
             }
+          }
             
           case 'strong':
           case 'b':
@@ -788,26 +794,6 @@ const initializeEditor = () => {
     editor.value.destroy()
   }
   
-  const theme = {
-    paragraph: 'editor-paragraph',
-    text: {
-      bold: 'editor-text-bold',
-      italic: 'editor-text-italic',
-      underline: 'editor-text-underline',
-      strike: 'line-through',
-      code: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
-    },
-    heading: {
-      h1: 'editor-heading-h1',
-      h2: 'editor-heading-h2'
-    },
-    list: {
-      ol: 'editor-list-ol',
-      ul: 'editor-list-ul',
-      listitem: 'editor-listitem'
-    },
-    link: 'editor-link'
-  }
   
   editor.value = new Editor({
     extensions: [

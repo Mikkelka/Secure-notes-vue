@@ -140,20 +140,23 @@ export const convertLexicalToMarkdown = (lexicalState) => {
       switch (node.type) {
         case "paragraph":
           return children ? `${children}\n` : "\n";
-        case "heading":
+        case "heading": {
           const level = node.tag === "h1" ? "#" : "##";
           return `${level} ${children}\n`;
-        case "list":
+        }
+        case "list": {
           // Pass list type til children og tilføj linjeskift efter liste
           const listContent = node.children?.map((child, index) => 
             convertNode(child, { parent: node, listIndex: index + 1 })
           ).join("") || "";
           return listContent + (listContent ? "\n" : "");
-        case "listitem":
+        }
+        case "listitem": {
           // Brug parent information til at bestemme prefix
           const isNumbered = context.parent?.listType === "number";
           const prefix = isNumbered ? `${context.listIndex || 1}. ` : "- ";
           return `${prefix}${children}\n`;
+        }
         default:
           return children;
       }

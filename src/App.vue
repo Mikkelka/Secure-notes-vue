@@ -268,7 +268,6 @@ import { useAuthStore } from "./stores/auth";
 import { useNotesStore } from "./stores/notes";
 import { useFoldersStore } from "./stores/folders";
 import { useUIStore } from "./stores/ui";
-import { useSettingsStore } from "./stores/settings";
 
 // Components
 import ErrorBoundary from "./components/ErrorBoundary.vue";

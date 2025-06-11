@@ -283,7 +283,7 @@ const handleMasterPasswordUnlock = async (masterPassword) => {
         pinInputRef.value?.setError("Forkert hovedadgangskode. Prøv igen.");
         return false;
       }
-    } catch (error) {
+    } catch {
       // Error is caught, but not logged to console
       return false;
     }
@@ -317,13 +317,4 @@ const showCreateFormWatcher = () => {
 
 // Watch for form visibility changes
 watch(showCreateForm, showCreateFormWatcher);
-
-// Debug: Watch folders prop
-watch(
-  () => props.folders,
-  (newFolders) => {
-    // Removed console.log
-  },
-  { immediate: true }
-);
 </script>

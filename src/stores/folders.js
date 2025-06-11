@@ -214,7 +214,7 @@ export const useFoldersStore = defineStore('folders', () => {
   
   // SIKKERHEDSNOTE: Denne funktion er en usikker pladsholder.
   // For at gøre den sikker, skal du implementere en rigtig password verifikationsmekanisme.
-  const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, user) => {
+  const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, _user) => {
     console.warn("verifyAndUnlockWithMasterPassword er usikker og kun til demo. Implementer rigtig verifikation.");
     // EKSEMPEL PÅ SIKKER IMPLEMENTERING:
     // if (!user?.uid || !userSettings.value?.passwordVerifier) return false;

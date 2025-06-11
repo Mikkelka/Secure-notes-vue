@@ -27,11 +27,6 @@
           </span>
         </div>
 
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
-          <Clock class="w-3 h-3 text-blue-400" />
-          <span class="text-blue-300">{{ getTimeoutLabel(sessionTimeout) }}</span>
-        </div>
-        
         <button
           @click="$emit('export')"
           class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 hover:bg-blue-500/20 transition-colors text-sm"
@@ -72,7 +67,7 @@
 </template>
 
 <script setup>
-import { Shield, Brain, Download, Settings, LogOut, Zap, Clock } from 'lucide-vue-next'
+import { Shield, Brain, Download, Settings, LogOut, Zap } from 'lucide-vue-next'
 
 defineProps({
   user: {
@@ -92,18 +87,6 @@ defineProps({
     default: 1800000
   }
 })
-
-const timeoutOptions = [
-  { value: 900000, label: '15 minutter' },
-  { value: 1800000, label: '30 minutter' },
-  { value: 3600000, label: '1 time' },
-  { value: 7200000, label: '2 timer' }
-]
-
-const getTimeoutLabel = (value) => {
-  const option = timeoutOptions.find(opt => opt.value == value)
-  return option ? option.label : '30 minutter'
-}
 
 defineEmits(['logout', 'export', 'ai', 'settings'])
 </script>

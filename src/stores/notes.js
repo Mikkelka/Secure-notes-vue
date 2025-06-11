@@ -9,8 +9,7 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
-  orderBy,
-  writeBatch // Importer writeBatch for effektiv sletning
+  orderBy
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
@@ -87,7 +86,7 @@ export const useNotesStore = defineStore('notes', () => {
       } else {
         counts.all++
         const folderKey = note.folderId || 'uncategorized'
-        if (counts.hasOwnProperty(folderKey)) {
+        if (Object.prototype.hasOwnProperty.call(counts, folderKey)) {
           counts[folderKey]++
         }
       }
@@ -109,14 +108,34 @@ export const useNotesStore = defineStore('notes', () => {
       )
       
       const querySnapshot = await getDocs(q)
-      const decryptedNotes = []
       
       const decryptionPromises = querySnapshot.docs.map(async (docSnapshot) => {
         const noteData = docSnapshot.data()
+        
+        // Funktion til at prøve forskellige encryption keys
+        const tryDecryptWithAlternativeKeys = async (encryptedData, primaryKey) => {
+          try {
+            // 1. Prøv med primary key først
+            return await decryptText(encryptedData, primaryKey)
+          } catch {
+            // 2. Hvis primary fejler, prøv med Google-baseret key som fallback
+            try {
+              const { deriveKeyFromPassword } = await import('../utils/encryption')
+              const googleKey = await deriveKeyFromPassword(user.uid, user.uid)
+              const decryptedData = await decryptText(encryptedData, googleKey)
+              console.log(`Note ${docSnapshot.id} decrypted with Google fallback key`)
+              return decryptedData
+            } catch {
+              // Begge metoder fejlede
+              throw new Error('Kunne ikke dekryptere med nogen kendte keys')
+            }
+          }
+        }
+        
         try {
           const [decryptedTitle, decryptedContent] = await Promise.all([
-            noteData.encryptedTitle ? decryptText(noteData.encryptedTitle, encryptionKey) : Promise.resolve(''),
-            decryptText(noteData.encryptedContent, encryptionKey)
+            noteData.encryptedTitle ? tryDecryptWithAlternativeKeys(noteData.encryptedTitle, encryptionKey) : Promise.resolve(''),
+            tryDecryptWithAlternativeKeys(noteData.encryptedContent, encryptionKey)
           ])
 
           // Hvis titel er tom (f.eks. fra ældre noter), generer en fallback
@@ -132,7 +151,18 @@ export const useNotesStore = defineStore('notes', () => {
             updatedAt: noteData.updatedAt.toDate()
           }
         } catch (error) {
+          // Debug info for problematiske noter
           console.error(`Kunne ikke dekryptere note ${docSnapshot.id}. Den vil blive sprunget over.`, error)
+          console.log('Note data:', {
+            id: docSnapshot.id,
+            userId: noteData.userId,
+            currentUserId: user.uid,
+            hasEncryptedTitle: !!noteData.encryptedTitle,
+            hasEncryptedContent: !!noteData.encryptedContent,
+            folderId: noteData.folderId,
+            createdAt: noteData.createdAt,
+            updatedAt: noteData.updatedAt
+          })
           return null // Returner null hvis en note fejler, så den kan filtreres fra
         }
       })
@@ -280,45 +310,6 @@ export const useNotesStore = defineStore('notes', () => {
     loading.value = false
   }
 
-  // --- Development-Only Actions ---
-
-  // Beskyttet funktion, der kun kan køres i udviklingstilstand.
-  const clearAllUserData = async (user) => {
-    if (!import.meta.env.DEV) {
-      console.warn('clearAllUserData() kan kun kaldes i udviklingstilstand.')
-      return false
-    }
-    if (!user?.uid) return false
-    
-    console.warn('🗑️ Sletter ALLE data for bruger:', user.uid)
-    try {
-      // Brug batch-writes for effektivitet
-      const batch = writeBatch(db)
-
-      // Find og slet noter
-      const notesQuery = query(collection(db, 'notes'), where('userId', '==', user.uid))
-      const notesSnapshot = await getDocs(notesQuery)
-      notesSnapshot.docs.forEach(doc => batch.delete(doc.ref))
-      
-      // Find og slet mapper (forudsætter en foldersStore eller lignende)
-      const foldersQuery = query(collection(db, 'folders'), where('userId', '==', user.uid))
-      const foldersSnapshot = await getDocs(foldersQuery)
-      foldersSnapshot.docs.forEach(doc => batch.delete(doc.ref))
-      
-      // Slet brugerindstillinger
-      batch.delete(doc(db, 'userSettings', user.uid))
-      
-      await batch.commit()
-      
-      console.log('✅ Alle brugerdata er slettet.')
-      resetNotes()
-      // Husk også at resette foldersStore osv.
-      return true
-    } catch (error) {
-      console.error('❌ Fejl under sletning af brugerdata:', error)
-      return false
-    }
-  }
 
   // --- Setters ---
 
@@ -351,9 +342,6 @@ export const useNotesStore = defineStore('notes', () => {
     
     // Setters
     setSearchTerm,
-    setEditingNote,
-
-    // Dev tools
-    clearAllUserData
+    setEditingNote
   }
 })
