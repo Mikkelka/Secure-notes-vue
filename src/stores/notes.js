@@ -319,6 +319,47 @@ export const useNotesStore = defineStore('notes', () => {
     loading.value = false
   }
 
+  // DEBUG: Clear all data (for development only)
+  const clearAllUserData = async (user) => {
+    if (!user?.uid) return false
+    
+    try {
+      console.log('🗑️ Clearing all user data...')
+      
+      // Delete all notes
+      const notesRef = collection(db, 'notes')
+      const notesQuery = query(notesRef, where('userId', '==', user.uid))
+      const notesSnapshot = await getDocs(notesQuery)
+      
+      const deletePromises = []
+      notesSnapshot.docs.forEach(doc => {
+        deletePromises.push(deleteDoc(doc.ref))
+      })
+      
+      // Delete all folders  
+      const foldersRef = collection(db, 'folders')
+      const foldersQuery = query(foldersRef, where('userId', '==', user.uid))
+      const foldersSnapshot = await getDocs(foldersQuery)
+      
+      foldersSnapshot.docs.forEach(doc => {
+        deletePromises.push(deleteDoc(doc.ref))
+      })
+      
+      // Delete user settings
+      const userSettingsRef = doc(db, 'userSettings', user.uid)
+      deletePromises.push(deleteDoc(userSettingsRef))
+      
+      await Promise.all(deletePromises)
+      
+      console.log('✅ All user data cleared')
+      resetNotes()
+      return true
+    } catch (error) {
+      console.error('❌ Error clearing data:', error)
+      return false
+    }
+  }
+
   const setSearchTerm = (term) => {
     searchTerm.value = term
   }
@@ -343,6 +384,7 @@ export const useNotesStore = defineStore('notes', () => {
     toggleFavorite,
     moveNoteToFolder,
     resetNotes,
+    clearAllUserData,
     setSearchTerm,
     setEditingNote
   }

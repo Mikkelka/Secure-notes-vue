@@ -83,38 +83,58 @@ export const useFoldersStore = defineStore('folders', () => {
 
   const loadFolders = async (user, encryptionKey) => {
     try {
+      console.log('Loading folders for user:', user.uid)
+      
       // Load user settings (including PIN) first
       await loadSettings(user, encryptionKey)
       
       const foldersRef = collection(db, 'folders')
       const q = query(
         foldersRef, 
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'asc')
+        where('userId', '==', user.uid)
+        // Note: orderBy removed to avoid need for composite index
       )
       
       const querySnapshot = await getDocs(q)
+      console.log('Found', querySnapshot.docs.length, 'folders in Firestore')
       const decryptedFolders = []
       
       for (const docSnapshot of querySnapshot.docs) {
         const folderData = docSnapshot.data()
         try {
-          const decryptedName = await decryptText(folderData.encryptedName, encryptionKey)
+          let decryptedName
+          
+          // Handle both old (name) and new (encryptedName) folders like React version
+          if (folderData.encryptedName) {
+            // New encrypted folder
+            decryptedName = await decryptText(folderData.encryptedName, encryptionKey)
+          } else if (folderData.name) {
+            // Old unencrypted folder - use name as is
+            decryptedName = folderData.name
+            console.log('Found legacy unencrypted folder:', folderData.name)
+          } else {
+            // No name - skip
+            console.warn('Folder has no name or encryptedName:', docSnapshot.id)
+            continue
+          }
           
           decryptedFolders.push({
             id: docSnapshot.id,
             name: decryptedName,
             encryptedName: folderData.encryptedName,
             color: folderData.color || '#6366f1',
-            createdAt: folderData.createdAt.toDate(),
-            updatedAt: folderData.updatedAt.toDate()
+            createdAt: folderData.createdAt?.toDate() || new Date(),
+            updatedAt: folderData.updatedAt?.toDate() || new Date()
           })
         } catch (error) {
           console.error('Failed to decrypt folder:', docSnapshot.id, error)
+          // Skip folders that can't be decrypted
         }
       }
       
       folders.value = decryptedFolders
+      console.log('Successfully loaded', decryptedFolders.length, 'folders:', decryptedFolders.map(f => f.name))
+      console.log('Setting folders.value to:', decryptedFolders)
     } catch (error) {
       console.error('Load folders error:', error)
     }
@@ -139,9 +159,17 @@ export const useFoldersStore = defineStore('folders', () => {
   }
 
   const createFolder = async (name, color, user, encryptionKey) => {
-    if (!name.trim() || !encryptionKey || !user) return false
+    if (!name.trim() || !encryptionKey || !user) {
+      console.error('Missing required data for folder creation:', { 
+        hasName: !!name.trim(), 
+        hasUser: !!user, 
+        hasKey: !!encryptionKey 
+      })
+      return false
+    }
     
     try {
+      console.log('Creating folder:', name, 'with color:', color)
       const encryptedName = await encryptText(name, encryptionKey)
       
       const folderData = {
@@ -152,6 +180,7 @@ export const useFoldersStore = defineStore('folders', () => {
         updatedAt: new Date()
       }
       
+      console.log('Saving folder to Firestore with data:', { ...folderData, encryptedName: '[encrypted]' })
       const docRef = await addDoc(collection(db, 'folders'), folderData)
       
       const newFolder = {
@@ -164,9 +193,13 @@ export const useFoldersStore = defineStore('folders', () => {
       }
       
       folders.value = [...folders.value, newFolder]
+      console.log('Folder created successfully:', newFolder.name, 'Total folders:', folders.value.length)
       return true
     } catch (error) {
       console.error('Create folder error:', error)
+      if (error.code === 'permission-denied') {
+        console.error('Firebase permissions error - check security rules')
+      }
       return false
     }
   }

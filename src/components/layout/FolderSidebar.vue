@@ -294,4 +294,9 @@ const showCreateFormWatcher = () => {
 
 // Watch for form visibility changes
 watch(showCreateForm, showCreateFormWatcher)
+
+// Debug: Watch folders prop
+watch(() => props.folders, (newFolders) => {
+  console.log('📁 FolderSidebar received folders:', newFolders.length, newFolders)
+}, { immediate: true })
 </script>

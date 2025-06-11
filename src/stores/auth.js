@@ -311,7 +311,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize auth state listener
   const initializeAuth = () => {
+    console.log('🔧 Initializing auth state listener')
     return onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('🔧 Auth state changed, user:', firebaseUser ? firebaseUser.email : 'null')
       if (firebaseUser) {
         console.log('🔍 Auth state changed for user:', firebaseUser.email)
         
@@ -328,16 +330,24 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           let key = null
           
+          console.log('🔍 Login type:', loginType)
+          
           if (loginType === 'google') {
             console.log('🔍 Regenerating Google user encryption key')
+            console.log('🔍 Using UID as password:', firebaseUser.uid.substring(0, 8) + '...')
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
           } else if (loginType === 'email') {
             const encryptedPassword = localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)
             if (encryptedPassword) {
               const password = atob(encryptedPassword)
               console.log('🔍 Regenerating email user encryption key')
+              console.log('🔍 Using stored password length:', password.length)
               key = await deriveKeyFromPassword(password, firebaseUser.uid)
+            } else {
+              console.log('❌ No stored password found for email user')
             }
+          } else {
+            console.log('❌ Unknown login type:', loginType)
           }
           
           if (key) {

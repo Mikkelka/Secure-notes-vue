@@ -67,9 +67,13 @@ export const decryptText = async (encryptedData, key) => {
       atob(encryptedData).split('').map(c => c.charCodeAt(0))
     );
     
+    console.log('🔓 Decrypting data length:', data.length, 'first 20 bytes:', Array.from(data.slice(0, 20)))
+    
     // Ekstraher IV og krypteret data
     const iv = data.slice(0, 12);
     const encrypted = data.slice(12);
+    
+    console.log('🔓 IV length:', iv.length, 'encrypted length:', encrypted.length)
     
     const decrypted = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: iv },
@@ -77,9 +81,12 @@ export const decryptText = async (encryptedData, key) => {
       encrypted
     );
     
-    return new TextDecoder().decode(decrypted);
+    const result = new TextDecoder().decode(decrypted);
+    console.log('✅ Decryption successful, result length:', result.length)
+    return result;
   } catch (error) {
-    console.error('Decryption failed:', error);
+    console.error('❌ Decryption failed:', error);
+    console.error('❌ Encrypted data length:', encryptedData.length, 'preview:', encryptedData.substring(0, 50) + '...')
     throw new Error('Kunne ikke dekryptere data - forkert password?');
   }
 };
