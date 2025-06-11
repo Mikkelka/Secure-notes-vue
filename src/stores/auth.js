@@ -284,7 +284,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
       await signOut(auth)
-    } catch (error) {
+    } catch {
       // Error is caught, but not logged to console
     } finally {
       loading.value = false
@@ -308,22 +308,34 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           let key = null
           
+          console.log('Debug encryption key generation:', {
+            loginType,
+            userId: firebaseUser.uid,
+            hasStoredPassword: !!localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`),
+            storedPasswordLength: localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)?.length,
+            passwordVerifier: localStorage.getItem(`passwordVerifier_${firebaseUser.uid}`)?.substring(0, 20) + '...'
+          })
+          
           if (loginType === 'google') {
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
+            console.log('Generated Google key')
           } else if (loginType === 'email') {
             const encryptedPassword = localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)
             if (encryptedPassword) {
               const password = atob(encryptedPassword)
               key = await deriveKeyFromPassword(password, firebaseUser.uid)
+              console.log('Generated email key with stored password')
             }
           }
           
           if (key) {
             encryptionKey.value = key
+            console.log('Encryption key set successfully')
           } else {
             encryptionKey.value = null
+            console.log('No encryption key generated')
           }
-        } catch (error) {
+        } catch {
           encryptionKey.value = null
         }
       } else {

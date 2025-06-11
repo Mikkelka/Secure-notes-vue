@@ -27,7 +27,7 @@ export const deriveKeyFromPassword = async (password, userId) => {
       false,
       ['encrypt', 'decrypt']
     );
-  } catch (error) {
+  } catch {
     throw new Error('Kunne ikke generere krypteringsnøgle');
   }
 };
@@ -53,7 +53,7 @@ export const encryptText = async (text, key) => {
     
     // Base64 encode for nem lagring
     return btoa(String.fromCharCode(...result));
-  } catch (error) {
+  } catch {
     throw new Error('Kunne ikke kryptere data');
   }
 };
@@ -77,7 +77,7 @@ export const decryptText = async (encryptedData, key) => {
     
     const result = new TextDecoder().decode(decrypted);
     return result;
-  } catch (error) {
+  } catch {
     throw new Error('Kunne ikke dekryptere data - forkert password?');
   }
 };

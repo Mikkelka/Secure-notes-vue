@@ -123,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { X, Settings, Clock, Shield, Monitor } from 'lucide-vue-next'
 import { useSettingsStore } from '../../stores/settings'
 
@@ -134,7 +134,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+defineEmits(['close'])
 
 const settingsStore = useSettingsStore()
 

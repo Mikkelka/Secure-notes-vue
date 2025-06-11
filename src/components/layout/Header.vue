@@ -26,7 +26,7 @@
             </span>
           </span>
         </div>
-        
+
         <button
           @click="$emit('export')"
           class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 hover:bg-blue-500/20 transition-colors text-sm"
@@ -81,6 +81,10 @@ defineProps({
   showPerformanceStats: {
     type: Boolean,
     default: true
+  },
+  sessionTimeout: {
+    type: [String, Number],
+    default: 1800000
   }
 })
 

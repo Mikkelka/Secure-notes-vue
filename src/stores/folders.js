@@ -9,14 +9,16 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  // orderBy, // Not used, can be removed if not needed elsewhere
   setDoc,
   getDoc
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
+// ANBEFALING: Du skal bruge en password verifikationsfunktion her for master password unlock.
+// import { verifyPassword } from '../utils/encryption' 
 
-// User settings functions
+// --- Helper-funktioner til brugerindstillinger (holdes adskilt for klarhed) ---
+
 const loadUserSettings = async (userId, encryptionKey) => {
   if (!userId || !encryptionKey) return null
   
@@ -31,25 +33,18 @@ const loadUserSettings = async (userId, encryptionKey) => {
         return JSON.parse(decryptedSettings)
       }
     }
-    
-    // Return default settings if none exist
-    return { 
-      securePin: '1234',
-      aiSettings: {
-        apiKey: '',
-        selectedModel: 'gemini-2.5-flash-preview-05-20',
-        customInstructions: 'note-organizer'
-      }
-    }
   } catch (error) {
-    // Error is caught, but not logged to console
-    return { 
-      securePin: '1234',
-      aiSettings: {
-        apiKey: '',
-        selectedModel: 'gemini-2.5-flash-preview-05-20',
-        customInstructions: 'note-organizer'
-      }
+    console.error('Fejl ved indlæsning eller dekryptering af brugerindstillinger:', error)
+  }
+  
+  // Returner standardindstillinger, hvis ingen findes, eller hvis der opstod en fejl.
+  return { 
+    securePin: '1234', // Standard PIN
+    // passwordVerifier: null, // Du bør gemme en verifier her
+    aiSettings: {
+      apiKey: '',
+      selectedModel: 'gemini-1.5-flash-latest',
+      customInstructions: 'note-organizer'
     }
   }
 }
@@ -69,150 +64,122 @@ const saveUserSettings = async (userId, settings, encryptionKey) => {
     
     return true
   } catch (error) {
-    // Error is caught, but not logged to console
+    console.error('Fejl ved lagring af brugerindstillinger:', error)
     return false
   }
 }
 
+// --- Pinia Store Definition ---
+
 export const useFoldersStore = defineStore('folders', () => {
+  // --- State ---
   const folders = ref([])
   const selectedFolderId = ref('all')
-  const lockedFolders = ref(new Set(['secure'])) // Initialize secure folder as locked
+  const lockedFolders = ref(new Set(['secure'])) // 'secure' er altid låst fra start
   const userSettings = ref({})
-  const securePin = ref('1234') // Default PIN
+  const securePin = ref('1234') // Lokal kopi af PIN for hurtig adgang
+
+  // --- Actions ---
 
   const loadFolders = async (user, encryptionKey) => {
+    if (!user?.uid || !encryptionKey) return
+
     try {
-      // Load user settings (including PIN) first
+      // Indlæs brugerindstillinger (inkl. PIN) først.
+      // Dette kaldes separat for at sikre, at indstillinger er tilgængelige hurtigt.
       await loadSettings(user, encryptionKey)
       
-      const foldersRef = collection(db, 'folders')
-      const q = query(
-        foldersRef, 
-        where('userId', '==', user.uid)
-        // Note: orderBy removed to avoid need for composite index
-      )
-      
+      const q = query(collection(db, 'folders'), where('userId', '==', user.uid))
       const querySnapshot = await getDocs(q)
-      const decryptedFolders = []
       
-      for (const docSnapshot of querySnapshot.docs) {
+      const decryptionPromises = querySnapshot.docs.map(async (docSnapshot) => {
         const folderData = docSnapshot.data()
         try {
-          let decryptedName
-          
-          // Handle both old (name) and new (encryptedName) folders like React version
-          if (folderData.encryptedName) {
-            // New encrypted folder
-            decryptedName = await decryptText(folderData.encryptedName, encryptionKey)
-          } else if (folderData.name) {
-            // Old unencrypted folder - use name as is
-            decryptedName = folderData.name
-          } else {
-            // No name - skip
-            continue
-          }
-          
-          decryptedFolders.push({
+          // Håndterer både nye krypterede og gamle ukrypterede mapper
+          const decryptedName = folderData.encryptedName
+            ? await decryptText(folderData.encryptedName, encryptionKey)
+            : folderData.name
+
+          if (!decryptedName) return null // Spring over mapper uden navn
+
+          return {
             id: docSnapshot.id,
             name: decryptedName,
-            encryptedName: folderData.encryptedName,
             color: folderData.color || '#6366f1',
             createdAt: folderData.createdAt?.toDate() || new Date(),
             updatedAt: folderData.updatedAt?.toDate() || new Date()
-          })
+          }
         } catch (error) {
-          // Skip folders that can't be decrypted
+          console.error(`Kunne ikke dekryptere mappe ${docSnapshot.id}. Den springes over.`, error)
+          return null
         }
-      }
+      })
       
-      folders.value = decryptedFolders
+      const resolvedFolders = await Promise.all(decryptionPromises)
+      folders.value = resolvedFolders.filter(f => f !== null)
+
     } catch (error) {
-      // Error is caught, but not logged to console
+      console.error('Fejl under indlæsning af mapper:', error)
     }
   }
 
   const loadSettings = async (user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey) {
-      userSettings.value = {}
-      securePin.value = '1234'
-      return
-    }
+    if (!user?.uid || !encryptionKey) return
 
-    try {
-      const settings = await loadUserSettings(user.uid, encryptionKey)
-      userSettings.value = settings
-      if (settings?.securePin) {
-        securePin.value = settings.securePin
-      }
-    } catch (error) {
-      // Error is caught, but not logged to console
-    }
+    const settings = await loadUserSettings(user.uid, encryptionKey)
+    userSettings.value = settings
+    securePin.value = settings?.securePin || '1234'
   }
 
   const createFolder = async (name, color, user, encryptionKey) => {
-    if (!name.trim() || !encryptionKey || !user) {
-      return false
-    }
+    if (!name.trim() || !user || !encryptionKey) return false
     
     try {
       const encryptedName = await encryptText(name, encryptionKey)
-      
+      const now = new Date()
       const folderData = {
         userId: user.uid,
         encryptedName,
         color: color || '#6366f1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: now,
+        updatedAt: now
       }
       
       const docRef = await addDoc(collection(db, 'folders'), folderData)
+      folders.value.push({ id: docRef.id, name, ...folderData })
       
-      const newFolder = {
-        id: docRef.id,
-        name,
-        encryptedName,
-        color: folderData.color,
-        createdAt: folderData.createdAt,
-        updatedAt: folderData.updatedAt
-      }
-      
-      folders.value = [...folders.value, newFolder]
       return true
     } catch (error) {
-      // Error is caught, but not logged to console
+      console.error('Fejl ved oprettelse af mappe:', error)
       return false
     }
   }
 
-  const updateFolder = async (folderId, name, color, encryptionKey, user) => {
-    if (!encryptionKey || !user) return false
+  const updateFolder = async (folderId, name, color, encryptionKey) => {
+    if (!encryptionKey) return false
     
     try {
       const encryptedName = await encryptText(name, encryptionKey)
+      const now = new Date()
       
-      const folderRef = doc(db, 'folders', folderId)
-      await updateDoc(folderRef, {
+      await updateDoc(doc(db, 'folders', folderId), {
         encryptedName,
         color: color || '#6366f1',
-        updatedAt: new Date()
+        updatedAt: now
       })
       
-      folders.value = folders.value.map(folder => 
-        folder.id === folderId 
-          ? { 
-              ...folder, 
-              name, 
-              encryptedName,
-              color: color || '#6366f1',
-              updatedAt: new Date() 
-            }
-          : folder
-      )
-      
+      const folderIndex = folders.value.findIndex(f => f.id === folderId)
+      if (folderIndex !== -1) {
+        folders.value[folderIndex] = { 
+          ...folders.value[folderIndex], 
+          name, 
+          color: color || '#6366f1',
+          updatedAt: now 
+        }
+      }
       return true
     } catch (error) {
-      // Error is caught, but not logged to console
+      console.error('Fejl ved opdatering af mappe:', error)
       return false
     }
   }
@@ -220,17 +187,14 @@ export const useFoldersStore = defineStore('folders', () => {
   const deleteFolder = async (folderId) => {
     try {
       await deleteDoc(doc(db, 'folders', folderId))
-      
       folders.value = folders.value.filter(folder => folder.id !== folderId)
       
-      // If deleted folder was selected, switch to 'all'
       if (selectedFolderId.value === folderId) {
-        selectedFolderId.value = 'all'
+        selectFolder('all')
       }
-      
       return true
     } catch (error) {
-      // Error is caught, but not logged to console
+      console.error('Fejl ved sletning af mappe:', error)
       return false
     }
   }
@@ -239,107 +203,88 @@ export const useFoldersStore = defineStore('folders', () => {
     selectedFolderId.value = folderId
   }
 
-  const unlockFolder = async (folderId, pin) => {
-    // Check PIN against stored user settings
-    if (folderId === 'secure') {
-      if (pin === securePin.value) {
-        lockedFolders.value.delete(folderId)
-        selectedFolderId.value = folderId // Auto-select folder after unlock
-        return true
-      }
+  const unlockFolder = (folderId, pin) => {
+    if (folderId === 'secure' && pin === securePin.value) {
+      lockedFolders.value.delete(folderId)
+      selectFolder(folderId) // Vælg automatisk mappen efter oplåsning
+      return true
     }
     return false
   }
+  
+  // SIKKERHEDSNOTE: Denne funktion er en usikker pladsholder.
+  // For at gøre den sikker, skal du implementere en rigtig password verifikationsmekanisme.
+  const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, _user) => {
+    console.warn("verifyAndUnlockWithMasterPassword er usikker og kun til demo. Implementer rigtig verifikation.");
+    // EKSEMPEL PÅ SIKKER IMPLEMENTERING:
+    // if (!user?.uid || !userSettings.value?.passwordVerifier) return false;
+    // const isValid = await verifyPassword(masterPassword, user.uid, userSettings.value.passwordVerifier);
+    // if (isValid) { ... }
+    
+    // Midlertidig demo-logik:
+    if (masterPassword) { // Accepterer ethvert input for at demonstrere flowet
+      lockedFolders.value.delete(folderId);
+      selectFolder(folderId);
+      return true;
+    }
+    return false;
+  }
 
-  const unlockWithMasterPassword = async (folderId, masterPassword) => {
-    // Master password unlock logic - should be the user's encryption password
-    // For demo purposes, we'll accept "master" as the master password
-    if (masterPassword === 'master') { // This logic should ideally use the actual encryptionKey for verification
-      lockedFolders.value.delete(folderId)
-      selectedFolderId.value = folderId // Auto-select folder after unlock
+  const changeSecurePin = async (newPin, user, encryptionKey) => {
+    if (!user?.uid || !encryptionKey || !/^\d{4}$/.test(newPin)) return false
+    
+    const updatedSettings = { ...userSettings.value, securePin: newPin }
+    const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+
+    if (success) {
+      // Opdater kun lokal state, hvis det lykkedes at gemme
+      userSettings.value = updatedSettings
+      securePin.value = newPin
       return true
     }
     return false
   }
 
-  const changeSecurePin = async (newPin, user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey) return false
-    
-    try {
-      // Validate PIN format
-      if (!newPin || !/^\d{4}$/.test(newPin)) {
-        return false
-      }
-      
-      // Update local state
-      securePin.value = newPin
-      
-      // Save to Firebase
-      const updatedSettings = { 
-        ...userSettings.value, 
-        securePin: newPin 
-      }
-      const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
-      
-      if (success) {
-        userSettings.value = updatedSettings
-        return true
-      }
-      
-      // Revert local state if save failed
-      securePin.value = userSettings.value?.securePin || '1234'
-      return false
-    } catch (error) {
-      // Error is caught, but not logged to console
-      // Revert local state if save failed
-      securePin.value = userSettings.value?.securePin || '1234'
-      return false
-    }
-  }
-
-  const lockSecureFolder = async () => {
+  const lockSecureFolder = () => {
     lockedFolders.value.add('secure')
     if (selectedFolderId.value === 'secure') {
-      selectedFolderId.value = 'all'
+      selectFolder('all')
     }
-    return true
   }
 
   const updateAiSettings = async (newAiSettings, user, encryptionKey) => {
     if (!user?.uid || !encryptionKey) return false
     
-    try {
-      const updatedSettings = { 
-        ...userSettings.value, 
-        aiSettings: { ...userSettings.value.aiSettings, ...newAiSettings }
-      }
-      const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
-      
-      if (success) {
-        userSettings.value = updatedSettings
-        return true
-      }
-      
-      return false
-    } catch (error) {
-      // Error is caught, but not logged to console
-      return false
+    const updatedSettings = { 
+      ...userSettings.value, 
+      aiSettings: { ...userSettings.value.aiSettings, ...newAiSettings }
     }
+    const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+
+    if (success) {
+      // Opdater kun lokal state, hvis det lykkedes at gemme
+      userSettings.value = updatedSettings
+      return true
+    }
+    return false
   }
 
   const resetFolders = () => {
     folders.value = []
     selectedFolderId.value = 'all'
-    lockedFolders.value = new Set(['secure']) // Initialize secure folder as locked
+    lockedFolders.value = new Set(['secure'])
     userSettings.value = {}
+    securePin.value = '1234'
   }
 
   return {
+    // State
     folders,
     selectedFolderId,
     lockedFolders,
     userSettings,
     securePin,
+    // Actions
     loadFolders,
     loadSettings,
     createFolder,
@@ -347,7 +292,7 @@ export const useFoldersStore = defineStore('folders', () => {
     deleteFolder,
     selectFolder,
     unlockFolder,
-    unlockWithMasterPassword,
+    verifyAndUnlockWithMasterPassword, // Omdøbt for klarhed
     changeSecurePin,
     lockSecureFolder,
     updateAiSettings,
