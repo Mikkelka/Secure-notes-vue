@@ -56,7 +56,8 @@
             />
             <div class="relative w-full bg-gray-700/50 border border-gray-600/50 rounded text-white focus-within:ring-1 focus-within:ring-gray-500 transition-all text-sm min-h-96">
               <!-- Toolbar -->
-              <div class="flex items-center gap-2 p-3 border-b border-gray-600/50 flex-wrap">
+              <div class="flex items-center gap-1 p-3 border-b border-gray-600/50 flex-wrap">
+                <!-- Text formatting -->
                 <button
                   @click="() => editor?.chain().focus().toggleBold().run()"
                   :class="editor?.isActive('bold') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -73,7 +74,34 @@
                 >
                   <Italic class="w-4 h-4" />
                 </button>
-                <div class="w-px h-6 bg-gray-600/50 mx-2" />
+                <button
+                  @click="() => editor?.chain().focus().toggleUnderline().run()"
+                  :class="editor?.isActive('underline') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                  class="flex-shrink-0 p-2 rounded transition-colors"
+                  title="Underline (Ctrl+U)"
+                >
+                  <Underline class="w-4 h-4" />
+                </button>
+                <button
+                  @click="() => editor?.chain().focus().toggleStrike().run()"
+                  :class="editor?.isActive('strike') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                  class="flex-shrink-0 p-2 rounded transition-colors"
+                  title="Strikethrough"
+                >
+                  <Strikethrough class="w-4 h-4" />
+                </button>
+                <button
+                  @click="() => editor?.chain().focus().toggleCode().run()"
+                  :class="editor?.isActive('code') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                  class="flex-shrink-0 p-2 rounded transition-colors"
+                  title="Inline Code"
+                >
+                  <Code class="w-4 h-4" />
+                </button>
+                
+                <div class="w-px h-6 bg-gray-600/50 mx-1" />
+                
+                <!-- Headings -->
                 <button
                   @click="() => editor?.chain().focus().toggleHeading({ level: 1 }).run()"
                   :class="editor?.isActive('heading', { level: 1 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -90,7 +118,10 @@
                 >
                   <Heading2 class="w-4 h-4" />
                 </button>
-                <div class="w-px h-6 bg-gray-600/50 mx-2" />
+                
+                <div class="w-px h-6 bg-gray-600/50 mx-1" />
+                
+                <!-- Lists -->
                 <button
                   @click="() => editor?.chain().focus().toggleBulletList().run()"
                   :class="editor?.isActive('bulletList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -98,6 +129,34 @@
                   title="Bullet List"
                 >
                   <List class="w-4 h-4" />
+                </button>
+                <button
+                  @click="() => editor?.chain().focus().toggleOrderedList().run()"
+                  :class="editor?.isActive('orderedList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                  class="flex-shrink-0 p-2 rounded transition-colors"
+                  title="Numbered List"
+                >
+                  <ListOrdered class="w-4 h-4" />
+                </button>
+                
+                <div class="w-px h-6 bg-gray-600/50 mx-1" />
+                
+                <!-- Undo/Redo -->
+                <button
+                  @click="() => editor?.chain().focus().undo().run()"
+                  :disabled="!editor?.can().undo()"
+                  class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo class="w-4 h-4" />
+                </button>
+                <button
+                  @click="() => editor?.chain().focus().redo().run()"
+                  :disabled="!editor?.can().redo()"
+                  class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Undo class="w-4 h-4 rotate-180" />
                 </button>
               </div>
               <!-- Editor -->
@@ -230,7 +289,8 @@
           />
           <div class="relative w-full bg-gray-700/50 border border-gray-600/50 rounded text-white focus-within:ring-1 focus-within:ring-gray-500 transition-all text-sm min-h-96">
             <!-- Toolbar -->
-            <div class="flex items-center gap-2 p-3 border-b border-gray-600/50 flex-wrap">
+            <div class="flex items-center gap-1 p-3 border-b border-gray-600/50 flex-wrap">
+              <!-- Text formatting -->
               <button
                 @click="() => editor?.chain().focus().toggleBold().run()"
                 :class="editor?.isActive('bold') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -247,7 +307,34 @@
               >
                 <Italic class="w-4 h-4" />
               </button>
-              <div class="w-px h-6 bg-gray-600/50 mx-2" />
+              <button
+                @click="() => editor?.chain().focus().toggleUnderline().run()"
+                :class="editor?.isActive('underline') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                class="flex-shrink-0 p-2 rounded transition-colors"
+                title="Underline (Ctrl+U)"
+              >
+                <Underline class="w-4 h-4" />
+              </button>
+              <button
+                @click="() => editor?.chain().focus().toggleStrike().run()"
+                :class="editor?.isActive('strike') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                class="flex-shrink-0 p-2 rounded transition-colors"
+                title="Strikethrough"
+              >
+                <Strikethrough class="w-4 h-4" />
+              </button>
+              <button
+                @click="() => editor?.chain().focus().toggleCode().run()"
+                :class="editor?.isActive('code') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                class="flex-shrink-0 p-2 rounded transition-colors"
+                title="Inline Code"
+              >
+                <Code class="w-4 h-4" />
+              </button>
+              
+              <div class="w-px h-6 bg-gray-600/50 mx-1" />
+              
+              <!-- Headings -->
               <button
                 @click="() => editor?.chain().focus().toggleHeading({ level: 1 }).run()"
                 :class="editor?.isActive('heading', { level: 1 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -264,7 +351,10 @@
               >
                 <Heading2 class="w-4 h-4" />
               </button>
-              <div class="w-px h-6 bg-gray-600/50 mx-2" />
+              
+              <div class="w-px h-6 bg-gray-600/50 mx-1" />
+              
+              <!-- Lists -->
               <button
                 @click="() => editor?.chain().focus().toggleBulletList().run()"
                 :class="editor?.isActive('bulletList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
@@ -272,6 +362,34 @@
                 title="Bullet List"
               >
                 <List class="w-4 h-4" />
+              </button>
+              <button
+                @click="() => editor?.chain().focus().toggleOrderedList().run()"
+                :class="editor?.isActive('orderedList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
+                class="flex-shrink-0 p-2 rounded transition-colors"
+                title="Numbered List"
+              >
+                <ListOrdered class="w-4 h-4" />
+              </button>
+              
+              <div class="w-px h-6 bg-gray-600/50 mx-1" />
+              
+              <!-- Undo/Redo -->
+              <button
+                @click="() => editor?.chain().focus().undo().run()"
+                :disabled="!editor?.can().undo()"
+                class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo class="w-4 h-4" />
+              </button>
+              <button
+                @click="() => editor?.chain().focus().redo().run()"
+                :disabled="!editor?.can().redo()"
+                class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
+                title="Redo (Ctrl+Y)"
+              >
+                <Undo class="w-4 h-4 rotate-180" />
               </button>
             </div>
             <!-- Editor -->
@@ -373,7 +491,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Bold, Italic, List, Heading1, Heading2, Brain, Undo } from 'lucide-vue-next'
+import { Star, Trash2, X, Save, Edit3, Clock, Bold, Italic, List, Heading1, Heading2, Brain, Undo, Underline, Strikethrough, Code, ListOrdered } from 'lucide-vue-next'
 import { Editor } from '@tiptap/vue-3'
 import { EditorContent } from '@tiptap/vue-3'
 import Document from '@tiptap/extension-document'
@@ -381,10 +499,15 @@ import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import BoldExtension from '@tiptap/extension-bold'
 import ItalicExtension from '@tiptap/extension-italic'
+import UnderlineExtension from '@tiptap/extension-underline'
+import StrikeExtension from '@tiptap/extension-strike'
+import CodeExtension from '@tiptap/extension-code'
 import BulletList from '@tiptap/extension-bullet-list'
+import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Heading from '@tiptap/extension-heading'
 import Link from '@tiptap/extension-link'
+import History from '@tiptap/extension-history'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import { processTextWithAi, isLexicalContent, createLexicalState } from '../../services/aiService.js'
@@ -427,6 +550,9 @@ const convertLexicalToHtml = (content) => {
           let text = node.text || ''
           if (node.format & 1) text = `<strong>${text}</strong>`
           if (node.format & 2) text = `<em>${text}</em>`
+          if (node.format & 4) text = `<s>${text}</s>`
+          if (node.format & 8) text = `<u>${text}</u>`
+          if (node.format & 16) text = `<code>${text}</code>`
           return text
         }
         
@@ -434,13 +560,16 @@ const convertLexicalToHtml = (content) => {
         
         switch (node.type) {
           case 'paragraph':
-            return `<p>${children}</p>`
+            return children ? `<p>${children}</p>` : '<p><br></p>'
           case 'heading':
-            return `<h${node.tag?.substring(1) || '1'}>${children}</h${node.tag?.substring(1) || '1'}>`
+            const level = node.tag?.substring(1) || '1'
+            return `<h${level}>${children}</h${level}>`
           case 'list':
             return node.listType === 'bullet' ? `<ul>${children}</ul>` : `<ol>${children}</ol>`
           case 'listitem':
             return `<li>${children}</li>`
+          case 'quote':
+            return `<blockquote>${children}</blockquote>`
           default:
             return children
         }
@@ -459,17 +588,247 @@ const convertLexicalToHtml = (content) => {
 const convertHtmlToLexical = (html) => {
   if (!html) return ''
   
-  // Simple conversion - this could be enhanced
-  const tempDiv = document.createElement('div')
-  tempDiv.innerHTML = html
-  const text = tempDiv.textContent || tempDiv.innerText || ''
-  return createLexicalState(text)
+  try {
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    
+    const root = {
+      children: [],
+      direction: null,
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1
+    }
+    
+    // Parse DOM and convert to Lexical nodes with format context
+    const convertNode = (node, formatContext = 0) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent
+        if (text && text.trim()) {
+          return {
+            detail: 0,
+            format: formatContext,
+            mode: 'normal',
+            style: '',
+            text: text,
+            type: 'text',
+            version: 1
+          }
+        }
+        return null
+      }
+      
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tagName = node.tagName.toLowerCase()
+        
+        // Calculate new format context for text formatting
+        let newFormatContext = formatContext
+        switch (tagName) {
+          case 'strong':
+          case 'b':
+            newFormatContext |= 1 // Bold flag
+            break
+          case 'em':
+          case 'i':
+            newFormatContext |= 2 // Italic flag
+            break
+          case 's':
+            newFormatContext |= 4 // Strikethrough flag
+            break
+          case 'u':
+            newFormatContext |= 8 // Underline flag
+            break
+          case 'code':
+            newFormatContext |= 16 // Code flag
+            break
+        }
+        
+        // Handle different HTML elements
+        switch (tagName) {
+          case 'p':
+            const pChildren = Array.from(node.childNodes)
+              .map(child => convertNode(child, newFormatContext))
+              .filter(Boolean)
+              .flat()
+            
+            if (pChildren.length === 0) {
+              pChildren.push({
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                text: '',
+                type: 'text',
+                version: 1
+              })
+            }
+            return {
+              children: pChildren,
+              direction: null,
+              format: '',
+              indent: 0,
+              type: 'paragraph',
+              version: 1
+            }
+            
+          case 'h1':
+          case 'h2':
+            const hChildren = Array.from(node.childNodes)
+              .map(child => convertNode(child, newFormatContext))
+              .filter(Boolean)
+              .flat()
+            return {
+              children: hChildren,
+              direction: null,
+              format: '',
+              indent: 0,
+              type: 'heading',
+              version: 1,
+              tag: tagName
+            }
+            
+          case 'ul':
+            const ulChildren = Array.from(node.childNodes)
+              .map(child => convertNode(child, formatContext))
+              .filter(Boolean)
+              .flat()
+            return {
+              children: ulChildren,
+              direction: null,
+              format: '',
+              indent: 0,
+              type: 'list',
+              version: 1,
+              listType: 'bullet',
+              start: 1
+            }
+            
+          case 'ol':
+            const olChildren = Array.from(node.childNodes)
+              .map(child => convertNode(child, formatContext))
+              .filter(Boolean)
+              .flat()
+            return {
+              children: olChildren,
+              direction: null,
+              format: '',
+              indent: 0,
+              type: 'list',
+              version: 1,
+              listType: 'number',
+              start: 1
+            }
+            
+          case 'li':
+            const liChildren = Array.from(node.childNodes)
+              .map(child => convertNode(child, formatContext))
+              .filter(Boolean)
+              .flat()
+            return {
+              children: liChildren,
+              direction: null,
+              format: '',
+              indent: 0,
+              type: 'listitem',
+              version: 1,
+              value: 1
+            }
+            
+          case 'strong':
+          case 'b':
+          case 'em':
+          case 'i':
+          case 'u':
+          case 's':
+          case 'code':
+            // These are handled by format context, just process children
+            return Array.from(node.childNodes)
+              .map(child => convertNode(child, newFormatContext))
+              .filter(Boolean)
+              .flat()
+            
+          default:
+            // For other tags, just process children
+            return Array.from(node.childNodes)
+              .map(child => convertNode(child, formatContext))
+              .filter(Boolean)
+              .flat()
+        }
+      }
+      
+      return null
+    }
+    
+    // Process all child nodes
+    Array.from(tempDiv.childNodes).forEach(node => {
+      const converted = convertNode(node)
+      if (converted) {
+        if (Array.isArray(converted)) {
+          root.children.push(...converted)
+        } else {
+          root.children.push(converted)
+        }
+      }
+    })
+    
+    // If no content, add empty paragraph
+    if (root.children.length === 0) {
+      root.children.push({
+        children: [{
+          detail: 0,
+          format: 0,
+          mode: 'normal',
+          style: '',
+          text: '',
+          type: 'text',
+          version: 1
+        }],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'paragraph',
+        version: 1
+      })
+    }
+    
+    return JSON.stringify({ root })
+    
+  } catch (error) {
+    console.error('HTML to Lexical conversion error:', error)
+    // Fallback to simple text
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    const text = tempDiv.textContent || tempDiv.innerText || ''
+    return createLexicalState(text)
+  }
 }
 
 // Initialize editors
 const initializeEditor = () => {
   if (editor.value) {
     editor.value.destroy()
+  }
+  
+  const theme = {
+    paragraph: 'editor-paragraph',
+    text: {
+      bold: 'editor-text-bold',
+      italic: 'editor-text-italic',
+      underline: 'editor-text-underline',
+      strike: 'line-through',
+      code: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
+    },
+    heading: {
+      h1: 'editor-heading-h1',
+      h2: 'editor-heading-h2'
+    },
+    list: {
+      ol: 'editor-list-ol',
+      ul: 'editor-list-ul',
+      listitem: 'editor-listitem'
+    },
+    link: 'editor-link'
   }
   
   editor.value = new Editor({
@@ -479,12 +838,36 @@ const initializeEditor = () => {
       Text,
       BoldExtension,
       ItalicExtension,
-      Heading.configure({
-        levels: [1, 2]
+      UnderlineExtension,
+      StrikeExtension,
+      CodeExtension.configure({
+        HTMLAttributes: {
+          class: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
+        }
       }),
-      BulletList,
-      ListItem,
-      Link
+      Heading.configure({
+        levels: [1, 2],
+        HTMLAttributes: {
+          class: 'text-white'
+        }
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: 'editor-list-ul'
+        }
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: 'editor-list-ol'
+        }
+      }),
+      ListItem.configure({
+        HTMLAttributes: {
+          class: 'editor-listitem'
+        }
+      }),
+      Link,
+      History
     ],
     content: convertLexicalToHtml(editContent.value),
     onUpdate: ({ editor }) => {
@@ -492,7 +875,7 @@ const initializeEditor = () => {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-invert focus:outline-none max-w-none'
+        class: 'prose prose-invert focus:outline-none max-w-none text-white'
       }
     }
   })
@@ -510,18 +893,42 @@ const initializeViewerEditor = () => {
       Text,
       BoldExtension,
       ItalicExtension,
-      Heading.configure({
-        levels: [1, 2]
+      UnderlineExtension,
+      StrikeExtension,
+      CodeExtension.configure({
+        HTMLAttributes: {
+          class: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
+        }
       }),
-      BulletList,
-      ListItem,
-      Link
+      Heading.configure({
+        levels: [1, 2],
+        HTMLAttributes: {
+          class: 'text-white'
+        }
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: 'editor-list-ul'
+        }
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: 'editor-list-ol'
+        }
+      }),
+      ListItem.configure({
+        HTMLAttributes: {
+          class: 'editor-listitem'
+        }
+      }),
+      Link,
+      History
     ],
     content: convertLexicalToHtml(props.note?.content || ''),
     editable: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-invert focus:outline-none max-w-none'
+        class: 'prose prose-invert focus:outline-none max-w-none text-white'
       }
     }
   })
