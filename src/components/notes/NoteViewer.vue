@@ -90,14 +90,6 @@
                 >
                   <Strikethrough class="w-4 h-4" />
                 </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleCode().run()"
-                  :class="editor?.isActive('code') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Inline Code"
-                >
-                  <Code class="w-4 h-4" />
-                </button>
                 
                 <div class="w-px h-6 bg-gray-600/50 mx-1" />
                 
@@ -323,14 +315,6 @@
               >
                 <Strikethrough class="w-4 h-4" />
               </button>
-              <button
-                @click="() => editor?.chain().focus().toggleCode().run()"
-                :class="editor?.isActive('code') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Inline Code"
-              >
-                <Code class="w-4 h-4" />
-              </button>
               
               <div class="w-px h-6 bg-gray-600/50 mx-1" />
               
@@ -491,7 +475,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Bold, Italic, List, Heading1, Heading2, Brain, Undo, Underline, Strikethrough, Code, ListOrdered } from 'lucide-vue-next'
+import { Star, Trash2, X, Save, Edit3, Clock, Bold, Italic, List, Heading1, Heading2, Brain, Undo, Underline, Strikethrough, ListOrdered } from 'lucide-vue-next'
 import { Editor } from '@tiptap/vue-3'
 import { EditorContent } from '@tiptap/vue-3'
 import Document from '@tiptap/extension-document'
@@ -501,7 +485,6 @@ import BoldExtension from '@tiptap/extension-bold'
 import ItalicExtension from '@tiptap/extension-italic'
 import UnderlineExtension from '@tiptap/extension-underline'
 import StrikeExtension from '@tiptap/extension-strike'
-import CodeExtension from '@tiptap/extension-code'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
@@ -552,7 +535,6 @@ const convertLexicalToHtml = (content) => {
           if (node.format & 2) text = `<em>${text}</em>`
           if (node.format & 4) text = `<s>${text}</s>`
           if (node.format & 8) text = `<u>${text}</u>`
-          if (node.format & 16) text = `<code>${text}</code>`
           return text
         }
         
@@ -638,9 +620,6 @@ const convertHtmlToLexical = (html) => {
             break
           case 'u':
             newFormatContext |= 8 // Underline flag
-            break
-          case 'code':
-            newFormatContext |= 16 // Code flag
             break
         }
         
@@ -741,7 +720,6 @@ const convertHtmlToLexical = (html) => {
           case 'i':
           case 'u':
           case 's':
-          case 'code':
             // These are handled by format context, just process children
             return Array.from(node.childNodes)
               .map(child => convertNode(child, newFormatContext))
@@ -840,11 +818,6 @@ const initializeEditor = () => {
       ItalicExtension,
       UnderlineExtension,
       StrikeExtension,
-      CodeExtension.configure({
-        HTMLAttributes: {
-          class: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
-        }
-      }),
       Heading.configure({
         levels: [1, 2],
         HTMLAttributes: {
@@ -895,11 +868,6 @@ const initializeViewerEditor = () => {
       ItalicExtension,
       UnderlineExtension,
       StrikeExtension,
-      CodeExtension.configure({
-        HTMLAttributes: {
-          class: 'bg-gray-600 text-gray-100 px-1 py-0.5 rounded text-sm font-mono'
-        }
-      }),
       Heading.configure({
         levels: [1, 2],
         HTMLAttributes: {

@@ -108,15 +108,6 @@ body {
   text-decoration: line-through;
 }
 
-.ProseMirror code {
-  background-color: rgb(75, 85, 99);
-  color: rgb(243, 244, 246);
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
 .ProseMirror ul,
 .ProseMirror ol {
   margin: 0.5rem 0;

@@ -16,7 +16,7 @@ const SAFETY_SETTINGS = [
 ];
 
 // Fælles formateringsinstruktioner
-const FORMATTING_INSTRUCTIONS = `Formatering: Brug **omkring tekst** for fed skrift, *omkring tekst* for kursiv, start linjer med - for punktopstilling, # for store overskrifter, ## for mindre overskrifter. Lav linjeskift mellem afsnit. Returner kun den færdige note.`;
+const FORMATTING_INSTRUCTIONS = `Formatering: BEVAR AL EKSISTERENDE FORMATERING og brug: **omkring tekst** for fed skrift, *omkring tekst* for kursiv, ~~omkring tekst~~ for gennemstreget, start linjer med - for punktopstilling, # for store overskrifter, ## for mindre overskrifter. Brug KUN ét linjeskift mellem afsnit - undgå for mange tomme linjer. Hvis originalteksten har formatering, SKAL du bevare den og forbedre den. Returner kun den færdige note.`;
 
 // Optimeret prompt-struktur for nemmere vedligeholdelse
 const PROMPT_DEFINITIONS = {
@@ -107,15 +107,76 @@ export const extractPlainText = (lexicalState) => {
 };
 
 /**
- * Parser inline formatering (**fed**, *kursiv*) til Lexical text nodes.
+ * Konverterer Lexical state til markdown format så AI kan se og bevare formatering.
+ * @param {string} lexicalState - JSON-string fra Lexical.
+ * @returns {string} Markdown formateret tekst.
+ */
+export const convertLexicalToMarkdown = (lexicalState) => {
+  if (!lexicalState) return "";
+  
+  if (!isLexicalContent(lexicalState)) {
+    // Hvis det ikke er Lexical, returner teksten som den er
+    return lexicalState;
+  }
+
+  try {
+    const parsed = JSON.parse(lexicalState);
+    
+    const convertNode = (node, context = {}) => {
+      if (node.type === "text") {
+        let text = node.text || "";
+        
+        // Anvend formatering baseret på format flags
+        if (node.format & 1) text = `**${text}**`; // Bold
+        if (node.format & 2) text = `*${text}*`; // Italic  
+        if (node.format & 4) text = `~~${text}~~`; // Strikethrough
+        if (node.format & 8) text = `<u>${text}</u>`; // Underline
+        
+        return text;
+      }
+      
+      const children = node.children?.map(child => convertNode(child, { parent: node })).join("") || "";
+      
+      switch (node.type) {
+        case "paragraph":
+          return children ? `${children}\n` : "\n";
+        case "heading":
+          const level = node.tag === "h1" ? "#" : "##";
+          return `${level} ${children}\n`;
+        case "list":
+          // Pass list type til children og tilføj linjeskift efter liste
+          const listContent = node.children?.map((child, index) => 
+            convertNode(child, { parent: node, listIndex: index + 1 })
+          ).join("") || "";
+          return listContent + (listContent ? "\n" : "");
+        case "listitem":
+          // Brug parent information til at bestemme prefix
+          const isNumbered = context.parent?.listType === "number";
+          const prefix = isNumbered ? `${context.listIndex || 1}. ` : "- ";
+          return `${prefix}${children}\n`;
+        default:
+          return children;
+      }
+    };
+    
+    return parsed.root?.children?.map(convertNode).join("") || "";
+  } catch {
+    // Fallback til plain text hvis parsing fejler
+    return extractPlainText(lexicalState);
+  }
+};
+
+/**
+ * Parser inline formatering (**fed**, *kursiv*, ~~strikethrough~~, `code`) til Lexical text nodes.
  * @param {string} text - Tekstlinje der skal parses.
  * @returns {Array<object>} Et array af Lexical text nodes.
  */
 const parseInlineFormatting = (text) => {
   const parts = [];
   let lastIndex = 0;
-  // Regex til at finde **fed** eller *kursiv* tekst
-  const formatRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  
+  // Regex til at finde forskellige formatering typer
+  const formatRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~~[^~]+~~|<u>[^<]+<\/u>)/g;
 
   text.replace(formatRegex, (match, offset) => {
     // Tilføj tekst før match
@@ -123,11 +184,27 @@ const parseInlineFormatting = (text) => {
       parts.push(createLexicalTextNode(text.substring(lastIndex, offset)));
     }
 
-    // Tilføj formateret tekst
-    const isBold = match.startsWith("**");
-    const content = match.slice(isBold ? 2 : 1, isBold ? -2 : -1);
-    parts.push(createLexicalTextNode(content, isBold ? 1 : 2));
-
+    // Tilføj formateret tekst baseret på type
+    let content, format;
+    
+    if (match.startsWith("**")) {
+      content = match.slice(2, -2);
+      format = 1; // Bold
+    } else if (match.startsWith("*")) {
+      content = match.slice(1, -1);
+      format = 2; // Italic
+    } else if (match.startsWith("~~")) {
+      content = match.slice(2, -2);
+      format = 4; // Strikethrough
+    } else if (match.startsWith("<u>")) {
+      content = match.slice(3, -4);
+      format = 8; // Underline
+    } else {
+      content = match;
+      format = 0;
+    }
+    
+    parts.push(createLexicalTextNode(content, format));
     lastIndex = offset + match.length;
   });
 
@@ -148,11 +225,36 @@ export const createLexicalState = (text) => {
   const root = createLexicalNode("root", []);
   if (!text) return JSON.stringify({ root });
 
-  const lines = text.split("\n");
+  // Normaliser tekst: fjern excessive whitespace og linjeskift
+  const normalizedText = text
+    .replace(/\n\s*\n\s*\n+/g, '\n\n') // Maksimalt 2 consecutive newlines
+    .replace(/[ \t]+/g, ' ') // Multiple spaces til single space
+    .trim();
+
+  const lines = normalizedText.split("\n");
   let i = 0;
+  let consecutiveEmptyLines = 0;
 
   while (i < lines.length) {
     const line = lines[i].trim();
+
+    // Skip for mange consecutive empty lines
+    if (!line) {
+      consecutiveEmptyLines++;
+      if (consecutiveEmptyLines > 1) {
+        i++;
+        continue; // Skip denne tomme linje
+      }
+      // Tilføj kun én tom linje som paragraph break
+      root.children.push(createLexicalNode("paragraph", [
+        createLexicalTextNode("")
+      ]));
+      i++;
+      continue;
+    }
+
+    // Reset empty line counter når vi finder content
+    consecutiveEmptyLines = 0;
 
     if (line.startsWith("# ")) {
       const children = parseInlineFormatting(line.substring(2));
@@ -163,7 +265,7 @@ export const createLexicalState = (text) => {
       root.children.push(createLexicalNode("heading", children, { tag: "h2" }));
       i++;
     } else if (line.startsWith("- ")) {
-      // **FEJL RETTET**: Gruppér efterfølgende listepunkter korrekt
+      // Bullet list
       const listItems = [];
       while (i < lines.length && lines[i].trim().startsWith("- ")) {
         const itemContent = parseInlineFormatting(lines[i].trim().substring(2));
@@ -179,15 +281,37 @@ export const createLexicalState = (text) => {
           start: 1,
         })
       );
+    } else if (/^\d+\.\s/.test(line)) {
+      // Numbered list (1. 2. 3. etc.)
+      const listItems = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
+        const itemContent = parseInlineFormatting(lines[i].trim().replace(/^\d+\.\s/, ""));
+        listItems.push(
+          createLexicalNode("listitem", itemContent, { value: 1 })
+        );
+        i++;
+      }
+      root.children.push(
+        createLexicalNode("list", listItems, {
+          listType: "number",
+          tag: "ol",
+          start: 1,
+        })
+      );
     } else if (line) {
       const children = parseInlineFormatting(line);
       root.children.push(createLexicalNode("paragraph", children));
       i++;
     } else {
-      // Håndter tomme linjer som tomme afsnit for linjeskift
-      root.children.push(createLexicalNode("paragraph", []));
       i++;
     }
+  }
+
+  // Hvis ingen content blev tilføjet, tilføj et tomt paragraph
+  if (root.children.length === 0) {
+    root.children.push(createLexicalNode("paragraph", [
+      createLexicalTextNode("")
+    ]));
   }
 
   return JSON.stringify({ root });
@@ -251,8 +375,9 @@ export const processTextWithAi = async (content, userSettings = null) => {
     );
   }
 
-  const plainText = extractPlainText(content);
-  if (!plainText.trim()) {
+  // Brug markdown konvertering så AI kan se original formatering
+  const markdownText = convertLexicalToMarkdown(content);
+  if (!markdownText.trim()) {
     throw new Error("Ingen tekst at processere.");
   }
 
@@ -264,9 +389,53 @@ export const processTextWithAi = async (content, userSettings = null) => {
       safetySettings: SAFETY_SETTINGS,
     });
 
-    const prompt = `${instructionPrompt}\n\nTekst: ${plainText}`;
+    // Forbedret prompt der fremhæver at originale formatering skal bevares
+    const prompt = `${instructionPrompt}
+
+KRITISKE FORMATERINGS REGLER:
+- Input teksten nedenfor kan allerede have formatering (fed tekst, kursiv, lister, overskrifter)
+- Du SKAL bevare og respektere al eksisterende formatering
+- Forbedre kun formateringen hvor det giver mening
+- Hvis teksten har **fed tekst** så bevar det som **fed tekst**
+- Hvis teksten har lister med - så bevar dem som lister
+- Tilføj ny formatering kun hvor det forbedrer læsbarheden
+
+ABSOLUT KRITISK - OUTPUT FORMAT:
+- Brug KUN markdown formatering: **bold**, *italic*, ~~strikethrough~~, # overskrift, ## underoverskrift, - liste
+- Brug ALDRIG HTML tags som <ul>, </ul>, <li>, </li>, <strong>, </strong> etc.
+- Returner KUN ren tekst med markdown formatering
+- Brug IKKE for mange linjeskift eller tomme linjer. Maksimalt ét tomt linjeskift mellem afsnit.
+
+Input tekst:
+${markdownText}`;
+
     const result = await modelInstance.generateContent(prompt);
-    const processedText = result.response.text();
+    let processedText = result.response.text();
+
+    // Post-processing: Rens HTML tags og konverter til markdown
+    processedText = processedText
+      // Konverter HTML bold til markdown
+      .replace(/<\/?strong>/g, '**')
+      .replace(/<\/?b>/g, '**')
+      // Konverter HTML italic til markdown
+      .replace(/<\/?em>/g, '*')
+      .replace(/<\/?i>/g, '*')
+      // Konverter HTML underline til markdown
+      .replace(/<u>/g, '<u>').replace(/<\/u>/g, '</u>')
+      // Fjern HTML liste tags
+      .replace(/<\/?ul>/g, '')
+      .replace(/<\/?ol>/g, '')
+      .replace(/<li>/g, '- ')
+      .replace(/<\/li>/g, '')
+      // Konverter HTML headings til markdown
+      .replace(/<h1>/g, '# ').replace(/<\/h1>/g, '')
+      .replace(/<h2>/g, '## ').replace(/<\/h2>/g, '')
+      // Fjern andre HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Normaliser whitespace igen efter HTML cleanup
+      .replace(/\n\s*\n\s*\n+/g, '\n\n')
+      .replace(/[ \t]+/g, ' ')
+      .trim();
 
     return createLexicalState(processedText);
   } catch (error) {
