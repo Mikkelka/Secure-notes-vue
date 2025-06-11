@@ -9,19 +9,83 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  orderBy
+  orderBy,
+  setDoc,
+  getDoc
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
 
+// User settings functions
+const loadUserSettings = async (userId, encryptionKey) => {
+  if (!userId || !encryptionKey) return null
+  
+  try {
+    const userSettingsRef = doc(db, 'userSettings', userId)
+    const userSettingsSnap = await getDoc(userSettingsRef)
+    
+    if (userSettingsSnap.exists()) {
+      const data = userSettingsSnap.data()
+      if (data.encryptedSettings) {
+        const decryptedSettings = await decryptText(data.encryptedSettings, encryptionKey)
+        return JSON.parse(decryptedSettings)
+      }
+    }
+    
+    // Return default settings if none exist
+    return { 
+      securePin: '1234',
+      aiSettings: {
+        apiKey: '',
+        selectedModel: 'gemini-2.5-flash-preview-05-20',
+        customInstructions: 'note-organizer'
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load user settings:', error)
+    return { 
+      securePin: '1234',
+      aiSettings: {
+        apiKey: '',
+        selectedModel: 'gemini-2.5-flash-preview-05-20',
+        customInstructions: 'note-organizer'
+      }
+    }
+  }
+}
+
+const saveUserSettings = async (userId, settings, encryptionKey) => {
+  if (!userId || !settings || !encryptionKey) return false
+  
+  try {
+    const encryptedSettings = await encryptText(JSON.stringify(settings), encryptionKey)
+    const userSettingsRef = doc(db, 'userSettings', userId)
+    
+    await setDoc(userSettingsRef, {
+      userId,
+      encryptedSettings,
+      updatedAt: new Date()
+    }, { merge: true })
+    
+    return true
+  } catch (error) {
+    console.error('Failed to save user settings:', error)
+    return false
+  }
+}
+
 export const useFoldersStore = defineStore('folders', () => {
   const folders = ref([])
   const selectedFolderId = ref('all')
-  const lockedFolders = ref(new Set())
+  const lockedFolders = ref(new Set(['secure'])) // Initialize secure folder as locked
   const userSettings = ref({})
+  const securePin = ref('1234') // Default PIN
 
   const loadFolders = async (user, encryptionKey) => {
     try {
+      // Load user settings (including PIN) first
+      await loadSettings(user, encryptionKey)
+      
       const foldersRef = collection(db, 'folders')
       const q = query(
         foldersRef, 
@@ -53,6 +117,24 @@ export const useFoldersStore = defineStore('folders', () => {
       folders.value = decryptedFolders
     } catch (error) {
       console.error('Load folders error:', error)
+    }
+  }
+
+  const loadSettings = async (user, encryptionKey) => {
+    if (!user?.uid || !encryptionKey) {
+      userSettings.value = {}
+      securePin.value = '1234'
+      return
+    }
+
+    try {
+      const settings = await loadUserSettings(user.uid, encryptionKey)
+      userSettings.value = settings
+      if (settings?.securePin) {
+        securePin.value = settings.securePin
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error)
     }
   }
 
@@ -144,11 +226,11 @@ export const useFoldersStore = defineStore('folders', () => {
   }
 
   const unlockFolder = async (folderId, pin) => {
-    // Simple PIN check for secure folder
+    // Check PIN against stored user settings
     if (folderId === 'secure') {
-      // In a real app, you'd verify the PIN against stored hash
-      if (pin && pin.length === 4) {
+      if (pin === securePin.value) {
         lockedFolders.value.delete(folderId)
+        selectedFolderId.value = folderId // Auto-select folder after unlock
         return true
       }
     }
@@ -156,20 +238,49 @@ export const useFoldersStore = defineStore('folders', () => {
   }
 
   const unlockWithMasterPassword = async (folderId, masterPassword) => {
-    // Master password unlock logic
-    if (masterPassword && masterPassword.length > 0) {
+    // Master password unlock logic - should be the user's encryption password
+    // For demo purposes, we'll accept "master" as the master password
+    if (masterPassword === 'master') {
       lockedFolders.value.delete(folderId)
+      selectedFolderId.value = folderId // Auto-select folder after unlock
       return true
     }
     return false
   }
 
-  const changeSecurePin = async (newPin) => {
-    // Change PIN logic - in real app would hash and store
-    if (newPin && /^\d{4}$/.test(newPin)) {
-      return true
+  const changeSecurePin = async (newPin, user, encryptionKey) => {
+    if (!user?.uid || !encryptionKey) return false
+    
+    try {
+      // Validate PIN format
+      if (!newPin || !/^\d{4}$/.test(newPin)) {
+        return false
+      }
+      
+      // Update local state
+      securePin.value = newPin
+      
+      // Save to Firebase
+      const updatedSettings = { 
+        ...userSettings.value, 
+        securePin: newPin 
+      }
+      const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+      
+      if (success) {
+        userSettings.value = updatedSettings
+        return true
+      }
+      
+      // Revert local state if save failed
+      securePin.value = userSettings.value?.securePin || '1234'
+      return false
+    } catch (error) {
+      console.error('Failed to change secure PIN:', error)
+      // Revert local state if save failed
+      securePin.value = userSettings.value?.securePin || '1234'
+      return false
     }
-    return false
   }
 
   const lockSecureFolder = async () => {
@@ -180,17 +291,32 @@ export const useFoldersStore = defineStore('folders', () => {
     return true
   }
 
-  const updateAiSettings = (settings) => {
-    userSettings.value = {
-      ...userSettings.value,
-      ...settings
+  const updateAiSettings = async (newAiSettings, user, encryptionKey) => {
+    if (!user?.uid || !encryptionKey) return false
+    
+    try {
+      const updatedSettings = { 
+        ...userSettings.value, 
+        aiSettings: { ...userSettings.value.aiSettings, ...newAiSettings }
+      }
+      const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+      
+      if (success) {
+        userSettings.value = updatedSettings
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Failed to update AI settings:', error)
+      return false
     }
   }
 
   const resetFolders = () => {
     folders.value = []
     selectedFolderId.value = 'all'
-    lockedFolders.value = new Set()
+    lockedFolders.value = new Set(['secure']) // Initialize secure folder as locked
     userSettings.value = {}
   }
 
@@ -199,7 +325,9 @@ export const useFoldersStore = defineStore('folders', () => {
     selectedFolderId,
     lockedFolders,
     userSettings,
+    securePin,
     loadFolders,
+    loadSettings,
     createFolder,
     updateFolder,
     deleteFolder,

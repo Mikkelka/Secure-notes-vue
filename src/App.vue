@@ -365,7 +365,7 @@ const handleConfirmFolderDelete = async () => {
 const handleChangeSecurePin = async () => {
   const newPin = window.prompt('Indtast ny PIN (4 cifre):')
   if (newPin !== null && /^\d{4}$/.test(newPin)) {
-    const success = await foldersStore.changeSecurePin(newPin)
+    const success = await foldersStore.changeSecurePin(newPin, authStore.user, authStore.encryptionKey)
     if (success) {
       alert('PIN ændret succesfuldt!')
     } else {
