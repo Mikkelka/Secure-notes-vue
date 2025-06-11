@@ -17,7 +17,10 @@
     </div>
 
     <!-- Create Folder Form -->
-    <div v-if="showCreateForm" class="p-3 border-b border-gray-700/50 bg-gray-700/30">
+    <div
+      v-if="showCreateForm"
+      class="p-3 border-b border-gray-700/50 bg-gray-700/30"
+    >
       <div class="space-y-2">
         <input
           v-model="newFolderName"
@@ -34,8 +37,10 @@
             @click="newFolderColor = color.name"
             :class="[
               'w-6 h-6 rounded border-2 transition-all',
-              newFolderColor === color.name ? 'border-white' : 'border-transparent',
-              color.class
+              newFolderColor === color.name
+                ? 'border-white'
+                : 'border-transparent',
+              color.class,
             ]"
           />
         </div>
@@ -66,17 +71,22 @@
           :key="folder.id"
           :class="[
             'group flex items-center gap-2 p-2 mx-1 my-1 rounded cursor-pointer transition-all',
-            props.selectedFolderId === folder.id 
-              ? 'bg-gray-700/80 text-white' 
-              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+            props.selectedFolderId === folder.id
+              ? 'bg-gray-700/80 text-white'
+              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white',
           ]"
           @click="handleFolderClick(folder.id)"
         >
           <div class="flex items-center gap-1 flex-shrink-0">
             <component :is="folder.icon" class="w-3 h-3" />
-            <Lock v-if="folder.id === 'secure'" class="w-2.5 h-2.5 text-gray-400" />
+            <Lock
+              v-if="folder.id === 'secure'"
+              class="w-2.5 h-2.5 text-gray-400"
+            />
           </div>
-          <span class="flex-1 text-xs font-medium truncate">{{ folder.name }}</span>
+          <span class="flex-1 text-xs font-medium truncate">{{
+            folder.name
+          }}</span>
           <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right">
             {{ props.noteCounts[folder.id] || 0 }}
           </span>
@@ -91,20 +101,19 @@
           :key="folder.id"
           :class="[
             'group flex items-center gap-2 p-2 mx-1 my-1 rounded cursor-pointer transition-all',
-            props.selectedFolderId === folder.id 
-              ? 'bg-gray-700/80 text-white' 
-              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+            props.selectedFolderId === folder.id
+              ? 'bg-gray-700/80 text-white'
+              : 'text-gray-300 hover:bg-gray-700/50 hover:text-white',
           ]"
           @click="$emit('folderSelect', folder.id)"
         >
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div 
-              class="w-3 h-3 rounded"
-              :class="getColorClass(folder.color)"
-            />
+            <div class="w-3 h-3 rounded" :class="getColorClass(folder.color)" />
           </div>
-          <span class="flex-1 text-xs font-medium truncate">{{ folder.name }}</span>
-          
+          <span class="flex-1 text-xs font-medium truncate">{{
+            folder.name
+          }}</span>
+
           <div class="flex items-center gap-0.5" @click.stop>
             <button
               @click="$emit('folderDelete', folder.id)"
@@ -113,7 +122,7 @@
               <Trash2 class="w-3 h-3" />
             </button>
           </div>
-          
+
           <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right">
             {{ props.noteCounts[folder.id] || 0 }}
           </span>
@@ -136,82 +145,96 @@
 </template>
 
 <script setup>
-import { computed, ref, nextTick, watch } from 'vue'
-import { FolderOpen, Archive, Shield, Plus, Trash2, Lock } from 'lucide-vue-next'
-import PinInput from '../base/PinInput.vue'
+import { computed, ref, nextTick, watch } from "vue";
+import {
+  FolderOpen,
+  Archive,
+  Shield,
+  Plus,
+  Trash2,
+  Lock,
+} from "lucide-vue-next";
+import PinInput from "../base/PinInput.vue";
 
 const props = defineProps({
   folders: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   selectedFolderId: {
     type: String,
-    default: 'all'
+    default: "all",
   },
   noteCounts: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   lockedFolders: {
     type: Set,
-    default: () => new Set()
-  }
-})
+    default: () => new Set(),
+  },
+});
 
-const emit = defineEmits(['folderSelect', 'folderCreate', 'folderUpdate', 'folderDelete', 'unlockFolder', 'masterPasswordUnlock'])
+const emit = defineEmits([
+  "folderSelect",
+  "folderCreate",
+  "folderUpdate",
+  "folderDelete",
+  "unlockFolder",
+  "masterPasswordUnlock",
+]);
 
 // Create folder form state
-const showCreateForm = ref(false)
-const newFolderName = ref('')
-const newFolderColor = ref('blue')
-const folderNameInput = ref(null)
+const showCreateForm = ref(false);
+const newFolderName = ref("");
+const newFolderColor = ref("blue");
+const folderNameInput = ref(null);
 
 // PIN prompt state
-const showPinPrompt = ref(null)
-const pinInputRef = ref(null)
+const showPinPrompt = ref(null);
+const pinInputRef = ref(null);
 
 // Folder colors like React version
 const folderColors = [
-  { name: 'blue', class: 'text-blue-400 bg-blue-500/20' },
-  { name: 'green', class: 'text-green-400 bg-green-500/20' },
-  { name: 'purple', class: 'text-purple-400 bg-purple-500/20' },
-  { name: 'red', class: 'text-red-400 bg-red-500/20' },
-  { name: 'yellow', class: 'text-yellow-400 bg-yellow-500/20' },
-  { name: 'pink', class: 'text-pink-400 bg-pink-500/20' }
-]
+  { name: "blue", class: "text-blue-400 bg-blue-500/20" },
+  { name: "green", class: "text-green-400 bg-green-500/20" },
+  { name: "purple", class: "text-purple-400 bg-purple-500/20" },
+  { name: "red", class: "text-red-400 bg-red-500/20" },
+  { name: "yellow", class: "text-yellow-400 bg-yellow-500/20" },
+  { name: "pink", class: "text-pink-400 bg-pink-500/20" },
+];
 
 const defaultFolders = computed(() => [
   {
-    id: 'all',
-    name: 'Alle noter',
-    icon: FolderOpen
+    id: "all",
+    name: "Alle noter",
+    icon: FolderOpen,
   },
   {
-    id: 'uncategorized', 
-    name: 'Ukategoriseret',
-    icon: Archive
+    id: "uncategorized",
+    name: "Ukategoriseret",
+    icon: Archive,
   },
   {
-    id: 'secure',
-    name: 'Sikker mappe',
-    icon: Shield
-  }
-])
+    id: "secure",
+    name: "Sikker mappe",
+    icon: Shield,
+  },
+]);
 
 const getColorClass = (color) => {
-  const colorObj = folderColors.find(c => c.name === color)
-  return colorObj ? colorObj.class : 'text-gray-400 bg-gray-500/20'
-}
+  const colorObj = folderColors.find((c) => c.name === color);
+  return colorObj ? colorObj.class : "text-gray-400 bg-gray-500/20";
+};
 
 // Folder selection with PIN check
 const handleFolderClick = async (folderId) => {
-  if (folderId === 'secure' && props.lockedFolders.has(folderId)) {
-    showPinPrompt.value = folderId
+  if (folderId === "secure" && props.lockedFolders.has(folderId)) {
+    showPinPrompt.value = folderId;
   } else {
-    emit('folderSelect', folderId)
+    emit("folderSelect", folderId);
   }
-}
+};
 
 // PIN unlock handlers
 const handleUnlockFolder = async (pin) => {
@@ -219,84 +242,88 @@ const handleUnlockFolder = async (pin) => {
     // Since Vue emit doesn't return values, we need to handle this differently
     // We'll emit the event and trust the parent to handle the unlock
     // and close the modal by checking if folder is unlocked
-    emit('unlockFolder', showPinPrompt.value, pin)
-    
+    emit("unlockFolder", showPinPrompt.value, pin);
+
     // Give the parent a moment to process the unlock
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Check if the folder is still locked
     if (!props.lockedFolders.has(showPinPrompt.value)) {
       // Folder was unlocked successfully
-      showPinPrompt.value = null
-      return true
+      showPinPrompt.value = null;
+      return true;
     } else {
       // PIN was incorrect - show error first, then reset after delay
-      pinInputRef.value?.setError('Forkert PIN. Prøv igen.')
+      pinInputRef.value?.setError("Forkert PIN. Prøv igen.");
       setTimeout(() => {
-        pinInputRef.value?.resetPin()
-      }, 1500) // Reset after 1.5 seconds so user can see the error
-      return false
+        pinInputRef.value?.resetPin();
+      }, 1500); // Reset after 1.5 seconds so user can see the error
+      return false;
     }
   }
-  return true
-}
+  return true;
+};
 
 const handleMasterPasswordUnlock = async (masterPassword) => {
   if (showPinPrompt.value && masterPassword) {
     try {
       // Emit the master password unlock event
-      emit('masterPasswordUnlock', showPinPrompt.value, masterPassword)
-      
+      emit("masterPasswordUnlock", showPinPrompt.value, masterPassword);
+
       // Give the parent a moment to process the unlock
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Check if the folder is still locked
       if (!props.lockedFolders.has(showPinPrompt.value)) {
         // Folder was unlocked successfully
-        showPinPrompt.value = null
-        return true
+        showPinPrompt.value = null;
+        return true;
       } else {
         // Master password was incorrect
-        pinInputRef.value?.setError('Forkert hovedadgangskode. Prøv igen.')
-        return false
+        pinInputRef.value?.setError("Forkert hovedadgangskode. Prøv igen.");
+        return false;
       }
     } catch (error) {
-      console.error('Master password unlock error:', error)
-      return false
+      // Error is caught, but not logged to console
+      return false;
     }
   }
-  return false
-}
+  return false;
+};
 
 const handleCreateFolder = async () => {
   if (newFolderName.value.trim()) {
-    emit('folderCreate', newFolderName.value.trim(), newFolderColor.value)
-    newFolderName.value = ''
-    newFolderColor.value = 'blue'
-    showCreateForm.value = false
+    emit("folderCreate", newFolderName.value.trim(), newFolderColor.value);
+    newFolderName.value = "";
+    newFolderColor.value = "blue";
+    showCreateForm.value = false;
   }
-}
+};
 
 const cancelCreateFolder = () => {
-  showCreateForm.value = false
-  newFolderName.value = ''
-  newFolderColor.value = 'blue'
-}
+  showCreateForm.value = false;
+  newFolderName.value = "";
+  newFolderColor.value = "blue";
+};
 
 // Auto-focus input when form opens
 const showCreateFormWatcher = () => {
   if (showCreateForm.value) {
     nextTick(() => {
-      folderNameInput.value?.focus()
-    })
+      folderNameInput.value?.focus();
+    });
   }
-}
+};
 
 // Watch for form visibility changes
-watch(showCreateForm, showCreateFormWatcher)
+watch(showCreateForm, showCreateFormWatcher);
 
 // Debug: Watch folders prop
-watch(() => props.folders, (newFolders) => {
-  console.log('📁 FolderSidebar received folders:', newFolders.length, newFolders)
-}, { immediate: true })
+watch(
+  () => props.folders,
+  (newFolders) => {
+    // Removed console.log
+  },
+  { immediate: true }
+);
 </script>

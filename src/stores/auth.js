@@ -50,7 +50,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Session timeout handler
   const handleSessionTimeout = () => {
-    console.log('Session timeout - locking user out')
     encryptionKey.value = null
     showTimeoutWarning.value = false
     clearSessionTimers()
@@ -58,7 +57,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Warning handler
   const handleTimeoutWarning = () => {
-    console.log('Showing session timeout warning')
     showTimeoutWarning.value = true
   }
 
@@ -136,8 +134,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       return { success: true }
     } catch (error) {
-      console.error('Login error:', error)
-      
       let errorMessage = 'Login fejlede'
       switch (error.code) {
         case 'auth/invalid-email':
@@ -201,8 +197,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       return { success: true }
     } catch (error) {
-      console.error('Register error:', error)
-      
       let errorMessage = 'Registrering fejlede'
       switch (error.code) {
         case 'auth/email-already-in-use':
@@ -228,17 +222,13 @@ export const useAuthStore = defineStore('auth', () => {
   const handleGoogleLogin = async () => {
     loading.value = true
     try {
-      console.log('🔗 Starting Google login...')
-      
       await setPersistence(auth, browserLocalPersistence)
       
       const provider = new GoogleAuthProvider()
       provider.addScope('email')
       provider.addScope('profile')
       
-      console.log('🚀 Opening Google popup...')
       const result = await signInWithPopup(auth, provider)
-      console.log('✅ Google login successful:', result.user.email)
       
       const googlePassword = result.user.uid
       const key = await deriveKeyFromPassword(googlePassword, result.user.uid)
@@ -252,16 +242,8 @@ export const useAuthStore = defineStore('auth', () => {
       encryptionKey.value = key
       passwordVerifier.value = verifier
       
-      console.log('🔐 Auto-generated encryption key from Google UID')
-      
       return { success: true, needsPassword: false }
     } catch (error) {
-      console.error('❌ Google login error details:', {
-        code: error.code,
-        message: error.message,
-        details: error
-      })
-      
       let errorMessage = 'Google login fejlede'
       switch (error.code) {
         case 'auth/popup-closed-by-user':
@@ -303,7 +285,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       await signOut(auth)
     } catch (error) {
-      console.error('Logout error:', error)
+      // Error is caught, but not logged to console
     } finally {
       loading.value = false
     }
@@ -311,12 +293,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize auth state listener
   const initializeAuth = () => {
-    console.log('🔧 Initializing auth state listener')
     return onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔧 Auth state changed, user:', firebaseUser ? firebaseUser.email : 'null')
       if (firebaseUser) {
-        console.log('🔍 Auth state changed for user:', firebaseUser.email)
-        
         user.value = firebaseUser
         isLoggedIn.value = true
         
@@ -330,35 +308,22 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           let key = null
           
-          console.log('🔍 Login type:', loginType)
-          
           if (loginType === 'google') {
-            console.log('🔍 Regenerating Google user encryption key')
-            console.log('🔍 Using UID as password:', firebaseUser.uid.substring(0, 8) + '...')
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
           } else if (loginType === 'email') {
             const encryptedPassword = localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)
             if (encryptedPassword) {
               const password = atob(encryptedPassword)
-              console.log('🔍 Regenerating email user encryption key')
-              console.log('🔍 Using stored password length:', password.length)
               key = await deriveKeyFromPassword(password, firebaseUser.uid)
-            } else {
-              console.log('❌ No stored password found for email user')
             }
-          } else {
-            console.log('❌ Unknown login type:', loginType)
           }
           
           if (key) {
             encryptionKey.value = key
-            console.log('🔐 Auto-regenerated encryption key for', loginType, 'user')
           } else {
-            console.log('⚠️ Could not regenerate encryption key')
             encryptionKey.value = null
           }
         } catch (error) {
-          console.error('❌ Error regenerating encryption key:', error)
           encryptionKey.value = null
         }
       } else {

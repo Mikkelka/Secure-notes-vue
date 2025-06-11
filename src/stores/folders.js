@@ -9,7 +9,7 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  orderBy,
+  // orderBy, // Not used, can be removed if not needed elsewhere
   setDoc,
   getDoc
 } from 'firebase/firestore'
@@ -42,7 +42,7 @@ const loadUserSettings = async (userId, encryptionKey) => {
       }
     }
   } catch (error) {
-    console.error('Failed to load user settings:', error)
+    // Error is caught, but not logged to console
     return { 
       securePin: '1234',
       aiSettings: {
@@ -69,7 +69,7 @@ const saveUserSettings = async (userId, settings, encryptionKey) => {
     
     return true
   } catch (error) {
-    console.error('Failed to save user settings:', error)
+    // Error is caught, but not logged to console
     return false
   }
 }
@@ -83,8 +83,6 @@ export const useFoldersStore = defineStore('folders', () => {
 
   const loadFolders = async (user, encryptionKey) => {
     try {
-      console.log('Loading folders for user:', user.uid)
-      
       // Load user settings (including PIN) first
       await loadSettings(user, encryptionKey)
       
@@ -96,7 +94,6 @@ export const useFoldersStore = defineStore('folders', () => {
       )
       
       const querySnapshot = await getDocs(q)
-      console.log('Found', querySnapshot.docs.length, 'folders in Firestore')
       const decryptedFolders = []
       
       for (const docSnapshot of querySnapshot.docs) {
@@ -111,10 +108,8 @@ export const useFoldersStore = defineStore('folders', () => {
           } else if (folderData.name) {
             // Old unencrypted folder - use name as is
             decryptedName = folderData.name
-            console.log('Found legacy unencrypted folder:', folderData.name)
           } else {
             // No name - skip
-            console.warn('Folder has no name or encryptedName:', docSnapshot.id)
             continue
           }
           
@@ -127,16 +122,13 @@ export const useFoldersStore = defineStore('folders', () => {
             updatedAt: folderData.updatedAt?.toDate() || new Date()
           })
         } catch (error) {
-          console.error('Failed to decrypt folder:', docSnapshot.id, error)
           // Skip folders that can't be decrypted
         }
       }
       
       folders.value = decryptedFolders
-      console.log('Successfully loaded', decryptedFolders.length, 'folders:', decryptedFolders.map(f => f.name))
-      console.log('Setting folders.value to:', decryptedFolders)
     } catch (error) {
-      console.error('Load folders error:', error)
+      // Error is caught, but not logged to console
     }
   }
 
@@ -154,22 +146,16 @@ export const useFoldersStore = defineStore('folders', () => {
         securePin.value = settings.securePin
       }
     } catch (error) {
-      console.error('Failed to load settings:', error)
+      // Error is caught, but not logged to console
     }
   }
 
   const createFolder = async (name, color, user, encryptionKey) => {
     if (!name.trim() || !encryptionKey || !user) {
-      console.error('Missing required data for folder creation:', { 
-        hasName: !!name.trim(), 
-        hasUser: !!user, 
-        hasKey: !!encryptionKey 
-      })
       return false
     }
     
     try {
-      console.log('Creating folder:', name, 'with color:', color)
       const encryptedName = await encryptText(name, encryptionKey)
       
       const folderData = {
@@ -180,7 +166,6 @@ export const useFoldersStore = defineStore('folders', () => {
         updatedAt: new Date()
       }
       
-      console.log('Saving folder to Firestore with data:', { ...folderData, encryptedName: '[encrypted]' })
       const docRef = await addDoc(collection(db, 'folders'), folderData)
       
       const newFolder = {
@@ -193,13 +178,9 @@ export const useFoldersStore = defineStore('folders', () => {
       }
       
       folders.value = [...folders.value, newFolder]
-      console.log('Folder created successfully:', newFolder.name, 'Total folders:', folders.value.length)
       return true
     } catch (error) {
-      console.error('Create folder error:', error)
-      if (error.code === 'permission-denied') {
-        console.error('Firebase permissions error - check security rules')
-      }
+      // Error is caught, but not logged to console
       return false
     }
   }
@@ -231,7 +212,7 @@ export const useFoldersStore = defineStore('folders', () => {
       
       return true
     } catch (error) {
-      console.error('Update folder error:', error)
+      // Error is caught, but not logged to console
       return false
     }
   }
@@ -249,7 +230,7 @@ export const useFoldersStore = defineStore('folders', () => {
       
       return true
     } catch (error) {
-      console.error('Delete folder error:', error)
+      // Error is caught, but not logged to console
       return false
     }
   }
@@ -273,7 +254,7 @@ export const useFoldersStore = defineStore('folders', () => {
   const unlockWithMasterPassword = async (folderId, masterPassword) => {
     // Master password unlock logic - should be the user's encryption password
     // For demo purposes, we'll accept "master" as the master password
-    if (masterPassword === 'master') {
+    if (masterPassword === 'master') { // This logic should ideally use the actual encryptionKey for verification
       lockedFolders.value.delete(folderId)
       selectedFolderId.value = folderId // Auto-select folder after unlock
       return true
@@ -309,7 +290,7 @@ export const useFoldersStore = defineStore('folders', () => {
       securePin.value = userSettings.value?.securePin || '1234'
       return false
     } catch (error) {
-      console.error('Failed to change secure PIN:', error)
+      // Error is caught, but not logged to console
       // Revert local state if save failed
       securePin.value = userSettings.value?.securePin || '1234'
       return false
@@ -341,7 +322,7 @@ export const useFoldersStore = defineStore('folders', () => {
       
       return false
     } catch (error) {
-      console.error('Failed to update AI settings:', error)
+      // Error is caught, but not logged to console
       return false
     }
   }
