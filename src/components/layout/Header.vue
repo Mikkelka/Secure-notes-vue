@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-gray-900/80 backdrop-blur border-b border-gray-700/50 sticky top-0 z-50">
+  <header class="bg-gray-900/80 backdrop-blur border-b border-gray-700/50 sticky top-0 z-50 h-16">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-500 rounded-lg flex items-center justify-center">
