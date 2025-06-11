@@ -1,82 +1,179 @@
 <template>
-  <div class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4 h-full flex flex-col">
-    <!-- Search -->
-    <div class="mb-4">
+  <div class="h-full flex flex-col space-y-0 md:space-y-4 md:p-0 overflow-hidden">
+    <!-- Search field - desktop only -->
+    <div class="hidden md:block bg-gray-800/60 border border-gray-700/50 rounded-lg p-3 flex-shrink-0">
       <div class="relative">
         <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
-          :value="searchTerm"
-          @input="$emit('searchChange', $event.target.value)"
+          v-model="localSearchTerm"
           type="text"
           placeholder="Søg i noter..."
-          class="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+          class="w-full pl-9 pr-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all text-sm"
         />
+        <button
+          v-if="localSearchTerm"
+          @click="localSearchTerm = ''"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
     </div>
 
     <!-- Notes list -->
-    <div class="flex-1 overflow-y-auto space-y-2">
-      <div v-if="notes.length === 0" class="text-center text-gray-400 py-8">
-        <FileText class="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>Ingen noter fundet</p>
+    <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
+      <div v-if="notes.length === 0" class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-6 text-center">
+        <Lock class="w-8 h-8 text-gray-500 mx-auto mb-2" />
+        <h3 class="text-gray-300 text-base mb-1">
+          {{ debouncedSearchTerm ? 'Ingen noter fundet' : 'Ingen noter endnu' }}
+        </h3>
+        <p class="text-gray-500 text-sm">
+          {{ debouncedSearchTerm ? 'Prøv en anden søgning' : 'Opret din første krypterede note' }}
+        </p>
       </div>
       
-      <div
-        v-for="note in notes"
-        :key="note.id"
-        :class="[
-          'p-3 rounded-lg border cursor-pointer transition-all group',
-          selectedNoteId === note.id
-            ? 'bg-gray-600 border-gray-500 text-white'
-            : 'bg-gray-700/30 border-gray-600/30 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600/50'
-        ]"
-        @click="$emit('noteClick', note)"
-      >
-        <div class="flex items-start justify-between mb-2">
-          <h4 class="font-medium truncate flex-1">{{ note.title }}</h4>
-          <div class="flex items-center gap-1 ml-2">
-            <BaseButton
-              v-if="note.isFavorite"
-              variant="ghost"
-              size="sm"
-              @click.stop="$emit('toggleFavorite', note.id)"
-              class="text-yellow-400"
-            >
-              <Star class="w-3 h-3 fill-current" />
-            </BaseButton>
-            <BaseButton
-              v-else
-              variant="ghost"
-              size="sm"
-              @click.stop="$emit('toggleFavorite', note.id)"
-              class="opacity-0 group-hover:opacity-100"
-            >
-              <Star class="w-3 h-3" />
-            </BaseButton>
-            <BaseButton
-              variant="ghost"
-              size="sm"
-              @click.stop="$emit('deleteNote', note.id)"
-              class="opacity-0 group-hover:opacity-100 text-red-400"
-            >
-              <Trash2 class="w-3 h-3" />
-            </BaseButton>
+      <template v-else>
+        <!-- Favorite Notes Section -->
+        <div v-if="favoriteNotes.length > 0">
+          <div class="flex items-center gap-2 text-yellow-400 text-sm font-medium mb-2">
+            <Star class="w-4 h-4 fill-current" />
+            Favoritter
+          </div>
+          <div class="space-y-2">
+            <div
+              v-for="note in favoriteNotes"
+              :key="note.id"
+            :class="[
+              'bg-gray-800/60 border rounded-lg p-3 transition-all cursor-pointer',
+              selectedNoteId === note.id
+                ? 'border-blue-500/50 bg-blue-500/10'
+                : 'border-gray-700/50 hover:bg-gray-800/80'
+            ]"
+            @click="$emit('noteClick', note)"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2 text-gray-400 text-sm">
+                <Clock class="w-4 h-4" />
+                {{ formatDate(note.createdAt, true) }}
+                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+              </div>
+              <div class="flex items-center gap-1" @click.stop>
+                <button
+                  @click="handleToggleFavorite(note.id)"
+                  :class="[
+                    'p-2 hover:bg-gray-700 rounded transition-colors',
+                    note.isFavorite
+                      ? 'text-yellow-400 hover:text-yellow-300'
+                      : 'text-gray-400 hover:text-yellow-400'
+                  ]"
+                >
+                  <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                </button>
+                <button
+                  @click="handleDeleteNote(note.id)"
+                  class="p-2 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-white text-sm font-medium mb-1 line-clamp-1">
+                {{ note.title }}
+              </h3>
+              <div class="text-gray-300 text-xs line-clamp-2">
+                {{ getPreview(note.content) }}
+              </div>
+            </div>
+          </div>
+          </div>
+          
+          <!-- Separator if there are regular notes too -->
+          <div v-if="regularNotes.length > 0" class="border-t border-gray-700/50 my-4"></div>
+        </div>
+
+        <!-- Regular Notes Section -->
+        <div v-if="regularNotes.length > 0">
+          <div v-if="favoriteNotes.length > 0" class="flex items-center gap-2 text-gray-400 text-sm font-medium mb-2">
+            Andre noter
+          </div>
+          <div class="space-y-2">
+            <div
+              v-for="note in regularNotes"
+              :key="note.id"
+            :class="[
+              'bg-gray-800/60 border rounded-lg p-3 transition-all cursor-pointer',
+              selectedNoteId === note.id
+                ? 'border-blue-500/50 bg-blue-500/10'
+                : 'border-gray-700/50 hover:bg-gray-800/80'
+            ]"
+            @click="$emit('noteClick', note)"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2 text-gray-400 text-sm">
+                <Clock class="w-4 h-4" />
+                {{ formatDate(note.createdAt, true) }}
+                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+              </div>
+              <div class="flex items-center gap-1" @click.stop>
+                <button
+                  @click="handleToggleFavorite(note.id)"
+                  :class="[
+                    'p-2 hover:bg-gray-700 rounded transition-colors',
+                    note.isFavorite
+                      ? 'text-yellow-400 hover:text-yellow-300'
+                      : 'text-gray-400 hover:text-yellow-400'
+                  ]"
+                >
+                  <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                </button>
+                <button
+                  @click="handleDeleteNote(note.id)"
+                  class="p-2 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-white text-sm font-medium mb-1 line-clamp-1">
+                {{ note.title }}
+              </h3>
+              <div class="text-gray-300 text-xs line-clamp-2">
+                {{ getPreview(note.content) }}
+              </div>
+            </div>
+          </div>
           </div>
         </div>
-        <p class="text-sm text-gray-400 line-clamp-2">{{ getPreview(note.content) }}</p>
-        <div class="text-xs text-gray-500 mt-2">
-          {{ formatDate(note.updatedAt) }}
-        </div>
-      </div>
+      </template>
     </div>
   </div>
+  
+  <!-- Confirm Dialog -->
+  <BaseDialog
+    :is-open="confirmDialog.isOpen"
+    title="Slet note"
+    :show-default-actions="true"
+    confirm-text="Slet"
+    cancel-text="Annuller"
+    @confirm="handleConfirmDelete"
+    @cancel="handleCancelDelete"
+    @close="handleCancelDelete"
+  >
+    Er du sikker på at du vil slette denne note? Denne handling kan ikke fortrydes.
+  </BaseDialog>
 </template>
 
 <script setup>
-import { Search, FileText, Star, Trash2 } from 'lucide-vue-next'
-import BaseButton from '../base/BaseButton.vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { Search, Lock, Star, Trash2, Clock, X } from 'lucide-vue-next'
+import BaseDialog from '../base/BaseDialog.vue'
+import { extractPlainText, isLexicalContent } from '../../services/aiService.js'
 
-defineProps({
+const props = defineProps({
   notes: {
     type: Array,
     default: () => []
@@ -91,27 +188,100 @@ defineProps({
   }
 })
 
-defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite'])
+const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite'])
+
+const localSearchTerm = ref('')
+const confirmDialog = ref({ isOpen: false, noteId: null })
+const debouncedSearchTerm = ref('')
+
+// Debounce search term with 300ms delay
+let debounceTimeout = null
+watch(localSearchTerm, (newValue) => {
+  clearTimeout(debounceTimeout)
+  debounceTimeout = setTimeout(() => {
+    debouncedSearchTerm.value = newValue
+    emit('searchChange', newValue)
+  }, 300)
+})
+
+// Sync with parent search term
+watch(() => props.searchTerm, (newValue) => {
+  if (newValue !== localSearchTerm.value) {
+    localSearchTerm.value = newValue
+    debouncedSearchTerm.value = newValue
+  }
+}, { immediate: true })
+
+// Separate favorites and regular notes
+const favoriteNotes = computed(() => props.notes.filter(note => note.isFavorite))
+const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite))
+
+// Extract plain text from Lexical JSON content
+const extractTextFromLexical = (content) => {
+  if (!content || typeof content !== 'string') return ''
+  
+  if (isLexicalContent(content)) {
+    return extractPlainText(content)
+  }
+  
+  // If not Lexical content, return as is
+  return content
+}
 
 const getPreview = (content) => {
   if (!content) return ''
-  // Simple text extraction - would be more complex for rich content
-  return content.length > 100 ? content.substring(0, 100) + '...' : content
+  const plainText = extractTextFromLexical(content)
+  return plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText
 }
 
-const formatDate = (date) => {
+const formatDate = (date, includeTime = false) => {
   if (!date) return ''
-  return new Date(date).toLocaleDateString('da-DK', {
+  const options = {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+    year: 'numeric'
+  }
+  
+  if (includeTime) {
+    options.hour = '2-digit'
+    options.minute = '2-digit'
+  }
+  
+  return new Date(date).toLocaleDateString('da-DK', options)
 }
+
+const handleToggleFavorite = (noteId) => {
+  emit('toggleFavorite', noteId)
+}
+
+const handleDeleteNote = (noteId) => {
+  confirmDialog.value = { isOpen: true, noteId }
+}
+
+const handleConfirmDelete = () => {
+  if (confirmDialog.value.noteId) {
+    emit('deleteNote', confirmDialog.value.noteId)
+  }
+  confirmDialog.value = { isOpen: false, noteId: null }
+}
+
+const handleCancelDelete = () => {
+  confirmDialog.value = { isOpen: false, noteId: null }
+}
+
+onMounted(() => {
+  debouncedSearchTerm.value = props.searchTerm
+})
 </script>
 
 <style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useNotesStore } from './notes'
 
 export const useUIStore = defineStore('ui', () => {
-  const selectedNote = ref(null)
+  const selectedNoteId = ref(null)
+  const notesStore = useNotesStore()
+  
+  const selectedNote = computed(() => {
+    if (!selectedNoteId.value) return null
+    return notesStore.allNotes.find(note => note.id === selectedNoteId.value) || null
+  })
   const showDataExport = ref(false)
   const showImportData = ref(false)
   const showAiModal = ref(false)
@@ -15,11 +22,11 @@ export const useUIStore = defineStore('ui', () => {
   const folderConfirmDialog = ref({ isOpen: false, folderId: null })
 
   const setSelectedNote = (note) => {
-    selectedNote.value = note
+    selectedNoteId.value = note ? note.id : null
   }
 
   const closeNoteViewer = () => {
-    selectedNote.value = null
+    selectedNoteId.value = null
   }
 
   const openDataExport = () => {
@@ -122,7 +129,7 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const resetUI = () => {
-    selectedNote.value = null
+    selectedNoteId.value = null
     showDataExport.value = false
     showImportData.value = false
     showAiModal.value = false
@@ -137,6 +144,7 @@ export const useUIStore = defineStore('ui', () => {
 
   return {
     selectedNote,
+    selectedNoteId,
     showDataExport,
     showImportData,
     showAiModal,

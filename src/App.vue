@@ -1,5 +1,6 @@
 <template>
   <ErrorBoundary>
+    <!-- Login Skærm -->
     <div v-if="!authStore.isLoggedIn">
       <LoginForm
         ref="loginFormRef"
@@ -10,6 +11,8 @@
       />
     </div>
 
+    <!-- Hovedapplikation (når bruger er logget ind) -->
+    <!-- ANBEFALING: Hele denne v-else blok kunne med fordel flyttes til sin egen komponent, f.eks. 'MainAppLayout.vue', for at holde denne fil mere simpel. -->
     <div
       v-else
       class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black"
@@ -33,12 +36,12 @@
             :selected-folder-id="foldersStore.selectedFolderId"
             :note-counts="noteCounts"
             :locked-folders="foldersStore.lockedFolders"
-            @folder-select="foldersStore.selectFolder"
+            @folder-select="handleFolderSelect"
             @folder-create="handleFolderCreate"
             @folder-update="handleFolderUpdate"
             @folder-delete="handleFolderDelete"
-            @unlock-folder="foldersStore.unlockFolder"
-            @master-password-unlock="foldersStore.unlockWithMasterPassword"
+            @unlock-folder="handleUnlockFolder"
+            @master-password-unlock="handleMasterPasswordUnlock"
           />
         </div>
 
@@ -54,17 +57,18 @@
           <div
             class="absolute left-0 top-16 bottom-0 w-64 transform translate-x-0 transition-transform"
           >
+            <!-- REFAKTORERET: Bruger de samme handlers som desktop versionen -->
             <FolderSidebar
               :folders="foldersStore.folders"
               :selected-folder-id="foldersStore.selectedFolderId"
               :note-counts="noteCounts"
               :locked-folders="foldersStore.lockedFolders"
-              @folder-select="handleMobileFolderSelect"
+              @folder-select="handleFolderSelect"
               @folder-create="handleFolderCreate"
               @folder-update="handleFolderUpdate"
               @folder-delete="handleFolderDelete"
-              @unlock-folder="handleMobileUnlockFolder"
-              @master-password-unlock="handleMobileMasterPasswordUnlock"
+              @unlock-folder="handleUnlockFolder"
+              @master-password-unlock="handleMasterPasswordUnlock"
             />
           </div>
         </div>
@@ -92,7 +96,7 @@
                 <SettingsMenu
                   :selected-folder-id="foldersStore.selectedFolderId"
                   :locked-folders="foldersStore.lockedFolders"
-                  @change-secure-pin="handleChangeSecurePin"
+                  @change-secure-pin="openChangePinDialog"
                   @lock-secure-folder="foldersStore.lockSecureFolder"
                 />
               </div>
@@ -153,22 +157,19 @@
         @close="uiStore.closeDataExport"
         @open-import="uiStore.openImportData"
       />
-
       <ImportData
         v-if="uiStore.showImportData"
         :user="authStore.user"
         @close="uiStore.closeImportData"
         @import-complete="handleImportComplete"
       />
-
       <AiModal
         v-if="uiStore.showAiModal"
         :is-open="uiStore.showAiModal"
         :user-settings="foldersStore.userSettings"
         @close="uiStore.closeAiModal"
-        @update-ai-settings="foldersStore.updateAiSettings"
+        @update-ai-settings="handleUpdateAiSettings"
       />
-
       <AppSettings
         :is-open="uiStore.showAppSettings"
         @close="uiStore.closeAppSettings"
@@ -184,15 +185,13 @@
         @settings-click="handleMobileSettingsClick"
       />
 
-      <!-- Mobile Search Drawer -->
+      <!-- Mobile Drawers -->
       <MobileSearchDrawer
         :is-open="uiStore.showMobileSearch"
         :search-term="notesStore.searchTerm"
         @close="uiStore.closeMobileSearch"
         @search-change="notesStore.setSearchTerm"
       />
-
-      <!-- Mobile Drawers -->
       <MobileDrawer
         :is-open="uiStore.showMobileNoteEditor"
         title="Ny Note"
@@ -201,7 +200,6 @@
       >
         <NoteEditor :is-compact="false" @save="handleSaveNote" />
       </MobileDrawer>
-
       <MobileDrawer
         :is-open="uiStore.showMobileSettings"
         title="Indstillinger"
@@ -211,19 +209,17 @@
         <SettingsMenu
           :selected-folder-id="foldersStore.selectedFolderId"
           :locked-folders="foldersStore.lockedFolders"
-          @change-secure-pin="handleChangeSecurePin"
+          @change-secure-pin="openChangePinDialog"
           @lock-secure-folder="foldersStore.lockSecureFolder"
         />
       </MobileDrawer>
 
-      <!-- Timeout Warning -->
+      <!-- Timeout og Dialoger -->
       <TimeoutWarning
         :show="authStore.showTimeoutWarning"
         @extend="authStore.extendSession"
         @logout="authStore.logout"
       />
-
-      <!-- Confirm Dialog -->
       <BaseDialog
         :is-open="uiStore.folderConfirmDialog.isOpen"
         title="Slet mappe"
@@ -232,10 +228,32 @@
         cancel-text="Annuller"
         @confirm="handleConfirmFolderDelete"
         @cancel="uiStore.closeFolderConfirmDialog"
-        @close="uiStore.closeFolderConfirmDialog"
       >
         Er du sikker på at du vil slette denne mappe? Noter flyttes til
         Ukategoriseret.
+      </BaseDialog>
+
+      <!-- NY DIALOG: Erstatter window.prompt for at ændre PIN -->
+      <BaseDialog
+        :is-open="isChangePinDialogOpen"
+        title="Ændr sikker PIN-kode"
+        :show-default-actions="true"
+        confirm-text="Gem"
+        cancel-text="Annuller"
+        @confirm="handleChangeSecurePin"
+        @cancel="isChangePinDialogOpen = false"
+      >
+        <p class="text-sm text-gray-400 mb-2">
+          Indtast din nye 4-cifrede PIN-kode.
+        </p>
+        <input
+          v-model="newPinInput"
+          type="password"
+          maxlength="4"
+          placeholder="••••"
+          class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          @keyup.enter="handleChangeSecurePin"
+        />
       </BaseDialog>
     </div>
   </ErrorBoundary>
@@ -250,6 +268,7 @@ import { useAuthStore } from "./stores/auth";
 import { useNotesStore } from "./stores/notes";
 import { useFoldersStore } from "./stores/folders";
 import { useUIStore } from "./stores/ui";
+import { useSettingsStore } from "./stores/settings";
 
 // Components
 import ErrorBoundary from "./components/ErrorBoundary.vue";
@@ -271,51 +290,73 @@ import AiModal from "./components/ai/AiModal.vue";
 import AppSettings from "./components/settings/AppSettings.vue";
 import BaseDialog from "./components/base/BaseDialog.vue";
 
-// Initialize stores
+// --- Store initialisering ---
 const authStore = useAuthStore();
 const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const uiStore = useUIStore();
 
-// Template refs
+// --- Template refs ---
 const loginFormRef = ref(null);
 
-// Computed
+// --- Lokal state (f.eks. til dialoger) ---
+const isChangePinDialogOpen = ref(false);
+const newPinInput = ref("");
+
+// --- Computed properties ---
 const filteredNotes = computed(() => {
-  return notesStore.filterNotesByFolder(foldersStore.selectedFolderId);
+  const selectedFolderId = foldersStore.selectedFolderId;
+  // Brug den nye 'searchedAndSortedNotes' fra din store som base
+  const baseNotes = notesStore.searchedAndSortedNotes;
+
+  if (selectedFolderId === 'all') {
+    return baseNotes.filter(note => note.folderId !== 'secure');
+  }
+  if (selectedFolderId === 'uncategorized') {
+    return baseNotes.filter(note => !note.folderId);
+  }
+  
+  // Denne linje håndterer både 'secure' og alle specifikke mappe-ID'er
+  return baseNotes.filter(note => note.folderId === selectedFolderId);
 });
 
 const noteCounts = computed(() => {
   return notesStore.getNoteCounts(foldersStore.folders);
 });
 
-// Auth handlers
+// --- Genindlæsning af data ---
+const reloadAllData = async () => {
+  if (authStore.user && authStore.encryptionKey) {
+    try {
+      await Promise.all([
+        notesStore.loadNotes(authStore.user, authStore.encryptionKey),
+        foldersStore.loadFolders(authStore.user, authStore.encryptionKey),
+      ]);
+    } catch (error) {
+      console.error("Fejl ved genindlæsning af data:", error);
+    }
+  }
+};
+
+// --- Auth Handlers ---
 const handleLogin = async (email, password) => {
   const result = await authStore.handleLogin(email, password);
-  if (result.success) {
-    loginFormRef.value?.clearForm();
-  } else {
-    loginFormRef.value?.setError(result.error);
-  }
+  if (result.success) loginFormRef.value?.clearForm();
+  else loginFormRef.value?.setError(result.error);
 };
 
 const handleRegister = async (email, password) => {
   const result = await authStore.handleRegister(email, password);
-  if (result.success) {
-    loginFormRef.value?.clearForm();
-  } else {
-    loginFormRef.value?.setError(result.error);
-  }
+  if (result.success) loginFormRef.value?.clearForm();
+  else loginFormRef.value?.setError(result.error);
 };
 
 const handleGoogleLogin = async () => {
   const result = await authStore.handleGoogleLogin();
-  if (!result.success) {
-    loginFormRef.value?.setError(result.error);
-  }
+  if (!result.success) loginFormRef.value?.setError(result.error);
 };
 
-// Note handlers
+// --- Note Handlers ---
 const handleNoteClick = (note) => {
   uiStore.setSelectedNote(note);
   notesStore.setEditingNote(null);
@@ -323,42 +364,30 @@ const handleNoteClick = (note) => {
 
 const handleSaveNote = async (title, content) => {
   const targetFolderId =
-    foldersStore.selectedFolderId === "all" ||
-    foldersStore.selectedFolderId === "uncategorized"
+    ["all", "uncategorized"].includes(foldersStore.selectedFolderId)
       ? null
-      : foldersStore.selectedFolderId === "secure"
-      ? "secure"
       : foldersStore.selectedFolderId;
 
   const success = await notesStore.saveNote(
-    title,
-    content,
-    targetFolderId,
-    authStore.user,
-    authStore.encryptionKey
+    title, content, targetFolderId,
+    authStore.user, authStore.encryptionKey
   );
 
   if (success && uiStore.showMobileNoteEditor) {
     handleMobileNoteEditorClose();
   }
-
   return success;
 };
 
 const handleViewerUpdate = async (noteId, title, content) => {
   const success = await notesStore.updateNote(
-    noteId,
-    title,
-    content,
-    authStore.encryptionKey,
-    authStore.user
+    noteId, title, content,
+    authStore.encryptionKey, authStore.user
   );
   if (success) {
     uiStore.setSelectedNote({
       ...uiStore.selectedNote,
-      title,
-      content,
-      updatedAt: new Date(),
+      title, content, updatedAt: new Date(),
     });
   }
   return success;
@@ -366,112 +395,100 @@ const handleViewerUpdate = async (noteId, title, content) => {
 
 const handleViewerDelete = async (noteId) => {
   const success = await notesStore.deleteNote(noteId);
-  if (success) {
-    uiStore.closeNoteViewer();
-  }
+  if (success) uiStore.closeNoteViewer();
   return success;
 };
 
 const handleToggleFavorite = async (noteId) => {
-  const success = await notesStore.toggleFavorite(noteId);
-  if (success && uiStore.selectedNote?.id === noteId) {
-    uiStore.setSelectedNote({
-      ...uiStore.selectedNote,
-      isFavorite: !uiStore.selectedNote.isFavorite,
-    });
-  }
-  return success;
+  return await notesStore.toggleFavorite(noteId);
 };
 
-// Folder handlers
-const handleFolderCreate = async (name, color) => {
-  return await foldersStore.createFolder(
-    name,
-    color,
-    authStore.user,
-    authStore.encryptionKey
-  );
+// --- Folder Handlers ---
+const handleFolderCreate = (name, color) => {
+  return foldersStore.createFolder(name, color, authStore.user, authStore.encryptionKey);
 };
 
-const handleFolderUpdate = async (folderId, name, color) => {
-  return await foldersStore.updateFolder(
-    folderId,
-    name,
-    color,
-    authStore.encryptionKey,
-    authStore.user
-  );
+const handleFolderUpdate = (folderId, name, color) => {
+  return foldersStore.updateFolder(folderId, name, color, authStore.encryptionKey, authStore.user);
 };
 
-const handleFolderDelete = async (folderId) => {
+const handleFolderDelete = (folderId) => {
   uiStore.openFolderConfirmDialog(folderId);
 };
 
 const handleConfirmFolderDelete = async () => {
   if (uiStore.folderConfirmDialog.folderId) {
-    const success = await foldersStore.deleteFolder(
-      uiStore.folderConfirmDialog.folderId
-    );
-    uiStore.closeFolderConfirmDialog();
-    return success;
+    await foldersStore.deleteFolder(uiStore.folderConfirmDialog.folderId);
   }
   uiStore.closeFolderConfirmDialog();
-  return false;
+};
+
+// REFAKTORERET: Kombinerede handlers for desktop og mobil
+const handleFolderSelect = (folderId) => {
+  foldersStore.selectFolder(folderId);
+  if (uiStore.showMobileSidebar) {
+    uiStore.closeMobileSidebar();
+  }
+};
+
+const handleUnlockFolder = async (folderId, pin) => {
+  const success = await foldersStore.unlockFolder(folderId, pin);
+  if (success && uiStore.showMobileSidebar) {
+    uiStore.closeMobileSidebar();
+  }
+  return success;
+};
+
+const handleMasterPasswordUnlock = async (folderId, masterPassword) => {
+  const success = await foldersStore.unlockWithMasterPassword(folderId, masterPassword);
+  if (success && uiStore.showMobileSidebar) {
+    uiStore.closeMobileSidebar();
+  }
+  return success;
+};
+
+// REFAKTORERET: Bruger dialog i stedet for window.prompt
+const openChangePinDialog = () => {
+  newPinInput.value = "";
+  isChangePinDialogOpen.value = true;
 };
 
 const handleChangeSecurePin = async () => {
-  const newPin = window.prompt("Indtast ny PIN (4 cifre):");
-  if (newPin !== null && /^\d{4}$/.test(newPin)) {
+  if (newPinInput.value && /^\d{4}$/.test(newPinInput.value)) {
     const success = await foldersStore.changeSecurePin(
-      newPin,
+      newPinInput.value,
       authStore.user,
       authStore.encryptionKey
     );
     if (success) {
       alert("PIN ændret succesfuldt!");
+      isChangePinDialogOpen.value = false;
     } else {
       alert("Kunne ikke ændre PIN. Prøv igen.");
     }
-  } else if (newPin !== null) {
-    alert("PIN skal være 4 cifre");
+  } else {
+    alert("PIN skal være 4 cifre.");
   }
 };
 
-// Mobile handlers
-const handleMobileFolderSelect = (folderId) => {
-  foldersStore.selectFolder(folderId);
-  uiStore.closeMobileSidebar();
-};
-
-const handleMobileUnlockFolder = async (folderId, pin) => {
-  const success = await foldersStore.unlockFolder(folderId, pin);
-  if (success) {
-    uiStore.closeMobileSidebar();
-  }
-  return success;
-};
-
-const handleMobileMasterPasswordUnlock = async (folderId, masterPassword) => {
-  const success = await foldersStore.unlockWithMasterPassword(
-    folderId,
-    masterPassword
+// --- AI Settings Handler ---
+const handleUpdateAiSettings = async (newAiSettings) => {
+  return await foldersStore.updateAiSettings(
+    newAiSettings,
+    authStore.user,
+    authStore.encryptionKey
   );
-  if (success) {
-    uiStore.closeMobileSidebar();
-  }
-  return success;
 };
 
+// --- Mobile UI Handlers ---
 const handleMobileFoldersClick = () => {
   uiStore.closeMobileDrawers();
   if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
-
   uiStore.toggleMobileSidebar();
 };
 
 const handleMobileAddNoteClick = () => {
   uiStore.closeMobileDrawers();
-
   if (uiStore.showMobileNoteEditor) {
     uiStore.closeMobileNoteEditor();
     notesStore.setEditingNote(null);
@@ -484,14 +501,12 @@ const handleMobileAddNoteClick = () => {
 const handleMobileSearchClick = () => {
   uiStore.closeMobileDrawers();
   if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
-
   uiStore.toggleMobileSearch();
 };
 
 const handleMobileSettingsClick = () => {
   uiStore.closeMobileDrawers();
   if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
-
   uiStore.toggleMobileSettings();
 };
 
@@ -500,30 +515,23 @@ const handleMobileNoteEditorClose = () => {
   notesStore.setEditingNote(null);
 };
 
-const handleImportComplete = () => {
-  // Force reload to refresh all data
-  window.location.reload();
+// REFAKTORERET: Undgår hård genindlæsning af siden
+const handleImportComplete = async () => {
+  uiStore.closeImportData();
+  await reloadAllData(); // Genindlæs data elegant
 };
 
-// Lifecycle
+
+// --- Lifecycle & Watchers ---
 let unsubscribeAuth = null;
 let cleanupActivityListeners = null;
 
-// Watch for auth state changes and load data when ready
 watch(
   [() => authStore.user, () => authStore.encryptionKey],
-  async ([user, encryptionKey]) => {
-    if (user && encryptionKey) {
-      try {
-        await Promise.all([
-          notesStore.loadNotes(user, encryptionKey),
-          foldersStore.loadFolders(user, encryptionKey),
-        ]);
-      } catch (error) {
-        // Error is caught, but not logged to console
-      }
+  async ([user, key]) => {
+    if (user && key) {
+      await reloadAllData();
     } else {
-      // Reset data when auth is lost
       notesStore.resetNotes();
       foldersStore.resetFolders();
     }
@@ -531,30 +539,25 @@ watch(
   { immediate: true }
 );
 
-// Watch for encryption key changes to setup activity listeners
 watch(
   () => authStore.encryptionKey,
-  (encryptionKey) => {
-    if (encryptionKey && !cleanupActivityListeners) {
+  (newKey) => {
+    if (newKey && !cleanupActivityListeners) {
       cleanupActivityListeners = authStore.setupActivityListeners();
-    } else if (!encryptionKey && cleanupActivityListeners) {
+    } else if (!newKey && cleanupActivityListeners) {
       cleanupActivityListeners();
       cleanupActivityListeners = null;
     }
-  }
+  },
+  { immediate: true }
 );
 
 onMounted(() => {
-  // Initialize auth state listener
   unsubscribeAuth = authStore.initializeAuth();
 });
 
 onUnmounted(() => {
-  if (unsubscribeAuth) {
-    unsubscribeAuth();
-  }
-  if (cleanupActivityListeners) {
-    cleanupActivityListeners();
-  }
+  if (unsubscribeAuth) unsubscribeAuth();
+  if (cleanupActivityListeners) cleanupActivityListeners();
 });
 </script>
