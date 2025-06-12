@@ -330,6 +330,7 @@ const getTinymceConfig = (height = 400) => ({
   height,
   menubar: false,
   statusbar: false,
+  branding: false,
   plugins: [
     'advlist autolink lists link charmap searchreplace',
     'visualblocks code fullscreen table wordcount help'
@@ -337,7 +338,14 @@ const getTinymceConfig = (height = 400) => ({
   toolbar: 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | removeformat | help',
   content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
   skin: 'oxide-dark',
-  content_css: 'dark'
+  content_css: 'dark',
+  // Disable analytics and tracking
+  analytics: false,
+  usage_tracking: false,
+  // Reduce touch sensitivity warnings
+  touch_ui: false,
+  // Disable automatic updates
+  auto_update: false
 })
 
 // Convert content for display and editing
@@ -397,12 +405,56 @@ const convertHtmlToLexical = (html) => {
   if (!html) return ''
   
   try {
-    // For now, we'll store HTML content directly and use Lexical wrapper
-    // This maintains compatibility while using TinyMCE
-    return createLexicalState(html)
+    // Clean up TinyMCE's automatic empty paragraphs first
+    let cleanHtml = html
+      // Remove empty paragraphs with just <br> tags that TinyMCE inserts
+      .replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '')
+      // Remove empty paragraphs
+      .replace(/<p[^>]*>\s*<\/p>/gi, '')
+      // Remove standalone <br> tags between block elements
+      .replace(/(<\/(?:h[1-6]|ul|ol|li)>)\s*<br\s*\/?>\s*(<(?:h[1-6]|ul|ol|li|p))/gi, '$1\n$2')
+    
+    // Convert HTML to markdown to preserve formatting
+    let markdownText = cleanHtml
+      // Convert HTML bold to markdown
+      .replace(/<\/?strong>/gi, '**')
+      .replace(/<\/?b>/gi, '**')
+      // Convert HTML italic to markdown
+      .replace(/<\/?em>/gi, '*')
+      .replace(/<\/?i>/gi, '*')
+      // Convert HTML underline to markdown
+      .replace(/<u>/gi, '<u>').replace(/<\/u>/gi, '</u>')
+      // Convert HTML strikethrough to markdown
+      .replace(/<\/?s>/gi, '~~')
+      .replace(/<\/?strike>/gi, '~~')
+      // Convert HTML headings to markdown
+      .replace(/<h1[^>]*>/gi, '# ').replace(/<\/h1>/gi, '\n')
+      .replace(/<h2[^>]*>/gi, '## ').replace(/<\/h2>/gi, '\n')
+      .replace(/<h3[^>]*>/gi, '### ').replace(/<\/h3>/gi, '\n')
+      // Convert HTML lists to markdown
+      .replace(/<ul[^>]*>/gi, '').replace(/<\/ul>/gi, '\n')
+      .replace(/<ol[^>]*>/gi, '').replace(/<\/ol>/gi, '\n')
+      .replace(/<li[^>]*>/gi, '- ').replace(/<\/li>/gi, '\n')
+      // Convert paragraphs and line breaks
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<p[^>]*>/gi, '')
+      // Remove any remaining HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Clean up extra whitespace more aggressively
+      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Max 2 consecutive newlines
+      .replace(/\n\s+/g, '\n') // Remove spaces at beginning of lines
+      .replace(/[ \t]+/g, ' ') // Multiple spaces to single space
+      .replace(/^\s+|\s+$/g, '') // Trim start and end
+    
+    if (!markdownText) {
+      markdownText = ''
+    }
+    
+    return createLexicalState(markdownText)
   } catch (error) {
     console.error('HTML to Lexical conversion error:', error)
-    return createLexicalState(html || '')
+    return createLexicalState('')
   }
 }
 
