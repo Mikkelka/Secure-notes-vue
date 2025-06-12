@@ -8,11 +8,11 @@
     <div class="absolute inset-0 bg-gray-900" @click.stop>
       <div class="h-full flex flex-col">
         <!-- Mobile Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-700/50">
-          <h2 class="text-lg font-semibold text-white truncate flex-1 mr-3">
+        <div class="flex items-center justify-between px-3 py-2 border-b border-gray-700/50">
+          <h2 class="text-lg font-semibold text-white truncate flex-1 mr-1">
             {{ isEditing ? 'Edit Note' : note.title }}
           </h2>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center">
             <BaseButton
               v-if="!isEditing"
               variant="ghost"
@@ -146,7 +146,7 @@
         <h2 class="text-lg font-semibold text-white truncate flex-1 mr-3">
           {{ isEditing ? 'Edit Note' : note.title }}
         </h2>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center">
           <BaseButton
             v-if="!isEditing"
             variant="ghost"
