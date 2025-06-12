@@ -612,3 +612,27 @@ onBeforeUnmount(() => {
   // TinyMCE automatically handles cleanup
 })
 </script>
+
+<style scoped>
+.prose-content :deep(a) {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-decoration-color: rgba(96, 165, 250, 0.5);
+  transition: color 0.2s ease;
+}
+
+.prose-content :deep(a:hover) {
+  color: #93c5fd;
+  text-decoration-color: rgba(147, 197, 253, 0.75);
+}
+
+.prose-content :deep(a:visited) {
+  color: #c084fc;
+  text-decoration-color: rgba(192, 132, 252, 0.5);
+}
+
+.prose-content :deep(a:visited:hover) {
+  color: #d8b4fe;
+  text-decoration-color: rgba(216, 180, 254, 0.75);
+}
+</style>
