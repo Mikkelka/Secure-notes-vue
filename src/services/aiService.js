@@ -178,8 +178,8 @@ const parseInlineFormatting = (text) => {
   const parts = [];
   let lastIndex = 0;
   
-  // Regex til at finde forskellige formatering typer
-  const formatRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~~[^~]+~~|<u>[^<]+<\/u>)/g;
+  // Regex til at finde forskellige formatering typer inkl. markdown links
+  const formatRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~~[^~]+~~|<u>[^<]+<\/u>|\[[^\]]+\]\([^)]+\))/g;
 
   text.replace(formatRegex, (match, offset) => {
     // Tilføj tekst før match
@@ -193,21 +193,41 @@ const parseInlineFormatting = (text) => {
     if (match.startsWith("**")) {
       content = match.slice(2, -2);
       format = 1; // Bold
+      parts.push(createLexicalTextNode(content, format));
     } else if (match.startsWith("*")) {
       content = match.slice(1, -1);
       format = 2; // Italic
+      parts.push(createLexicalTextNode(content, format));
     } else if (match.startsWith("~~")) {
       content = match.slice(2, -2);
       format = 4; // Strikethrough
+      parts.push(createLexicalTextNode(content, format));
     } else if (match.startsWith("<u>")) {
       content = match.slice(3, -4);
       format = 8; // Underline
+      parts.push(createLexicalTextNode(content, format));
+    } else if (match.startsWith("[")) {
+      // Handle markdown links [text](url)
+      const linkMatch = match.match(/\[([^\]]+)\]\(([^)]+)\)/);
+      if (linkMatch) {
+        const [, linkText, url] = linkMatch;
+        parts.push({
+          type: "link",
+          version: 1,
+          direction: "ltr",
+          format: "",
+          indent: 0,
+          url: url,
+          children: [createLexicalTextNode(linkText)]
+        });
+      } else {
+        parts.push(createLexicalTextNode(match, 0));
+      }
     } else {
       content = match;
       format = 0;
+      parts.push(createLexicalTextNode(content, format));
     }
-    
-    parts.push(createLexicalTextNode(content, format));
     lastIndex = offset + match.length;
   });
 

@@ -378,11 +378,16 @@ const convertContentToHtml = (content) => {
             return `<h${level}>${children}</h${level}>`
           }
           case 'list':
-            return node.listType === 'bullet' ? `<ul>${children}</ul>` : `<ol>${children}</ol>`
+            if (node.listType === 'number' || node.tag === 'ol') {
+              return `<ol>${children}</ol>`
+            }
+            return `<ul>${children}</ul>`
           case 'listitem':
             return `<li>${children}</li>`
           case 'quote':
             return `<blockquote>${children}</blockquote>`
+          case 'link':
+            return `<a href="${node.url || ''}">${children}</a>`
           default:
             return children
         }
@@ -431,10 +436,26 @@ const convertHtmlToLexical = (html) => {
       .replace(/<h1[^>]*>/gi, '# ').replace(/<\/h1>/gi, '\n')
       .replace(/<h2[^>]*>/gi, '## ').replace(/<\/h2>/gi, '\n')
       .replace(/<h3[^>]*>/gi, '### ').replace(/<\/h3>/gi, '\n')
-      // Convert HTML lists to markdown
-      .replace(/<ul[^>]*>/gi, '').replace(/<\/ul>/gi, '\n')
-      .replace(/<ol[^>]*>/gi, '').replace(/<\/ol>/gi, '\n')
-      .replace(/<li[^>]*>/gi, '- ').replace(/<\/li>/gi, '\n')
+      // Convert HTML lists to markdown - handle numbered vs bullet lists
+      .replace(/<ul[^>]*>/gi, '')
+      .replace(/<\/ul>/gi, '\n')
+      .replace(/<ol[^>]*>/gi, '')
+      .replace(/<\/ol>/gi, '\n')
+      .replace(/<li[^>]*>/gi, (match, offset, string) => {
+        // Check if this li is inside an ol (numbered list)
+        const beforeLi = string.substring(0, offset)
+        const lastOl = beforeLi.lastIndexOf('<ol')
+        const lastUl = beforeLi.lastIndexOf('<ul')
+        const lastOlClose = beforeLi.lastIndexOf('</ol>')
+        const lastUlClose = beforeLi.lastIndexOf('</ul>')
+        
+        // If the most recent list opening was an ol and it hasn't been closed
+        const isNumberedList = lastOl > lastUl && lastOl > lastOlClose
+        return isNumberedList ? '1. ' : '- '
+      })
+      .replace(/<\/li>/gi, '\n')
+      // Convert HTML links to markdown format
+      .replace(/<a[^>]*href\s*=\s*["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '[$2]($1)')
       // Convert paragraphs and line breaks
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<\/p>/gi, '\n')
