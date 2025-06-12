@@ -154,7 +154,8 @@
               <!-- Editor -->
               <EditorContent 
                 :editor="editor" 
-                class="px-3 py-2 min-h-48 text-white text-sm"
+                class="px-3 py-2 min-h-48 text-gray-300 text-sm"
+                style="color: #d1d5db !important;"
               />
             </div>
             <div class="space-y-3">
@@ -208,8 +209,13 @@
               <Clock class="w-4 h-4" />
               {{ formatDate(note.createdAt, true) }}
             </div>
-            <div class="prose prose-invert max-w-none">
-              <EditorContent :editor="viewerEditor" class="text-gray-300 text-base leading-relaxed" />
+            <div class="max-w-none">
+              <!-- Direct HTML rendering instead of TipTap -->
+              <div 
+                class="text-gray-300 text-base leading-relaxed prose-content"
+                v-html="convertLexicalToHtml(note.content)"
+                style="color: #d1d5db !important;"
+              ></div>
             </div>
           </div>
         </div>
@@ -379,7 +385,8 @@
             <!-- Editor -->
             <EditorContent 
               :editor="editor" 
-              class="px-3 py-2 min-h-48 text-white text-sm"
+              class="px-3 py-2 min-h-48 text-gray-300 text-sm"
+              style="color: #d1d5db !important;"
             />
           </div>
           <div class="space-y-2">
@@ -437,8 +444,13 @@
             <Clock class="w-4 h-4" />
             {{ formatDate(note.createdAt, true) }}
           </div>
-          <div class="prose prose-invert max-w-none">
-            <EditorContent :editor="viewerEditor" class="text-gray-300 text-sm leading-relaxed" />
+          <div class="max-w-none">
+            <!-- Direct HTML rendering instead of TipTap -->
+            <div 
+              class="text-gray-300 text-sm leading-relaxed prose-content"
+              v-html="convertLexicalToHtml(note.content)"
+              style="color: #d1d5db !important;"
+            ></div>
           </div>
         </div>
       </div>
@@ -523,11 +535,18 @@ const viewerEditor = ref(null)
 
 // Convert Lexical content to HTML for TipTap
 const convertLexicalToHtml = (content) => {
-  if (!content) return ''
+  console.log('Converting content:', content)
+  
+  if (!content) {
+    console.log('No content provided')
+    return '<p>No content available</p>'
+  }
   
   if (isLexicalContent(content)) {
     try {
       const parsed = JSON.parse(content)
+      console.log('Parsed Lexical:', parsed)
+      
       const convertNode = (node) => {
         if (node.type === 'text') {
           let text = node.text || ''
@@ -558,13 +577,18 @@ const convertLexicalToHtml = (content) => {
         }
       }
       
-      return parsed.root?.children?.map(convertNode).join('') || ''
-    } catch {
-      return content
+      const html = parsed.root?.children?.map(convertNode).join('') || '<p>Empty content</p>'
+      console.log('Converted HTML:', html)
+      return html
+    } catch (error) {
+      console.error('Lexical conversion error:', error)
+      return `<p>${content}</p>`
     }
   }
   
-  return content.replace(/\n/g, '<br>')
+  const html = content.replace(/\n/g, '<br>')
+  console.log('Plain text converted:', html)
+  return html ? `<p>${html}</p>` : '<p>No content</p>'
 }
 
 // Convert HTML back to Lexical format
@@ -794,6 +818,8 @@ const initializeEditor = () => {
     editor.value.destroy()
   }
   
+  const htmlContent = convertLexicalToHtml(editContent.value)
+  console.log('Setting editor content:', htmlContent)
   
   editor.value = new Editor({
     extensions: [
@@ -805,36 +831,21 @@ const initializeEditor = () => {
       UnderlineExtension,
       StrikeExtension,
       Heading.configure({
-        levels: [1, 2],
-        HTMLAttributes: {
-          class: 'text-white'
-        }
+        levels: [1, 2]
       }),
-      BulletList.configure({
-        HTMLAttributes: {
-          class: 'editor-list-ul'
-        }
-      }),
-      OrderedList.configure({
-        HTMLAttributes: {
-          class: 'editor-list-ol'
-        }
-      }),
-      ListItem.configure({
-        HTMLAttributes: {
-          class: 'editor-listitem'
-        }
-      }),
+      BulletList,
+      OrderedList,
+      ListItem,
       Link,
       History
     ],
-    content: convertLexicalToHtml(editContent.value),
+    content: htmlContent || '<p></p>',
     onUpdate: ({ editor }) => {
       editContent.value = convertHtmlToLexical(editor.getHTML())
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-invert focus:outline-none max-w-none text-white'
+        class: 'text-gray-300 leading-relaxed'
       }
     }
   })
@@ -844,6 +855,9 @@ const initializeViewerEditor = () => {
   if (viewerEditor.value) {
     viewerEditor.value.destroy()
   }
+  
+  const htmlContent = convertLexicalToHtml(props.note?.content || '')
+  console.log('Setting viewer content:', htmlContent)
   
   viewerEditor.value = new Editor({
     extensions: [
@@ -855,37 +869,30 @@ const initializeViewerEditor = () => {
       UnderlineExtension,
       StrikeExtension,
       Heading.configure({
-        levels: [1, 2],
-        HTMLAttributes: {
-          class: 'text-white'
-        }
+        levels: [1, 2]
       }),
-      BulletList.configure({
-        HTMLAttributes: {
-          class: 'editor-list-ul'
-        }
-      }),
-      OrderedList.configure({
-        HTMLAttributes: {
-          class: 'editor-list-ol'
-        }
-      }),
-      ListItem.configure({
-        HTMLAttributes: {
-          class: 'editor-listitem'
-        }
-      }),
+      BulletList,
+      OrderedList,
+      ListItem,
       Link,
       History
     ],
-    content: convertLexicalToHtml(props.note?.content || ''),
+    content: htmlContent || '<p>No content</p>',
     editable: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-invert focus:outline-none max-w-none text-white'
+        class: 'text-gray-300 leading-relaxed'
       }
     }
   })
+  
+  // Force content update after editor is ready
+  setTimeout(() => {
+    if (viewerEditor.value && htmlContent) {
+      viewerEditor.value.commands.setContent(htmlContent)
+      console.log('Force updated viewer content')
+    }
+  }, 100)
 }
 
 // AI Processing functionality
@@ -942,10 +949,8 @@ watch(() => props.note, (newNote) => {
     resetAiState()
     aiProcessCount.value = 0
     
-    // Update viewer editor
-    if (viewerEditor.value) {
-      viewerEditor.value.commands.setContent(convertLexicalToHtml(newNote.content))
-    }
+    // Reinitialize viewer editor with new content
+    initializeViewerEditor()
   }
 }, { immediate: true })
 
@@ -1014,7 +1019,10 @@ const formatDate = (date, includeTime = false) => {
 }
 
 onMounted(() => {
-  initializeViewerEditor()
+  // Small delay to ensure component is fully mounted
+  setTimeout(() => {
+    initializeViewerEditor()
+  }, 50)
 })
 
 onBeforeUnmount(() => {
