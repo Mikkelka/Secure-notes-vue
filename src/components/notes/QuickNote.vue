@@ -49,10 +49,15 @@ const content = ref('')
 
 const handleSave = async () => {
   if (title.value.trim() && content.value.trim()) {
-    const success = await emit('save', title.value.trim(), content.value.trim())
-    if (success) {
-      title.value = ''
-      content.value = ''
+    try {
+      const success = await emit('save', title.value.trim(), content.value.trim())
+      if (success !== false) {
+        // Clear fields on successful save
+        title.value = ''
+        content.value = ''
+      }
+    } catch (error) {
+      console.error('Error saving note:', error)
     }
   }
 }
