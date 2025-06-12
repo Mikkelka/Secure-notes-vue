@@ -87,7 +87,7 @@
           >
             <div class="space-y-4">
               <div class="hidden md:block">
-                <NoteEditor
+                <QuickNote
                   :is-compact="!!uiStore.selectedNote"
                   @save="handleSaveNote"
                 />
@@ -193,12 +193,12 @@
         @search-change="notesStore.setSearchTerm"
       />
       <MobileDrawer
-        :is-open="uiStore.showMobileNoteEditor"
+        :is-open="uiStore.showMobileQuickNote"
         title="Ny Note"
         height="h-[90vh]"
-        @close="handleMobileNoteEditorClose"
+        @close="handleMobileQuickNoteClose"
       >
-        <NoteEditor :is-compact="false" @save="handleSaveNote" />
+        <QuickNote :is-compact="false" @save="handleSaveNote" />
       </MobileDrawer>
       <MobileDrawer
         :is-open="uiStore.showMobileSettings"
@@ -277,7 +277,7 @@ import FolderSidebar from "./components/layout/FolderSidebar.vue";
 import MobileBottomMenu from "./components/layout/MobileBottomMenu.vue";
 import MobileDrawer from "./components/layout/MobileDrawer.vue";
 import MobileSearchDrawer from "./components/layout/MobileSearchDrawer.vue";
-import NoteEditor from "./components/notes/NoteEditor.vue";
+import QuickNote from "./components/notes/QuickNote.vue";
 import NotesList from "./components/notes/NotesList.vue";
 import NoteViewer from "./components/notes/NoteViewer.vue";
 import PerformanceStats from "./components/notes/PerformanceStats.vue";
@@ -372,8 +372,8 @@ const handleSaveNote = async (title, content) => {
     authStore.user, authStore.encryptionKey
   );
 
-  if (success && uiStore.showMobileNoteEditor) {
-    handleMobileNoteEditorClose();
+  if (success && uiStore.showMobileQuickNote) {
+    handleMobileQuickNoteClose();
   }
   return success;
 };
@@ -482,35 +482,35 @@ const handleUpdateAiSettings = async (newAiSettings) => {
 // --- Mobile UI Handlers ---
 const handleMobileFoldersClick = () => {
   uiStore.closeMobileDrawers();
-  if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
+  if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSidebar();
 };
 
 const handleMobileAddNoteClick = () => {
   uiStore.closeMobileDrawers();
-  if (uiStore.showMobileNoteEditor) {
-    uiStore.closeMobileNoteEditor();
+  if (uiStore.showMobileQuickNote) {
+    uiStore.closeMobileQuickNote();
     notesStore.setEditingNote(null);
   } else {
     notesStore.setEditingNote({ title: "", content: "", isNew: true });
-    uiStore.toggleMobileNoteEditor();
+    uiStore.toggleMobileQuickNote();
   }
 };
 
 const handleMobileSearchClick = () => {
   uiStore.closeMobileDrawers();
-  if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
+  if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSearch();
 };
 
 const handleMobileSettingsClick = () => {
   uiStore.closeMobileDrawers();
-  if (uiStore.showMobileNoteEditor) notesStore.setEditingNote(null);
+  if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSettings();
 };
 
-const handleMobileNoteEditorClose = () => {
-  uiStore.closeMobileNoteEditor();
+const handleMobileQuickNoteClose = () => {
+  uiStore.closeMobileQuickNote();
   notesStore.setEditingNote(null);
 };
 

@@ -1,6 +1,6 @@
 <template>
   <div class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4">
-    <h3 class="text-white font-medium mb-3">{{ isCompact ? 'Hurtig note' : 'Ny note' }}</h3>
+    <h3 class="text-white font-medium mb-3">Ny note</h3>
     
     <div class="space-y-3">
       <input
