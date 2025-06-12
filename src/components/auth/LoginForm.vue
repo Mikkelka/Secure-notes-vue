@@ -104,7 +104,7 @@
       </div>
       
       <div class="text-center mt-4">
-        <p class="text-gray-500 text-xs">v0.9.1</p>
+        <p class="text-gray-500 text-xs">v0.9.2</p>
       </div>
     </div>
   </div>
