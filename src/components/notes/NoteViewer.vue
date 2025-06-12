@@ -56,6 +56,7 @@
             />
             <div class="tinymce-wrapper">
               <editor
+                api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
                 v-model="editorHtmlContent"
                 :init="getTinymceConfig(400)"
               />
@@ -189,6 +190,7 @@
           />
           <div class="tinymce-wrapper">
             <editor
+              api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
               v-model="editorHtmlContent"
               :init="getTinymceConfig(350)"
             />
@@ -297,32 +299,6 @@ import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import { processTextWithAi, isLexicalContent, createLexicalState } from '../../services/aiService.js'
 
-// Import TinyMCE
-import 'tinymce/tinymce'
-import 'tinymce/themes/silver'
-import 'tinymce/icons/default'
-import 'tinymce/models/dom'
-
-// Import plugins
-import 'tinymce/plugins/advlist'
-import 'tinymce/plugins/autolink'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/link'
-import 'tinymce/plugins/charmap'
-import 'tinymce/plugins/preview'
-import 'tinymce/plugins/anchor'
-import 'tinymce/plugins/searchreplace'
-import 'tinymce/plugins/visualblocks'
-import 'tinymce/plugins/code'
-import 'tinymce/plugins/fullscreen'
-import 'tinymce/plugins/insertdatetime'
-import 'tinymce/plugins/media'
-import 'tinymce/plugins/table'
-import 'tinymce/plugins/wordcount'
-import 'tinymce/plugins/help'
-
-// Import skins (CSS will be loaded from public directory)
-
 const props = defineProps({
   note: {
     type: Object,
@@ -354,19 +330,14 @@ const getTinymceConfig = (height = 400) => ({
   height,
   menubar: false,
   statusbar: false,
-  branding: false,
-  promotion: false,
   plugins: [
-    'advlist autolink lists link charmap preview anchor',
-    'searchreplace visualblocks code fullscreen',
-    'insertdatetime media table wordcount help'
+    'advlist autolink lists link charmap searchreplace',
+    'visualblocks code fullscreen table wordcount help'
   ],
-  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | removeformat | help',
   content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
   skin: 'oxide-dark',
-  content_css: 'dark',
-  skin_url: '/tinymce/skins/ui/oxide-dark',
-  content_css_url: '/tinymce/skins/content/dark/content.css'
+  content_css: 'dark'
 })
 
 // Convert content for display and editing
