@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4">
+  <div 
+    class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4 transition-all duration-300"
+    :class="isAdvancedMode ? 'quicknote-advanced' : ''"
+  >
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-white font-medium">Ny note</h3>
       <BaseButton
@@ -69,7 +72,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['save'])
+const emit = defineEmits(['save', 'mode-change'])
 
 // State
 const title = ref('')
@@ -133,6 +136,9 @@ const toggleAdvancedMode = () => {
     content.value = convertHtmlToText(htmlContent.value)
   }
   isAdvancedMode.value = !isAdvancedMode.value
+  
+  // Emit mode change to parent
+  emit('mode-change', isAdvancedMode.value)
 }
 
 // Save Logic
@@ -221,3 +227,13 @@ const convertHtmlToLexical = (html) => {
   }
 }
 </script>
+
+<style scoped>
+/* No special width styling needed - controlled by parent grid layout */
+
+/* Ensure TinyMCE editor has proper styling */
+.tinymce-wrapper {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+</style>

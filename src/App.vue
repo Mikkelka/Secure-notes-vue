@@ -82,7 +82,7 @@
           <div
             class="h-full p-3 grid gap-4"
             :style="{
-              gridTemplateColumns: uiStore.selectedNote ? '1fr 2fr' : '2fr 3fr',
+              gridTemplateColumns: getGridColumns,
             }"
           >
             <div class="space-y-4">
@@ -90,6 +90,7 @@
                 <QuickNote
                   :is-compact="!!uiStore.selectedNote"
                   @save="handleSaveNote"
+                  @mode-change="handleQuickNoteMode"
                 />
               </div>
               <div class="hidden md:block">
@@ -198,7 +199,7 @@
         height="h-[90vh]"
         @close="handleMobileQuickNoteClose"
       >
-        <QuickNote :is-compact="false" @save="handleSaveNote" />
+        <QuickNote :is-compact="false" @save="handleSaveNote" @mode-change="handleQuickNoteMode" />
       </MobileDrawer>
       <MobileDrawer
         :is-open="uiStore.showMobileSettings"
@@ -301,6 +302,7 @@ const loginFormRef = ref(null);
 // --- Lokal state (f.eks. til dialoger) ---
 const isChangePinDialogOpen = ref(false);
 const newPinInput = ref("");
+const isQuickNoteAdvanced = ref(false);
 
 // --- Computed properties ---
 const filteredNotes = computed(() => {
@@ -321,6 +323,16 @@ const filteredNotes = computed(() => {
 
 const noteCounts = computed(() => {
   return notesStore.getNoteCounts(foldersStore.folders);
+});
+
+const getGridColumns = computed(() => {
+  if (uiStore.selectedNote) {
+    // When note is selected, keep compact layout
+    return isQuickNoteAdvanced.value ? '3fr 2fr' : '1fr 2fr';
+  } else {
+    // When no note selected, give QuickNote more space in advanced mode
+    return isQuickNoteAdvanced.value ? '3fr 2fr' : '2fr 3fr';
+  }
 });
 
 // --- Genindlæsning af data ---
@@ -512,6 +524,10 @@ const handleMobileSettingsClick = () => {
 const handleMobileQuickNoteClose = () => {
   uiStore.closeMobileQuickNote();
   notesStore.setEditingNote(null);
+};
+
+const handleQuickNoteMode = (isAdvanced) => {
+  isQuickNoteAdvanced.value = isAdvanced;
 };
 
 // REFAKTORERET: Undgår hård genindlæsning af siden
