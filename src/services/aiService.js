@@ -141,7 +141,7 @@ export const convertLexicalToMarkdown = (lexicalState) => {
         case "paragraph":
           return children ? `${children}\n` : "\n";
         case "heading": {
-          const level = node.tag === "h1" ? "#" : "##";
+          const level = node.tag === "h1" ? "#" : node.tag === "h2" ? "##" : "###";
           return `${level} ${children}\n`;
         }
         case "list": {
@@ -286,6 +286,10 @@ export const createLexicalState = (text) => {
     } else if (line.startsWith("## ")) {
       const children = parseInlineFormatting(line.substring(3));
       root.children.push(createLexicalNode("heading", children, { tag: "h2" }));
+      i++;
+    } else if (line.startsWith("### ")) {
+      const children = parseInlineFormatting(line.substring(4));
+      root.children.push(createLexicalNode("heading", children, { tag: "h3" }));
       i++;
     } else if (line.startsWith("- ")) {
       // Bullet list

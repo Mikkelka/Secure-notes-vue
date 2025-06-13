@@ -336,6 +336,7 @@ const getTinymceConfig = (height = 400) => ({
     'visualblocks code fullscreen table wordcount help'
   ],
   toolbar: 'undo redo | formatselect | bold italic underline strikethrough | bullist | link',
+  block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
   content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
   skin: 'oxide-dark',
   content_css: 'dark',
@@ -363,8 +364,8 @@ const convertContentToHtml = (content) => {
           let text = node.text || ''
           if (node.format & 1) text = `<strong>${text}</strong>`
           if (node.format & 2) text = `<em>${text}</em>`
-          if (node.format & 4) text = `<s>${text}</s>`
-          if (node.format & 8) text = `<u>${text}</u>`
+          if (node.format & 4) text = `<span style="text-decoration: line-through;">${text}</span>`
+          if (node.format & 8) text = `<span style="text-decoration: underline;">${text}</span>`
           return text
         }
         
@@ -377,6 +378,12 @@ const convertContentToHtml = (content) => {
             const level = node.tag?.substring(1) || '1'
             return `<h${level}>${children}</h${level}>`
           }
+          case 'h1':
+            return `<h1>${children}</h1>`
+          case 'h2':
+            return `<h2>${children}</h2>`
+          case 'h3':
+            return `<h3>${children}</h3>`
           case 'list':
             if (node.listType === 'number' || node.tag === 'ol') {
               return `<ol>${children}</ol>`
@@ -614,6 +621,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* Links */
 .prose-content :deep(a) {
   color: #60a5fa;
   text-decoration: underline;
@@ -634,5 +642,88 @@ onBeforeUnmount(() => {
 .prose-content :deep(a:visited:hover) {
   color: #d8b4fe;
   text-decoration-color: rgba(216, 180, 254, 0.75);
+}
+
+/* Headings */
+.prose-content :deep(h1) {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1.5rem 0 1rem 0;
+  color: #f9fafb;
+}
+
+.prose-content :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.25rem 0 0.75rem 0;
+  color: #f3f4f6;
+}
+
+.prose-content :deep(h3) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1rem 0 0.5rem 0;
+  color: #e5e7eb;
+}
+
+/* Text formatting */
+.prose-content :deep(strong),
+.prose-content :deep(b) {
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.prose-content :deep(em),
+.prose-content :deep(i) {
+  font-style: italic;
+}
+
+.prose-content :deep(u),
+.prose-content :deep(span[style*="text-decoration: underline"]),
+.prose-content :deep([style*="text-decoration-line: underline"]) {
+  text-decoration: underline !important;
+  text-decoration-color: #d1d5db !important;
+  text-decoration-thickness: 1px !important;
+}
+
+.prose-content :deep(s),
+.prose-content :deep(strike),
+.prose-content :deep(span[style*="text-decoration: line-through"]),
+.prose-content :deep([style*="text-decoration-line: line-through"]) {
+  text-decoration: line-through !important;
+  text-decoration-color: #d1d5db !important;
+  text-decoration-thickness: 1px !important;
+}
+
+/* Lists */
+.prose-content :deep(ul) {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-content :deep(li) {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.prose-content :deep(ul li) {
+  list-style-type: disc;
+}
+
+/* Paragraphs */
+.prose-content :deep(p) {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.prose-content :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.prose-content :deep(p:last-child) {
+  margin-bottom: 0;
 }
 </style>
