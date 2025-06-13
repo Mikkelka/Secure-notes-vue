@@ -167,7 +167,7 @@ const getAiSettings = (userSettings) => {
 };
 
 /**
- * Processerer tekst med AI og returnerer HTML resultat.
+ * Processerer HTML med AI og returnerer forbedret HTML.
  * @param {string} content - HTML indholdet.
  * @param {object | null} [userSettings=null] - Brugerens indstillinger.
  * @returns {Promise<string>} En Promise der resolver til HTML string.
@@ -181,9 +181,7 @@ export const processTextWithAi = async (content, userSettings = null) => {
     );
   }
 
-  // Konverter HTML til plain text til AI processering
-  const plainText = convertHtmlToPlainText(content);
-  if (!plainText.trim()) {
+  if (!content.trim()) {
     throw new Error("Ingen tekst at processere.");
   }
 
@@ -195,31 +193,37 @@ export const processTextWithAi = async (content, userSettings = null) => {
       safetySettings: SAFETY_SETTINGS,
     });
 
-    // Simplificeret prompt for plain text processering
+    // HTML-direkte prompt der bevarer formatering
     const prompt = `${instructionPrompt}
 
-KRITISKE FORMATERINGS REGLER:
-- Input teksten nedenfor er ren tekst uden formatering
-- Du kan forbedre og organisere teksten
-- Returner KUN ren tekst - ingen HTML eller markdown tags
-- Brug maksimalt ét tomt linjeskift mellem afsnit
-- Hold teksten ren og simpel
+KRITISKE HTML FORMATERINGS REGLER:
+- Input nedenfor er HTML indhold der kan have overskrifter, fed tekst, lister, etc.
+- Du SKAL bevare og respektere al eksisterende HTML formatering
+- Forbedre kun indholdet og organisationen, ikke formateringen
+- Returner VALID HTML med samme eller forbedret struktur
+- Bevar <h1>, <h2>, <h3>, <strong>, <em>, <u>, <ul>, <li>, <p> tags
+- Brug IKKE markdown - kun ren HTML
+- Tilføj ny HTML formatering kun hvor det forbedrer læsbarheden
 
-Input tekst:
-${plainText}`;
+Input HTML:
+${content}`;
 
     const result = await modelInstance.generateContent(prompt);
-    let processedText = result.response.text();
+    let processedHtml = result.response.text();
 
-    // Rens eventuelle HTML tags AI måtte have tilføjet
-    processedText = processedText
-      .replace(/<[^>]*>/g, '') // Fjern alle HTML tags
-      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Max 2 consecutive newlines
-      .replace(/[ \t]+/g, ' ') // Multiple spaces til single space
+    // Minimal cleanup - fjern kun evt. wrapping af AI der ikke er HTML
+    processedHtml = processedHtml
+      .replace(/^```html\s*/, '') // Fjern evt. code block start
+      .replace(/\s*```$/, '') // Fjern evt. code block end  
       .trim();
 
-    // Konverter tilbage til HTML
-    return convertTextToHtml(processedText);
+    // Valider at vi har noget HTML-lignende content
+    if (!processedHtml.includes('<') || !processedHtml.includes('>')) {
+      // Hvis AI returnerede plain text, wrap i paragraph
+      processedHtml = `<p>${processedHtml}</p>`;
+    }
+
+    return processedHtml;
   } catch (error) {
     console.error("AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";
