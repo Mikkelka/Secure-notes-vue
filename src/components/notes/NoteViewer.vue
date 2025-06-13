@@ -332,10 +332,10 @@ const getTinymceConfig = (height = 400) => ({
   statusbar: false,
   branding: false,
   plugins: [
-    'advlist autolink lists link charmap searchreplace',
+    'autolink lists link charmap searchreplace',
     'visualblocks code fullscreen table wordcount help'
   ],
-  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | removeformat | help',
+  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | bullist | link',
   content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
   skin: 'oxide-dark',
   content_css: 'dark',
