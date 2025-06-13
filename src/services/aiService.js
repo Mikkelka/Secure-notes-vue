@@ -193,17 +193,21 @@ export const processTextWithAi = async (content, userSettings = null) => {
       safetySettings: SAFETY_SETTINGS,
     });
 
-    // HTML-direkte prompt der bevarer formatering
+    // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
 
 KRITISKE HTML FORMATERINGS REGLER:
-- Input nedenfor er HTML indhold der kan have overskrifter, fed tekst, lister, etc.
-- Du SKAL bevare og respektere al eksisterende HTML formatering
-- Forbedre kun indholdet og organisationen, ikke formateringen
-- Returner VALID HTML med samme eller forbedret struktur
-- Bevar <h1>, <h2>, <h3>, <strong>, <em>, <u>, <ul>, <li>, <p> tags
-- Brug IKKE markdown - kun ren HTML
-- Tilføj ny HTML formatering kun hvor det forbedrer læsbarheden
+- Input nedenfor er HTML indhold der kan forbedres med formatering
+- Du SKAL bevare eksisterende HTML formatering (overskrifter, fed tekst, etc.)
+- Du MÅ tilføje passende HTML formatering hvor det forbedrer struktur og læsbarhed:
+  * Brug <h1>, <h2>, <h3> for overskrifter
+  * Brug <strong> for vigtige ord/sætninger
+  * Brug <em> for fremhævning
+  * Brug <ul><li> for lister
+  * Brug <p> for almindelige afsnit
+- Returner KUN valid HTML - ingen markdown
+- Organiser indholdet logisk med passende overskrifter
+- Fremhæv nøgleord med <strong> hvor det giver mening
 
 Input HTML:
 ${content}`;
