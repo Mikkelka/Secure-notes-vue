@@ -14,31 +14,15 @@ import {
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
 
-// Helper til at udtrække ren tekst fra en TipTap/Lexical JSON-struktur.
+// Helper til at udtrække ren tekst fra HTML indhold.
 const extractTextFromContent = (content) => {
   if (!content || typeof content !== 'string') return ''
   
-  try {
-    const parsed = JSON.parse(content)
-    if (!parsed?.root?.children) return content // Returner original hvis ikke valid JSON
-    
-    const extractFromChildren = (children) => {
-      return children.map(child => {
-        if (child.type === 'text') {
-          return child.text || ''
-        }
-        if (child.children) {
-          return extractFromChildren(child.children)
-        }
-        return ''
-      }).join('')
-    }
-    
-    return extractFromChildren(parsed.root.children)
-  } catch {
-    // Hvis JSON.parse fejler, er det sandsynligvis allerede ren tekst.
-    return content
-  }
+  // Fjern HTML tags og returner ren tekst
+  return content
+    .replace(/<[^>]*>/g, ' ') // Fjern HTML tags
+    .replace(/\s+/g, ' ') // Sammenfold whitespace
+    .trim()
 }
 
 export const useNotesStore = defineStore('notes', () => {

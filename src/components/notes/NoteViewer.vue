@@ -116,7 +116,7 @@
               <!-- Direct HTML rendering -->
               <div 
                 class="text-gray-300 text-base leading-relaxed prose-content"
-                v-html="convertContentToHtml(note.content)"
+                v-html="note.content"
                 style="color: #d1d5db !important;"
               ></div>
             </div>
@@ -254,7 +254,7 @@
             <!-- Direct HTML rendering -->
             <div 
               class="text-gray-300 text-sm leading-relaxed prose-content"
-              v-html="convertContentToHtml(note.content)"
+              v-html="note.content"
               style="color: #d1d5db !important;"
             ></div>
           </div>
@@ -297,7 +297,7 @@ import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo } from 'lucide-vue-nex
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
-import { processTextWithAi, isLexicalContent, createLexicalState } from '../../services/aiService.js'
+import { processTextWithAi } from '../../services/aiService.js'
 
 const props = defineProps({
   note: {
@@ -349,142 +349,11 @@ const getTinymceConfig = (height = 400) => ({
   auto_update: false
 })
 
-// Convert content for display and editing
-const convertContentToHtml = (content) => {
-  if (!content) {
-    return '<p>No content available</p>'
-  }
-  
-  if (isLexicalContent(content)) {
-    try {
-      const parsed = JSON.parse(content)
-      
-      const convertNode = (node) => {
-        if (node.type === 'text') {
-          let text = node.text || ''
-          if (node.format & 1) text = `<strong>${text}</strong>`
-          if (node.format & 2) text = `<em>${text}</em>`
-          if (node.format & 4) text = `<span style="text-decoration: line-through;">${text}</span>`
-          if (node.format & 8) text = `<span style="text-decoration: underline;">${text}</span>`
-          return text
-        }
-        
-        const children = node.children?.map(convertNode).join('') || ''
-        
-        switch (node.type) {
-          case 'paragraph':
-            return children ? `<p>${children}</p>` : '<p><br></p>'
-          case 'heading': {
-            const level = node.tag?.substring(1) || '1'
-            return `<h${level}>${children}</h${level}>`
-          }
-          case 'h1':
-            return `<h1>${children}</h1>`
-          case 'h2':
-            return `<h2>${children}</h2>`
-          case 'h3':
-            return `<h3>${children}</h3>`
-          case 'list':
-            if (node.listType === 'number' || node.tag === 'ol') {
-              return `<ol>${children}</ol>`
-            }
-            return `<ul>${children}</ul>`
-          case 'listitem':
-            return `<li>${children}</li>`
-          case 'quote':
-            return `<blockquote>${children}</blockquote>`
-          case 'link':
-            return `<a href="${node.url || ''}">${children}</a>`
-          default:
-            return children
-        }
-      }
-      
-      return parsed.root?.children?.map(convertNode).join('') || '<p>Empty content</p>'
-    } catch (error) {
-      console.error('Lexical conversion error:', error)
-      return `<p>${content}</p>`
-    }
-  }
-  
-  // Handle plain text
-  const html = content.replace(/\n/g, '<br>')
-  return html ? `<p>${html}</p>` : '<p>No content</p>'
+// Simple content validation - content is now pure HTML
+const validateContent = (content) => {
+  return content || '<p>No content available</p>'
 }
 
-// Convert HTML back to Lexical format for storage
-const convertHtmlToLexical = (html) => {
-  if (!html) return ''
-  
-  try {
-    // Clean up TinyMCE's automatic empty paragraphs first
-    let cleanHtml = html
-      // Remove empty paragraphs with just <br> tags that TinyMCE inserts
-      .replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '')
-      // Remove empty paragraphs
-      .replace(/<p[^>]*>\s*<\/p>/gi, '')
-      // Remove standalone <br> tags between block elements
-      .replace(/(<\/(?:h[1-6]|ul|ol|li)>)\s*<br\s*\/?>\s*(<(?:h[1-6]|ul|ol|li|p))/gi, '$1\n$2')
-    
-    // Convert HTML to markdown to preserve formatting
-    let markdownText = cleanHtml
-      // Convert HTML bold to markdown
-      .replace(/<\/?strong>/gi, '**')
-      .replace(/<\/?b>/gi, '**')
-      // Convert HTML italic to markdown
-      .replace(/<\/?em>/gi, '*')
-      .replace(/<\/?i>/gi, '*')
-      // Convert HTML underline to markdown
-      .replace(/<u>/gi, '<u>').replace(/<\/u>/gi, '</u>')
-      // Convert HTML strikethrough to markdown
-      .replace(/<\/?s>/gi, '~~')
-      .replace(/<\/?strike>/gi, '~~')
-      // Convert HTML headings to markdown
-      .replace(/<h1[^>]*>/gi, '# ').replace(/<\/h1>/gi, '\n')
-      .replace(/<h2[^>]*>/gi, '## ').replace(/<\/h2>/gi, '\n')
-      .replace(/<h3[^>]*>/gi, '### ').replace(/<\/h3>/gi, '\n')
-      // Convert HTML lists to markdown - handle numbered vs bullet lists
-      .replace(/<ul[^>]*>/gi, '')
-      .replace(/<\/ul>/gi, '\n')
-      .replace(/<ol[^>]*>/gi, '')
-      .replace(/<\/ol>/gi, '\n')
-      .replace(/<li[^>]*>/gi, (match, offset, string) => {
-        // Check if this li is inside an ol (numbered list)
-        const beforeLi = string.substring(0, offset)
-        const lastOl = beforeLi.lastIndexOf('<ol')
-        const lastUl = beforeLi.lastIndexOf('<ul')
-        const lastOlClose = beforeLi.lastIndexOf('</ol>')
-        const lastUlClose = beforeLi.lastIndexOf('</ul>')
-        
-        // If the most recent list opening was an ol and it hasn't been closed
-        const isNumberedList = lastOl > lastUl && lastOl > lastOlClose
-        return isNumberedList ? '1. ' : '- '
-      })
-      .replace(/<\/li>/gi, '\n')
-      // Convert HTML links to markdown format
-      .replace(/<a[^>]*href\s*=\s*["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '[$2]($1)')
-      // Convert paragraphs and line breaks
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<p[^>]*>/gi, '')
-      // Remove any remaining HTML tags
-      .replace(/<[^>]*>/g, '')
-      // Clean up extra whitespace more aggressively
-      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Max 2 consecutive newlines
-      .replace(/\n\s+/g, '\n') // Remove spaces at beginning of lines
-      .replace(/[ \t]+/g, ' ') // Multiple spaces to single space
-      .replace(/^\s+|\s+$/g, '') // Trim start and end
-    
-    if (!markdownText) {
-      markdownText = ''
-    }
-    
-    return createLexicalState(markdownText)
-  } catch (error) {
-    console.error('HTML to Lexical conversion error:', error)
-    return createLexicalState('')
-  }
-}
 
 
 // AI Processing functionality
@@ -498,9 +367,8 @@ const handleAiProcess = async () => {
     const processedContent = await processTextWithAi(editContent.value, props.userSettings)
     editContent.value = processedContent
     
-    // Update HTML content for TinyMCE (this will trigger v-model update)
-    const htmlContent = convertContentToHtml(processedContent)
-    editorHtmlContent.value = htmlContent
+    // Update HTML content for TinyMCE directly
+    editorHtmlContent.value = processedContent
     
     canUndo.value = true
     aiProcessCount.value++
@@ -517,9 +385,8 @@ const handleUndo = () => {
   
   editContent.value = originalContent.value
   
-  // Update HTML content for TinyMCE (this will trigger v-model update)
-  const htmlContent = convertContentToHtml(originalContent.value)
-  editorHtmlContent.value = htmlContent
+  // Update HTML content for TinyMCE directly
+  editorHtmlContent.value = originalContent.value
   
   canUndo.value = false
   aiProcessCount.value++
@@ -535,7 +402,7 @@ watch(() => props.note, (newNote) => {
   if (newNote) {
     editTitle.value = newNote.title
     editContent.value = newNote.content
-    editorHtmlContent.value = convertContentToHtml(newNote.content)
+    editorHtmlContent.value = newNote.content
     isEditing.value = false
     resetAiState()
     aiProcessCount.value = 0
@@ -545,17 +412,16 @@ watch(() => props.note, (newNote) => {
 watch(isEditing, (editing) => {
   if (editing) {
     // Initialize HTML content for TinyMCE when starting edit
-    const htmlContent = convertContentToHtml(editContent.value)
-    editorHtmlContent.value = htmlContent
+    editorHtmlContent.value = editContent.value
   } else {
     resetAiState()
   }
 })
 
-// Watch for changes in HTML content from TinyMCE and convert to Lexical
+// Watch for changes in HTML content from TinyMCE
 watch(editorHtmlContent, (newHtml) => {
   if (isEditing.value && newHtml) {
-    editContent.value = convertHtmlToLexical(newHtml)
+    editContent.value = newHtml
   }
 })
 
@@ -567,8 +433,7 @@ const cancelEdit = () => {
   isEditing.value = false
   editTitle.value = props.note.title
   editContent.value = props.note.content
-  const htmlContent = convertContentToHtml(props.note.content)
-  editorHtmlContent.value = htmlContent
+  editorHtmlContent.value = props.note.content
   
   resetAiState()
 }

@@ -63,7 +63,6 @@ import { ref, watch } from 'vue'
 import { Save, Edit3, Type } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import Editor from '@tinymce/tinymce-vue'
-import { createLexicalState } from '../../services/aiService.js'
 
 defineProps({
   isCompact: {
@@ -149,11 +148,11 @@ const handleSave = async () => {
     try {
       let contentToSave
       if (isAdvancedMode.value) {
-        // Convert HTML to Lexical format for storage
-        contentToSave = convertHtmlToLexical(htmlContent.value)
+        // Save HTML directly
+        contentToSave = htmlContent.value
       } else {
-        // Convert plain text to Lexical format
-        contentToSave = createLexicalState(content.value.trim())
+        // Convert plain text to simple HTML
+        contentToSave = `<p>${content.value.trim().replace(/\n/g, '<br>')}</p>`
       }
       
       const success = await emit('save', title.value.trim(), contentToSave)
@@ -169,64 +168,6 @@ const handleSave = async () => {
   }
 }
 
-// HTML to Lexical conversion (copied from NoteViewer)
-const convertHtmlToLexical = (html) => {
-  if (!html) return ''
-  
-  try {
-    // Clean up TinyMCE's automatic empty paragraphs first
-    let cleanHtml = html
-      .replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '')
-      .replace(/<p[^>]*>\s*<\/p>/gi, '')
-      .replace(/(<\/(?:h[1-6]|ul|ol|li)>)\s*<br\s*\/?>\s*(<(?:h[1-6]|ul|ol|li|p))/gi, '$1\n$2')
-    
-    // Convert HTML to markdown to preserve formatting
-    let markdownText = cleanHtml
-      .replace(/<\/?strong>/gi, '**')
-      .replace(/<\/?b>/gi, '**')
-      .replace(/<\/?em>/gi, '*')
-      .replace(/<\/?i>/gi, '*')
-      .replace(/<u>/gi, '<u>').replace(/<\/u>/gi, '</u>')
-      .replace(/<\/?s>/gi, '~~')
-      .replace(/<\/?strike>/gi, '~~')
-      .replace(/<h1[^>]*>/gi, '# ').replace(/<\/h1>/gi, '\n')
-      .replace(/<h2[^>]*>/gi, '## ').replace(/<\/h2>/gi, '\n')
-      .replace(/<h3[^>]*>/gi, '### ').replace(/<\/h3>/gi, '\n')
-      .replace(/<ul[^>]*>/gi, '')
-      .replace(/<\/ul>/gi, '\n')
-      .replace(/<ol[^>]*>/gi, '')
-      .replace(/<\/ol>/gi, '\n')
-      .replace(/<li[^>]*>/gi, (match, offset, string) => {
-        const beforeLi = string.substring(0, offset)
-        const lastOl = beforeLi.lastIndexOf('<ol')
-        const lastUl = beforeLi.lastIndexOf('<ul')
-        const lastOlClose = beforeLi.lastIndexOf('</ol>')
-        const lastUlClose = beforeLi.lastIndexOf('</ul>')
-        
-        const isNumberedList = lastOl > lastUl && lastOl > lastOlClose
-        return isNumberedList ? '1. ' : '- '
-      })
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<a[^>]*href\s*=\s*["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '[$2]($1)')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<p[^>]*>/gi, '')
-      .replace(/<[^>]*>/g, '')
-      .replace(/\n\s*\n\s*\n+/g, '\n\n')
-      .replace(/\n\s+/g, '\n')
-      .replace(/[ \t]+/g, ' ')
-      .replace(/^\s+|\s+$/g, '')
-    
-    if (!markdownText) {
-      markdownText = ''
-    }
-    
-    return createLexicalState(markdownText)
-  } catch (error) {
-    console.error('HTML to Lexical conversion error:', error)
-    return createLexicalState('')
-  }
-}
 </script>
 
 <style scoped>
