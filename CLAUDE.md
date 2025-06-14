@@ -130,24 +130,29 @@ The application implements **client-side encryption** where user data is encrypt
 
 ### Rich Text Editor Integration
 
-**TipTap Configuration:**
-- Document, Paragraph, Text, Bold, Italic, Underline, Strike extensions
-- Heading support (H1, H2) with proper styling
-- Bullet and ordered lists with proper nesting
-- History support for undo/redo functionality
+**TinyMCE Configuration:**
+- Clean, simplified toolbar with essential formatting only
+- Heading support (H1, H2, H3) with proper styling
+- Bold, italic, underline, strikethrough text formatting
+- Bullet lists with proper styling
+- Link insertion support
+- Removed: alignment, numbered lists, indent/outdent, help, removeformat
+- Dark theme optimized for application UI
 
-**Content Compatibility:**
-- Lexical JSON format support for React migration compatibility
-- Automatic conversion between TipTap HTML and Lexical JSON
-- Fallback handling for content format mismatches
+**Content Storage:**
+- Pure HTML storage in database (no JSON conversion)
+- Direct HTML rendering in viewer with v-html
+- Simplified architecture eliminates conversion bugs
+- Better performance with no format transformation
 
 ### AI Integration System
 
 **Core AI Service** (`services/aiService.js`):
 - Google Generative AI integration with configurable models
-- Content format conversion (Lexical ↔ plain text)
+- Direct HTML processing - preserves and enhances existing formatting
 - Instruction preset system for different note enhancement modes
 - Safety settings configured for minimal content blocking
+- Intelligent formatting addition (headings, bold text, lists) where appropriate
 
 **AI Features:**
 - Note organization and enhancement
@@ -170,13 +175,13 @@ The application implements **client-side encryption** where user data is encrypt
 - Automatic session cleanup on inactivity
 - Password verification for sensitive operations
 
-### Cross-Version Data Migration
+### Data Architecture Simplification
 
-**Encryption Compatibility:**
-- Primary decryption using current Vue-generated keys
-- Fallback decryption using Google-based keys for React compatibility
-- Error handling with graceful degradation for unreadable notes
-- Maintains user data integrity across version changes
+**HTML-First Approach:**
+- Direct HTML storage eliminates format conversion complexity
+- TinyMCE → HTML → Database → HTML → Display (no conversion layers)
+- Backward compatibility maintained for existing encrypted notes
+- Simplified debugging and maintenance with pure HTML content
 
 ### Environment Variables
 

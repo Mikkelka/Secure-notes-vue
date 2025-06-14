@@ -171,7 +171,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Search, Lock, Star, Trash2, Clock, X } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
-import { extractPlainText, isLexicalContent } from '../../services/aiService.js'
+import { extractPlainText } from '../../services/aiService.js'
 
 const props = defineProps({
   notes: {
@@ -216,21 +216,17 @@ watch(() => props.searchTerm, (newValue) => {
 const favoriteNotes = computed(() => props.notes.filter(note => note.isFavorite))
 const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite))
 
-// Extract plain text from Lexical JSON content
-const extractTextFromLexical = (content) => {
+// Extract plain text from HTML content
+const extractTextFromHtml = (content) => {
   if (!content || typeof content !== 'string') return ''
   
-  if (isLexicalContent(content)) {
-    return extractPlainText(content)
-  }
-  
-  // If not Lexical content, return as is
-  return content
+  // Use extractPlainText from aiService to remove HTML tags
+  return extractPlainText(content)
 }
 
 const getPreview = (content) => {
   if (!content) return ''
-  const plainText = extractTextFromLexical(content)
+  const plainText = extractTextFromHtml(content)
   return plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText
 }
 

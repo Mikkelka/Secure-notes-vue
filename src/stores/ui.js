@@ -16,7 +16,7 @@ export const useUIStore = defineStore('ui', () => {
   const showAppSettings = ref(false)
   const showMobileSidebar = ref(false)
   const activeMobileButton = ref(null)
-  const showMobileNoteEditor = ref(false)
+  const showMobileQuickNote = ref(false)
   const showMobileSettings = ref(false)
   const showMobileSearch = ref(false)
   const folderConfirmDialog = ref({ isOpen: false, folderId: null })
@@ -74,14 +74,14 @@ export const useUIStore = defineStore('ui', () => {
     }
   }
 
-  const toggleMobileNoteEditor = () => {
+  const toggleMobileQuickNote = () => {
     closeMobileDrawers()
-    showMobileNoteEditor.value = !showMobileNoteEditor.value
-    activeMobileButton.value = showMobileNoteEditor.value ? 'add' : null
+    showMobileQuickNote.value = !showMobileQuickNote.value
+    activeMobileButton.value = showMobileQuickNote.value ? 'add' : null
   }
 
-  const closeMobileNoteEditor = () => {
-    showMobileNoteEditor.value = false
+  const closeMobileQuickNote = () => {
+    showMobileQuickNote.value = false
     if (activeMobileButton.value === 'add') {
       activeMobileButton.value = null
     }
@@ -115,7 +115,7 @@ export const useUIStore = defineStore('ui', () => {
 
   const closeMobileDrawers = () => {
     showMobileSidebar.value = false
-    showMobileNoteEditor.value = false
+    showMobileQuickNote.value = false
     showMobileSettings.value = false
     showMobileSearch.value = false
   }
@@ -136,7 +136,7 @@ export const useUIStore = defineStore('ui', () => {
     showAppSettings.value = false
     showMobileSidebar.value = false
     activeMobileButton.value = null
-    showMobileNoteEditor.value = false
+    showMobileQuickNote.value = false
     showMobileSettings.value = false
     showMobileSearch.value = false
     folderConfirmDialog.value = { isOpen: false, folderId: null }
@@ -151,7 +151,7 @@ export const useUIStore = defineStore('ui', () => {
     showAppSettings,
     showMobileSidebar,
     activeMobileButton,
-    showMobileNoteEditor,
+    showMobileQuickNote,
     showMobileSettings,
     showMobileSearch,
     folderConfirmDialog,
@@ -167,8 +167,8 @@ export const useUIStore = defineStore('ui', () => {
     closeAppSettings,
     toggleMobileSidebar,
     closeMobileSidebar,
-    toggleMobileNoteEditor,
-    closeMobileNoteEditor,
+    toggleMobileQuickNote,
+    closeMobileQuickNote,
     toggleMobileSettings,
     closeMobileSettings,
     toggleMobileSearch,

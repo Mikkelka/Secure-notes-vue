@@ -8,11 +8,11 @@
     <div class="absolute inset-0 bg-gray-900" @click.stop>
       <div class="h-full flex flex-col">
         <!-- Mobile Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-700/50">
-          <h2 class="text-lg font-semibold text-white truncate flex-1 mr-3">
+        <div class="flex items-center justify-between px-3 py-2 border-b border-gray-700/50">
+          <h2 class="text-lg font-semibold text-white truncate flex-1 mr-1">
             {{ isEditing ? 'Edit Note' : note.title }}
           </h2>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center">
             <BaseButton
               v-if="!isEditing"
               variant="ghost"
@@ -54,108 +54,11 @@
               class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
               placeholder="Title..."
             />
-            <div class="relative w-full bg-gray-700/50 border border-gray-600/50 rounded text-white focus-within:ring-1 focus-within:ring-gray-500 transition-all text-sm min-h-96">
-              <!-- Toolbar -->
-              <div class="flex items-center gap-1 p-3 border-b border-gray-600/50 flex-wrap">
-                <!-- Text formatting -->
-                <button
-                  @click="() => editor?.chain().focus().toggleBold().run()"
-                  :class="editor?.isActive('bold') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Bold (Ctrl+B)"
-                >
-                  <Bold class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleItalic().run()"
-                  :class="editor?.isActive('italic') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Italic (Ctrl+I)"
-                >
-                  <Italic class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleUnderline().run()"
-                  :class="editor?.isActive('underline') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Underline (Ctrl+U)"
-                >
-                  <Underline class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleStrike().run()"
-                  :class="editor?.isActive('strike') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Strikethrough"
-                >
-                  <Strikethrough class="w-4 h-4" />
-                </button>
-                
-                <div class="w-px h-6 bg-gray-600/50 mx-1" />
-                
-                <!-- Headings -->
-                <button
-                  @click="() => editor?.chain().focus().toggleHeading({ level: 1 }).run()"
-                  :class="editor?.isActive('heading', { level: 1 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Heading 1"
-                >
-                  <Heading1 class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleHeading({ level: 2 }).run()"
-                  :class="editor?.isActive('heading', { level: 2 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Heading 2"
-                >
-                  <Heading2 class="w-4 h-4" />
-                </button>
-                
-                <div class="w-px h-6 bg-gray-600/50 mx-1" />
-                
-                <!-- Lists -->
-                <button
-                  @click="() => editor?.chain().focus().toggleBulletList().run()"
-                  :class="editor?.isActive('bulletList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Bullet List"
-                >
-                  <List class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().toggleOrderedList().run()"
-                  :class="editor?.isActive('orderedList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                  class="flex-shrink-0 p-2 rounded transition-colors"
-                  title="Numbered List"
-                >
-                  <ListOrdered class="w-4 h-4" />
-                </button>
-                
-                <div class="w-px h-6 bg-gray-600/50 mx-1" />
-                
-                <!-- Undo/Redo -->
-                <button
-                  @click="() => editor?.chain().focus().undo().run()"
-                  :disabled="!editor?.can().undo()"
-                  class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
-                  title="Undo (Ctrl+Z)"
-                >
-                  <Undo class="w-4 h-4" />
-                </button>
-                <button
-                  @click="() => editor?.chain().focus().redo().run()"
-                  :disabled="!editor?.can().redo()"
-                  class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
-                  title="Redo (Ctrl+Y)"
-                >
-                  <Undo class="w-4 h-4 rotate-180" />
-                </button>
-              </div>
-              <!-- Editor -->
-              <EditorContent 
-                :editor="editor" 
-                class="px-3 py-2 min-h-48 text-gray-300 text-sm"
-                style="color: #d1d5db !important;"
+            <div class="tinymce-wrapper">
+              <editor
+                api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
+                v-model="editorHtmlContent"
+                :init="getTinymceConfig(400)"
               />
             </div>
             <div class="space-y-3">
@@ -210,10 +113,10 @@
               {{ formatDate(note.createdAt, true) }}
             </div>
             <div class="max-w-none">
-              <!-- Direct HTML rendering instead of TipTap -->
+              <!-- Direct HTML rendering -->
               <div 
                 class="text-gray-300 text-base leading-relaxed prose-content"
-                v-html="convertLexicalToHtml(note.content)"
+                v-html="note.content"
                 style="color: #d1d5db !important;"
               ></div>
             </div>
@@ -243,7 +146,7 @@
         <h2 class="text-lg font-semibold text-white truncate flex-1 mr-3">
           {{ isEditing ? 'Edit Note' : note.title }}
         </h2>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center">
           <BaseButton
             v-if="!isEditing"
             variant="ghost"
@@ -285,108 +188,11 @@
             class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 text-sm"
             placeholder="Title..."
           />
-          <div class="relative w-full bg-gray-700/50 border border-gray-600/50 rounded text-white focus-within:ring-1 focus-within:ring-gray-500 transition-all text-sm min-h-96">
-            <!-- Toolbar -->
-            <div class="flex items-center gap-1 p-3 border-b border-gray-600/50 flex-wrap">
-              <!-- Text formatting -->
-              <button
-                @click="() => editor?.chain().focus().toggleBold().run()"
-                :class="editor?.isActive('bold') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Bold (Ctrl+B)"
-              >
-                <Bold class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().toggleItalic().run()"
-                :class="editor?.isActive('italic') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Italic (Ctrl+I)"
-              >
-                <Italic class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().toggleUnderline().run()"
-                :class="editor?.isActive('underline') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Underline (Ctrl+U)"
-              >
-                <Underline class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().toggleStrike().run()"
-                :class="editor?.isActive('strike') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Strikethrough"
-              >
-                <Strikethrough class="w-4 h-4" />
-              </button>
-              
-              <div class="w-px h-6 bg-gray-600/50 mx-1" />
-              
-              <!-- Headings -->
-              <button
-                @click="() => editor?.chain().focus().toggleHeading({ level: 1 }).run()"
-                :class="editor?.isActive('heading', { level: 1 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Heading 1"
-              >
-                <Heading1 class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().toggleHeading({ level: 2 }).run()"
-                :class="editor?.isActive('heading', { level: 2 }) ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Heading 2"
-              >
-                <Heading2 class="w-4 h-4" />
-              </button>
-              
-              <div class="w-px h-6 bg-gray-600/50 mx-1" />
-              
-              <!-- Lists -->
-              <button
-                @click="() => editor?.chain().focus().toggleBulletList().run()"
-                :class="editor?.isActive('bulletList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Bullet List"
-              >
-                <List class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().toggleOrderedList().run()"
-                :class="editor?.isActive('orderedList') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-600/50'"
-                class="flex-shrink-0 p-2 rounded transition-colors"
-                title="Numbered List"
-              >
-                <ListOrdered class="w-4 h-4" />
-              </button>
-              
-              <div class="w-px h-6 bg-gray-600/50 mx-1" />
-              
-              <!-- Undo/Redo -->
-              <button
-                @click="() => editor?.chain().focus().undo().run()"
-                :disabled="!editor?.can().undo()"
-                class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
-                title="Undo (Ctrl+Z)"
-              >
-                <Undo class="w-4 h-4" />
-              </button>
-              <button
-                @click="() => editor?.chain().focus().redo().run()"
-                :disabled="!editor?.can().redo()"
-                class="flex-shrink-0 p-2 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white hover:bg-gray-600/50"
-                title="Redo (Ctrl+Y)"
-              >
-                <Undo class="w-4 h-4 rotate-180" />
-              </button>
-            </div>
-            <!-- Editor -->
-            <EditorContent 
-              :editor="editor" 
-              class="px-3 py-2 min-h-48 text-gray-300 text-sm"
-              style="color: #d1d5db !important;"
+          <div class="tinymce-wrapper">
+            <editor
+              api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
+              v-model="editorHtmlContent"
+              :init="getTinymceConfig(350)"
             />
           </div>
           <div class="space-y-2">
@@ -445,10 +251,10 @@
             {{ formatDate(note.createdAt, true) }}
           </div>
           <div class="max-w-none">
-            <!-- Direct HTML rendering instead of TipTap -->
+            <!-- Direct HTML rendering -->
             <div 
               class="text-gray-300 text-sm leading-relaxed prose-content"
-              v-html="convertLexicalToHtml(note.content)"
+              v-html="note.content"
               style="color: #d1d5db !important;"
             ></div>
           </div>
@@ -487,25 +293,11 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Bold, Italic, List, Heading1, Heading2, Brain, Undo, Underline, Strikethrough, ListOrdered } from 'lucide-vue-next'
-import { Editor } from '@tiptap/vue-3'
-import { EditorContent } from '@tiptap/vue-3'
-import Document from '@tiptap/extension-document'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
-import BoldExtension from '@tiptap/extension-bold'
-import ItalicExtension from '@tiptap/extension-italic'
-import UnderlineExtension from '@tiptap/extension-underline'
-import StrikeExtension from '@tiptap/extension-strike'
-import BulletList from '@tiptap/extension-bullet-list'
-import OrderedList from '@tiptap/extension-ordered-list'
-import ListItem from '@tiptap/extension-list-item'
-import Heading from '@tiptap/extension-heading'
-import Link from '@tiptap/extension-link'
-import History from '@tiptap/extension-history'
+import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo } from 'lucide-vue-next'
+import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
-import { processTextWithAi, isLexicalContent, createLexicalState } from '../../services/aiService.js'
+import { processTextWithAi } from '../../services/aiService.js'
 
 const props = defineProps({
   note: {
@@ -529,371 +321,40 @@ const aiProcessCount = ref(0)
 const originalContent = ref('')
 const canUndo = ref(false)
 
-// TipTap editor instances
-const editor = ref(null)
-const viewerEditor = ref(null)
 
-// Convert Lexical content to HTML for TipTap
-const convertLexicalToHtml = (content) => {
-  console.log('Converting content:', content)
-  
-  if (!content) {
-    console.log('No content provided')
-    return '<p>No content available</p>'
-  }
-  
-  if (isLexicalContent(content)) {
-    try {
-      const parsed = JSON.parse(content)
-      console.log('Parsed Lexical:', parsed)
-      
-      const convertNode = (node) => {
-        if (node.type === 'text') {
-          let text = node.text || ''
-          if (node.format & 1) text = `<strong>${text}</strong>`
-          if (node.format & 2) text = `<em>${text}</em>`
-          if (node.format & 4) text = `<s>${text}</s>`
-          if (node.format & 8) text = `<u>${text}</u>`
-          return text
-        }
-        
-        const children = node.children?.map(convertNode).join('') || ''
-        
-        switch (node.type) {
-          case 'paragraph':
-            return children ? `<p>${children}</p>` : '<p><br></p>'
-          case 'heading': {
-            const level = node.tag?.substring(1) || '1'
-            return `<h${level}>${children}</h${level}>`
-          }
-          case 'list':
-            return node.listType === 'bullet' ? `<ul>${children}</ul>` : `<ol>${children}</ol>`
-          case 'listitem':
-            return `<li>${children}</li>`
-          case 'quote':
-            return `<blockquote>${children}</blockquote>`
-          default:
-            return children
-        }
-      }
-      
-      const html = parsed.root?.children?.map(convertNode).join('') || '<p>Empty content</p>'
-      console.log('Converted HTML:', html)
-      return html
-    } catch (error) {
-      console.error('Lexical conversion error:', error)
-      return `<p>${content}</p>`
-    }
-  }
-  
-  const html = content.replace(/\n/g, '<br>')
-  console.log('Plain text converted:', html)
-  return html ? `<p>${html}</p>` : '<p>No content</p>'
+// TinyMCE editor content for editing
+const editorHtmlContent = ref('')
+
+// TinyMCE configuration
+const getTinymceConfig = (height = 400) => ({
+  height,
+  menubar: false,
+  statusbar: false,
+  branding: false,
+  plugins: [
+    'autolink lists link charmap searchreplace',
+    'visualblocks code fullscreen table wordcount help'
+  ],
+  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | bullist | link',
+  block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
+  content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+  skin: 'oxide-dark',
+  content_css: 'dark',
+  // Disable analytics and tracking
+  analytics: false,
+  usage_tracking: false,
+  // Reduce touch sensitivity warnings
+  touch_ui: false,
+  // Disable automatic updates
+  auto_update: false
+})
+
+// Simple content validation - content is now pure HTML
+const validateContent = (content) => {
+  return content || '<p>No content available</p>'
 }
 
-// Convert HTML back to Lexical format
-const convertHtmlToLexical = (html) => {
-  if (!html) return ''
-  
-  try {
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = html
-    
-    const root = {
-      children: [],
-      direction: null,
-      format: '',
-      indent: 0,
-      type: 'root',
-      version: 1
-    }
-    
-    // Parse DOM and convert to Lexical nodes with format context
-    const convertNode = (node, formatContext = 0) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent
-        if (text && text.trim()) {
-          return {
-            detail: 0,
-            format: formatContext,
-            mode: 'normal',
-            style: '',
-            text: text,
-            type: 'text',
-            version: 1
-          }
-        }
-        return null
-      }
-      
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const tagName = node.tagName.toLowerCase()
-        
-        // Calculate new format context for text formatting
-        let newFormatContext = formatContext
-        switch (tagName) {
-          case 'strong':
-          case 'b':
-            newFormatContext |= 1 // Bold flag
-            break
-          case 'em':
-          case 'i':
-            newFormatContext |= 2 // Italic flag
-            break
-          case 's':
-            newFormatContext |= 4 // Strikethrough flag
-            break
-          case 'u':
-            newFormatContext |= 8 // Underline flag
-            break
-        }
-        
-        // Handle different HTML elements
-        switch (tagName) {
-          case 'p': {
-            const pChildren = Array.from(node.childNodes)
-              .map(child => convertNode(child, newFormatContext))
-              .filter(Boolean)
-              .flat()
-            
-            if (pChildren.length === 0) {
-              pChildren.push({
-                detail: 0,
-                format: 0,
-                mode: 'normal',
-                style: '',
-                text: '',
-                type: 'text',
-                version: 1
-              })
-            }
-            return {
-              children: pChildren,
-              direction: null,
-              format: '',
-              indent: 0,
-              type: 'paragraph',
-              version: 1
-            }
-          }
-            
-          case 'h1':
-          case 'h2': {
-            const hChildren = Array.from(node.childNodes)
-              .map(child => convertNode(child, newFormatContext))
-              .filter(Boolean)
-              .flat()
-            return {
-              children: hChildren,
-              direction: null,
-              format: '',
-              indent: 0,
-              type: 'heading',
-              version: 1,
-              tag: tagName
-            }
-          }
-            
-          case 'ul': {
-            const ulChildren = Array.from(node.childNodes)
-              .map(child => convertNode(child, formatContext))
-              .filter(Boolean)
-              .flat()
-            return {
-              children: ulChildren,
-              direction: null,
-              format: '',
-              indent: 0,
-              type: 'list',
-              version: 1,
-              listType: 'bullet',
-              start: 1
-            }
-          }
-            
-          case 'ol': {
-            const olChildren = Array.from(node.childNodes)
-              .map(child => convertNode(child, formatContext))
-              .filter(Boolean)
-              .flat()
-            return {
-              children: olChildren,
-              direction: null,
-              format: '',
-              indent: 0,
-              type: 'list',
-              version: 1,
-              listType: 'number',
-              start: 1
-            }
-          }
-            
-          case 'li': {
-            const liChildren = Array.from(node.childNodes)
-              .map(child => convertNode(child, formatContext))
-              .filter(Boolean)
-              .flat()
-            return {
-              children: liChildren,
-              direction: null,
-              format: '',
-              indent: 0,
-              type: 'listitem',
-              version: 1,
-              value: 1
-            }
-          }
-            
-          case 'strong':
-          case 'b':
-          case 'em':
-          case 'i':
-          case 'u':
-          case 's':
-            // These are handled by format context, just process children
-            return Array.from(node.childNodes)
-              .map(child => convertNode(child, newFormatContext))
-              .filter(Boolean)
-              .flat()
-            
-          default:
-            // For other tags, just process children
-            return Array.from(node.childNodes)
-              .map(child => convertNode(child, formatContext))
-              .filter(Boolean)
-              .flat()
-        }
-      }
-      
-      return null
-    }
-    
-    // Process all child nodes
-    Array.from(tempDiv.childNodes).forEach(node => {
-      const converted = convertNode(node)
-      if (converted) {
-        if (Array.isArray(converted)) {
-          root.children.push(...converted)
-        } else {
-          root.children.push(converted)
-        }
-      }
-    })
-    
-    // If no content, add empty paragraph
-    if (root.children.length === 0) {
-      root.children.push({
-        children: [{
-          detail: 0,
-          format: 0,
-          mode: 'normal',
-          style: '',
-          text: '',
-          type: 'text',
-          version: 1
-        }],
-        direction: null,
-        format: '',
-        indent: 0,
-        type: 'paragraph',
-        version: 1
-      })
-    }
-    
-    return JSON.stringify({ root })
-    
-  } catch (error) {
-    console.error('HTML to Lexical conversion error:', error)
-    // Fallback to simple text
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = html
-    const text = tempDiv.textContent || tempDiv.innerText || ''
-    return createLexicalState(text)
-  }
-}
 
-// Initialize editors
-const initializeEditor = () => {
-  if (editor.value) {
-    editor.value.destroy()
-  }
-  
-  const htmlContent = convertLexicalToHtml(editContent.value)
-  console.log('Setting editor content:', htmlContent)
-  
-  editor.value = new Editor({
-    extensions: [
-      Document,
-      Paragraph,
-      Text,
-      BoldExtension,
-      ItalicExtension,
-      UnderlineExtension,
-      StrikeExtension,
-      Heading.configure({
-        levels: [1, 2]
-      }),
-      BulletList,
-      OrderedList,
-      ListItem,
-      Link,
-      History
-    ],
-    content: htmlContent || '<p></p>',
-    onUpdate: ({ editor }) => {
-      editContent.value = convertHtmlToLexical(editor.getHTML())
-    },
-    editorProps: {
-      attributes: {
-        class: 'text-gray-300 leading-relaxed'
-      }
-    }
-  })
-}
-
-const initializeViewerEditor = () => {
-  if (viewerEditor.value) {
-    viewerEditor.value.destroy()
-  }
-  
-  const htmlContent = convertLexicalToHtml(props.note?.content || '')
-  console.log('Setting viewer content:', htmlContent)
-  
-  viewerEditor.value = new Editor({
-    extensions: [
-      Document,
-      Paragraph,
-      Text,
-      BoldExtension,
-      ItalicExtension,
-      UnderlineExtension,
-      StrikeExtension,
-      Heading.configure({
-        levels: [1, 2]
-      }),
-      BulletList,
-      OrderedList,
-      ListItem,
-      Link,
-      History
-    ],
-    content: htmlContent || '<p>No content</p>',
-    editable: false,
-    editorProps: {
-      attributes: {
-        class: 'text-gray-300 leading-relaxed'
-      }
-    }
-  })
-  
-  // Force content update after editor is ready
-  setTimeout(() => {
-    if (viewerEditor.value && htmlContent) {
-      viewerEditor.value.commands.setContent(htmlContent)
-      console.log('Force updated viewer content')
-    }
-  }, 100)
-}
 
 // AI Processing functionality
 const handleAiProcess = async () => {
@@ -906,10 +367,8 @@ const handleAiProcess = async () => {
     const processedContent = await processTextWithAi(editContent.value, props.userSettings)
     editContent.value = processedContent
     
-    // Update editor content
-    if (editor.value) {
-      editor.value.commands.setContent(convertLexicalToHtml(processedContent))
-    }
+    // Update HTML content for TinyMCE directly
+    editorHtmlContent.value = processedContent
     
     canUndo.value = true
     aiProcessCount.value++
@@ -926,10 +385,8 @@ const handleUndo = () => {
   
   editContent.value = originalContent.value
   
-  // Update editor content
-  if (editor.value) {
-    editor.value.commands.setContent(convertLexicalToHtml(originalContent.value))
-  }
+  // Update HTML content for TinyMCE directly
+  editorHtmlContent.value = originalContent.value
   
   canUndo.value = false
   aiProcessCount.value++
@@ -945,23 +402,26 @@ watch(() => props.note, (newNote) => {
   if (newNote) {
     editTitle.value = newNote.title
     editContent.value = newNote.content
+    editorHtmlContent.value = newNote.content
     isEditing.value = false
     resetAiState()
     aiProcessCount.value = 0
-    
-    // Reinitialize viewer editor with new content
-    initializeViewerEditor()
   }
 }, { immediate: true })
 
 watch(isEditing, (editing) => {
   if (editing) {
-    // Initialize editor when starting edit
-    setTimeout(() => {
-      initializeEditor()
-    }, 50)
+    // Initialize HTML content for TinyMCE when starting edit
+    editorHtmlContent.value = editContent.value
   } else {
     resetAiState()
+  }
+})
+
+// Watch for changes in HTML content from TinyMCE
+watch(editorHtmlContent, (newHtml) => {
+  if (isEditing.value && newHtml) {
+    editContent.value = newHtml
   }
 })
 
@@ -973,6 +433,8 @@ const cancelEdit = () => {
   isEditing.value = false
   editTitle.value = props.note.title
   editContent.value = props.note.content
+  editorHtmlContent.value = props.note.content
+  
   resetAiState()
 }
 
@@ -1018,19 +480,115 @@ const formatDate = (date, includeTime = false) => {
   return new Date(date).toLocaleDateString('da-DK', options)
 }
 
-onMounted(() => {
-  // Small delay to ensure component is fully mounted
-  setTimeout(() => {
-    initializeViewerEditor()
-  }, 50)
-})
-
 onBeforeUnmount(() => {
-  if (editor.value) {
-    editor.value.destroy()
-  }
-  if (viewerEditor.value) {
-    viewerEditor.value.destroy()
-  }
+  // TinyMCE automatically handles cleanup
 })
 </script>
+
+<style scoped>
+/* Links */
+.prose-content :deep(a) {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-decoration-color: rgba(96, 165, 250, 0.5);
+  transition: color 0.2s ease;
+}
+
+.prose-content :deep(a:hover) {
+  color: #93c5fd;
+  text-decoration-color: rgba(147, 197, 253, 0.75);
+}
+
+.prose-content :deep(a:visited) {
+  color: #c084fc;
+  text-decoration-color: rgba(192, 132, 252, 0.5);
+}
+
+.prose-content :deep(a:visited:hover) {
+  color: #d8b4fe;
+  text-decoration-color: rgba(216, 180, 254, 0.75);
+}
+
+/* Headings */
+.prose-content :deep(h1) {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1.5rem 0 1rem 0;
+  color: #f9fafb;
+}
+
+.prose-content :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.25rem 0 0.75rem 0;
+  color: #f3f4f6;
+}
+
+.prose-content :deep(h3) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1rem 0 0.5rem 0;
+  color: #e5e7eb;
+}
+
+/* Text formatting */
+.prose-content :deep(strong),
+.prose-content :deep(b) {
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.prose-content :deep(em),
+.prose-content :deep(i) {
+  font-style: italic;
+}
+
+.prose-content :deep(u),
+.prose-content :deep(span[style*="text-decoration: underline"]),
+.prose-content :deep([style*="text-decoration-line: underline"]) {
+  text-decoration: underline !important;
+  text-decoration-color: #d1d5db !important;
+  text-decoration-thickness: 1px !important;
+}
+
+.prose-content :deep(s),
+.prose-content :deep(strike),
+.prose-content :deep(span[style*="text-decoration: line-through"]),
+.prose-content :deep([style*="text-decoration-line: line-through"]) {
+  text-decoration: line-through !important;
+  text-decoration-color: #d1d5db !important;
+  text-decoration-thickness: 1px !important;
+}
+
+/* Lists */
+.prose-content :deep(ul) {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-content :deep(li) {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.prose-content :deep(ul li) {
+  list-style-type: disc;
+}
+
+/* Paragraphs */
+.prose-content :deep(p) {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.prose-content :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.prose-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+</style>
