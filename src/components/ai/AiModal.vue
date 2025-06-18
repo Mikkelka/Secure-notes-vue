@@ -76,8 +76,8 @@
             v-model="selectedModel"
             class="w-full px-4 py-3 pr-10 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 dropdown-arrow"
           >
-            <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (10/min)</option>
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (15/min)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash Lite (Preview)</option>
           </select>
         </div>
 
@@ -141,7 +141,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updateAiSettings'])
 
 const apiKey = ref('')
-const selectedModel = ref('gemini-2.5-flash-preview-05-20')
+const selectedModel = ref('gemini-2.5-flash')
 const customInstructions = ref('note-organizer')
 const apiStatus = ref({ message: '', type: '' })
 const hasApiKey = ref(false)
@@ -212,7 +212,7 @@ onMounted(() => {
       apiStatus.value = { message: 'API nøgle er gemt', type: 'success' }
     }
     
-    selectedModel.value = aiSettings.selectedModel || 'gemini-2.5-flash-preview-05-20'
+    selectedModel.value = aiSettings.selectedModel || 'gemini-2.5-flash'
     customInstructions.value = aiSettings.customInstructions || 'note-organizer'
   }
 })

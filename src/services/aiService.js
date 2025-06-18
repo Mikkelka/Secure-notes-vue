@@ -152,7 +152,7 @@ const getAiSettings = (userSettings) => {
       userSettings.aiSettings;
     return {
       apiKey: apiKey || "",
-      model: selectedModel || "gemini-2.0-flash",
+      model: selectedModel || "gemini-2.5-flash",
       instructionType: customInstructions || "note-organizer",
     };
   }
@@ -160,7 +160,7 @@ const getAiSettings = (userSettings) => {
   // Legacy fallback til sessionStorage
   return {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
-    model: sessionStorage.getItem("ai-model") || "gemini-2.0-flash",
+    model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash",
     instructionType:
       sessionStorage.getItem("ai-instructions") || "note-organizer",
   };
