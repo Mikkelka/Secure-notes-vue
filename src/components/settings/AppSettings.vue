@@ -150,7 +150,7 @@ const timeoutOptions = [
 ]
 
 const getTimeoutLabel = (value) => {
-  const option = timeoutOptions.find(opt => opt.value == value)
+  const option = timeoutOptions.find(opt => opt.value === value)
   return option ? option.label : '30 minutter'
 }
 
@@ -164,7 +164,6 @@ const handleSettingChange = async (key, value) => {
     settingsStore.updateSettings({ sessionTimeout: value })
   }
   
-  console.log('Setting changed:', key, value)
 }
 
 // Initialize settings on mount

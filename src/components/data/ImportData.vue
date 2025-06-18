@@ -1,6 +1,6 @@
 <template>
   <BaseDialog
-    :is-open="true"
+    is-open
     title="Importer data"
     size="lg"
     @close="$emit('close')"
@@ -95,7 +95,6 @@ const handleImport = async () => {
   
   if (confirm('Er du sikker? Dette vil slette alle eksisterende data!')) {
     // Import logic would go here - this is a placeholder
-    console.log('Importing data:', importData.value)
     alert('Import funktionalitet ikke implementeret endnu')
     emit('importComplete')
   }

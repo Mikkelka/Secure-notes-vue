@@ -280,7 +280,7 @@
   <BaseDialog
     :is-open="confirmDialog.isOpen"
     title="Slet note"
-    :show-default-actions="true"
+    show-default-actions
     confirm-text="Slet"
     cancel-text="Annuller"
     @confirm="handleConfirmDelete"

@@ -138,7 +138,7 @@
       @cancel="showPinPrompt = null"
       @master-password-unlock="handleMasterPasswordUnlock"
       title="Indtast PIN for Secure Folder"
-      :is-visible="true"
+      is-visible
       ref="pinInputRef"
     />
   </div>

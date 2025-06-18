@@ -107,7 +107,7 @@ export const useNotesStore = defineStore('notes', () => {
               const { deriveKeyFromPassword } = await import('../utils/encryption')
               const googleKey = await deriveKeyFromPassword(user.uid, user.uid)
               const decryptedData = await decryptText(encryptedData, googleKey)
-              console.log(`Note ${docSnapshot.id} decrypted with Google fallback key`)
+              console.warn(`Note ${docSnapshot.id} decrypted with Google fallback key`)
               return decryptedData
             } catch {
               // Begge metoder fejlede
@@ -137,7 +137,7 @@ export const useNotesStore = defineStore('notes', () => {
         } catch (error) {
           // Debug info for problematiske noter
           console.error(`Kunne ikke dekryptere note ${docSnapshot.id}. Den vil blive sprunget over.`, error)
-          console.log('Note data:', {
+          console.error('Note data:', {
             id: docSnapshot.id,
             userId: noteData.userId,
             currentUserId: user.uid,

@@ -224,7 +224,7 @@
       <BaseDialog
         :is-open="uiStore.folderConfirmDialog.isOpen"
         title="Slet mappe"
-        :show-default-actions="true"
+        show-default-actions
         confirm-text="Slet"
         cancel-text="Annuller"
         @confirm="handleConfirmFolderDelete"
@@ -238,7 +238,7 @@
       <BaseDialog
         :is-open="isChangePinDialogOpen"
         title="Ændr sikker PIN-kode"
-        :show-default-actions="true"
+        show-default-actions
         confirm-text="Gem"
         cancel-text="Annuller"
         @confirm="handleChangeSecurePin"
