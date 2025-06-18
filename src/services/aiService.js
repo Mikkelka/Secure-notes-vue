@@ -1,5 +1,5 @@
 // services/aiService.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 // --- Konstanter og Konfiguration ---
 
@@ -186,12 +186,8 @@ export const processTextWithAi = async (content, userSettings = null) => {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey });
     const instructionPrompt = getInstructionPrompt(instructionType);
-    const modelInstance = genAI.getGenerativeModel({
-      model,
-      safetySettings: SAFETY_SETTINGS,
-    });
 
     // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
@@ -203,7 +199,7 @@ KRITISKE HTML FORMATERINGS REGLER:
   * Brug <h1>, <h2>, <h3> for overskrifter
   * Brug <strong> for vigtige ord/sætninger
   * Brug <em> for fremhævning
-  * Brug <ul><li> for lister
+  * Brug <ul><li> for lister  
   * Brug <p> for almindelige afsnit
 - Returner KUN valid HTML - ingen markdown
 - Organiser indholdet logisk med passende overskrifter
@@ -212,8 +208,18 @@ KRITISKE HTML FORMATERINGS REGLER:
 Input HTML:
 ${content}`;
 
-    const result = await modelInstance.generateContent(prompt);
-    let processedHtml = result.response.text();
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        safetySettings: SAFETY_SETTINGS,
+        thinkingConfig: {
+          thinkingBudget: 0, // Disable thinking capabilities
+        },
+      },
+    });
+    
+    let processedHtml = response.text;
 
     // Minimal cleanup - fjern kun evt. wrapping af AI der ikke er HTML
     processedHtml = processedHtml

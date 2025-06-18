@@ -12,7 +12,8 @@
       "Bash(npm run dev:*)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "deny": []
   }

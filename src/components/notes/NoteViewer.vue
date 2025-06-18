@@ -343,6 +343,7 @@ const getTinymceConfig = (height = 400) => ({
   // Disable analytics and tracking
   analytics: false,
   usage_tracking: false,
+  telemetry: false,
   // Reduce touch sensitivity warnings
   touch_ui: false,
   // Disable automatic updates

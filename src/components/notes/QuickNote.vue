@@ -96,6 +96,7 @@ const getTinymceConfig = (height = 300) => ({
   content_css: 'dark',
   analytics: false,
   usage_tracking: false,
+  telemetry: false,
   touch_ui: false,
   auto_update: false
 })

@@ -148,11 +148,17 @@ The application implements **client-side encryption** where user data is encrypt
 ### AI Integration System
 
 **Core AI Service** (`services/aiService.js`):
-- Google Generative AI integration with configurable models
+- Google Generative AI integration with configurable models using `@google/genai` SDK
 - Direct HTML processing - preserves and enhances existing formatting
 - Instruction preset system for different note enhancement modes
 - Safety settings configured for minimal content blocking
 - Intelligent formatting addition (headings, bold text, lists) where appropriate
+- Thinking capabilities explicitly disabled (`thinkingBudget: 0`) for consistent responses
+
+**AI SDK Documentation:**
+- Gemini API Thinking: https://ai.google.dev/gemini-api/docs/thinking
+- Safety Settings: https://ai.google.dev/gemini-api/docs/safety-settings
+- JavaScript Quickstart: https://ai.google.dev/gemini-api/docs/quickstart#javascript
 
 **AI Features:**
 - Note organization and enhancement
