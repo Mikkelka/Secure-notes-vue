@@ -493,13 +493,11 @@ const handleUpdateAiSettings = async (newAiSettings) => {
 
 // --- Mobile UI Handlers ---
 const handleMobileFoldersClick = () => {
-  uiStore.closeMobileDrawers();
   if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSidebar();
 };
 
 const handleMobileAddNoteClick = () => {
-  uiStore.closeMobileDrawers();
   if (uiStore.showMobileQuickNote) {
     uiStore.closeMobileQuickNote();
     notesStore.setEditingNote(null);
@@ -510,13 +508,11 @@ const handleMobileAddNoteClick = () => {
 };
 
 const handleMobileSearchClick = () => {
-  uiStore.closeMobileDrawers();
   if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSearch();
 };
 
 const handleMobileSettingsClick = () => {
-  uiStore.closeMobileDrawers();
   if (uiStore.showMobileQuickNote) notesStore.setEditingNote(null);
   uiStore.toggleMobileSettings();
 };

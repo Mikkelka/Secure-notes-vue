@@ -62,9 +62,13 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const toggleMobileSidebar = () => {
-    closeMobileDrawers()
-    showMobileSidebar.value = !showMobileSidebar.value
-    activeMobileButton.value = showMobileSidebar.value ? 'folders' : null
+    if (showMobileSidebar.value) {
+      closeMobileSidebar()
+    } else {
+      closeMobileDrawers()
+      showMobileSidebar.value = true
+      activeMobileButton.value = 'folders'
+    }
   }
 
   const closeMobileSidebar = () => {
@@ -75,9 +79,13 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const toggleMobileQuickNote = () => {
-    closeMobileDrawers()
-    showMobileQuickNote.value = !showMobileQuickNote.value
-    activeMobileButton.value = showMobileQuickNote.value ? 'add' : null
+    if (showMobileQuickNote.value) {
+      closeMobileQuickNote()
+    } else {
+      closeMobileDrawers()
+      showMobileQuickNote.value = true
+      activeMobileButton.value = 'add'
+    }
   }
 
   const closeMobileQuickNote = () => {
@@ -88,9 +96,13 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const toggleMobileSettings = () => {
-    closeMobileDrawers()
-    showMobileSettings.value = !showMobileSettings.value
-    activeMobileButton.value = showMobileSettings.value ? 'settings' : null
+    if (showMobileSettings.value) {
+      closeMobileSettings()
+    } else {
+      closeMobileDrawers()
+      showMobileSettings.value = true
+      activeMobileButton.value = 'settings'
+    }
   }
 
   const closeMobileSettings = () => {
@@ -101,9 +113,13 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const toggleMobileSearch = () => {
-    closeMobileDrawers()
-    showMobileSearch.value = !showMobileSearch.value
-    activeMobileButton.value = showMobileSearch.value ? 'search' : null
+    if (showMobileSearch.value) {
+      closeMobileSearch()
+    } else {
+      closeMobileDrawers()
+      showMobileSearch.value = true
+      activeMobileButton.value = 'search'
+    }
   }
 
   const closeMobileSearch = () => {

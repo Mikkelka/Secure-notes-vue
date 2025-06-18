@@ -80,22 +80,6 @@ export const convertHtmlToPlainText = (htmlContent) => {
     .trim();
 };
 
-/**
- * Konverterer plain text til simpel HTML formatering.
- * @param {string} text - Plain text der skal konverteres.
- * @returns {string} HTML string.
- */
-const convertPlainTextToHtml = (text) => {
-  if (!text) return '<p></p>';
-  
-  // Grundlæggende tekstformatering til HTML
-  return text
-    .split('\n\n') // Split på dobbelte linjeskift for afsnit
-    .map(paragraph => paragraph.trim())
-    .filter(paragraph => paragraph.length > 0)
-    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
-    .join('');
-};
 
 /**
  * Konverterer plain text til HTML format.

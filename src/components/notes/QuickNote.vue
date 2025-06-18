@@ -59,8 +59,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { Save, Edit3, Type } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Save } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import Editor from '@tinymce/tinymce-vue'
 

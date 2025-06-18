@@ -292,7 +292,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo } from 'lucide-vue-next'
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
@@ -350,10 +350,6 @@ const getTinymceConfig = (height = 400) => ({
   auto_update: false
 })
 
-// Simple content validation - content is now pure HTML
-const validateContent = (content) => {
-  return content || '<p>No content available</p>'
-}
 
 
 
