@@ -7,15 +7,17 @@
       isAdvancedMode ? 'quicknote-advanced' : ''
     ]"
   >
-    <div :class="hideTitle ? 'flex justify-end mb-2' : 'flex items-center justify-between mb-2'">
+    <div :class="hideTitle ? 'flex justify-end mb-2 pr-2' : 'flex items-center justify-between mb-2'">
       <h3 v-if="!hideTitle" class="text-white font-medium">Ny note</h3>
       <BaseButton
         @click="toggleAdvancedMode"
         variant="ghost"
         size="sm"
-        class="text-gray-400 hover:text-white"
+        class="text-gray-400 hover:text-white !outline-0 !ring-0 !ring-offset-0"
+        style="outline: none !important; box-shadow: none !important; background: transparent !important;"
       >
-        <component :is="isAdvancedMode ? 'Type' : 'Edit3'" class="w-4 h-4" />
+        <FileText v-if="isAdvancedMode" class="w-4 h-4" />
+        <Edit v-else class="w-4 h-4" />
         {{ isAdvancedMode ? 'Simple' : 'Advanced' }}
       </BaseButton>
     </div>
@@ -70,7 +72,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Save } from 'lucide-vue-next'
+import { Save, FileText, Edit } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import Editor from '@tinymce/tinymce-vue'
 
