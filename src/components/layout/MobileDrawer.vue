@@ -29,7 +29,7 @@
             ]"
           >
             <!-- Header -->
-            <div class="flex items-center justify-between p-4 border-b border-gray-700/50">
+            <div class="flex items-center justify-between px-4 py-3">
               <h3 class="text-lg font-semibold text-white">{{ title }}</h3>
               <BaseButton
                 variant="ghost"
@@ -41,7 +41,7 @@
             </div>
             
             <!-- Content -->
-            <div class="p-4 overflow-y-auto" :style="{ height: 'calc(100% - 4rem)' }">
+            <div class="px-4 pb-4 overflow-y-auto" :style="{ height: 'calc(100% - 3.5rem)' }">
               <slot />
             </div>
           </div>

@@ -1,10 +1,14 @@
 <template>
   <div 
-    class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4 transition-all duration-300"
-    :class="isAdvancedMode ? 'quicknote-advanced' : ''"
+    :class="[
+      isInDrawer ? '' : 'bg-gray-800/60 border border-gray-700/50 rounded-lg p-4',
+      isInDrawer ? 'p-0' : '',
+      'transition-all duration-300',
+      isAdvancedMode ? 'quicknote-advanced' : ''
+    ]"
   >
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-white font-medium">Ny note</h3>
+    <div :class="hideTitle ? 'flex justify-end mb-2' : 'flex items-center justify-between mb-2'">
+      <h3 v-if="!hideTitle" class="text-white font-medium">Ny note</h3>
       <BaseButton
         @click="toggleAdvancedMode"
         variant="ghost"
@@ -16,21 +20,27 @@
       </BaseButton>
     </div>
     
-    <div class="space-y-3">
+    <div :class="isInDrawer ? 'space-y-2' : 'space-y-3'">
       <input
         v-model="title"
         type="text"
         placeholder="Titel..."
-        class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+        :class="[
+          'w-full bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500',
+          isInDrawer ? 'px-3 py-1.5' : 'px-3 py-2'
+        ]"
       />
       
       <!-- Simple Mode: Textarea -->
       <textarea
         v-if="!isAdvancedMode"
         v-model="content"
-        :rows="isCompact ? 4 : 8"
+        :rows="isInDrawer ? (isCompact ? 6 : 10) : (isCompact ? 4 : 8)"
         placeholder="Skriv din note her..."
-        class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 resize-none"
+        :class="[
+          'w-full bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 resize-none',
+          isInDrawer ? 'px-3 py-1.5' : 'px-3 py-2'
+        ]"
       />
       
       <!-- Advanced Mode: TinyMCE -->
@@ -66,6 +76,14 @@ import Editor from '@tinymce/tinymce-vue'
 
 defineProps({
   isCompact: {
+    type: Boolean,
+    default: false
+  },
+  hideTitle: {
+    type: Boolean,
+    default: false
+  },
+  isInDrawer: {
     type: Boolean,
     default: false
   }
