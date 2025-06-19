@@ -1,19 +1,26 @@
 <template>
   <div 
     v-if="isOpen" 
-    class="fixed inset-0 z-50" 
+    class="fixed inset-0 z-[60]" 
     @click="$emit('close')"
   >
+    <!-- Mobile backdrop -->
     <div 
-      :style="{ top: position.top + 'px', left: position.left + 'px' }"
-      class="absolute bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-2 min-w-48 max-w-64"
+      v-if="isMobile"
+      class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+    ></div>
+    
+    <div 
+      :style="dropdownStyle"
+      :class="dropdownClasses"
       @click.stop
     >
       <!-- Uncategorized option -->
       <button
         @click="handleSelectFolder(null)"
         :class="[
-          'w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm',
+          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation',
+          isMobile ? 'py-4' : 'py-3',
           currentFolderId === null ? 'bg-gray-700 text-gray-300' : 'text-gray-300'
         ]"
         :disabled="currentFolderId === null"
@@ -32,7 +39,8 @@
         :key="folder.id"
         @click="handleSelectFolder(folder.id)"
         :class="[
-          'w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm',
+          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation',
+          isMobile ? 'py-4' : 'py-3',
           currentFolderId === folder.id ? 'bg-gray-700 text-gray-300' : 'text-gray-300'
         ]"
         :disabled="currentFolderId === folder.id"
@@ -46,7 +54,10 @@
       <button
         v-if="showSecureFolder && currentFolderId !== 'secure'"
         @click="handleSelectFolder('secure')"
-        class="w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm text-gray-300"
+        :class="[
+          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm text-gray-300 touch-manipulation',
+          isMobile ? 'py-4' : 'py-3'
+        ]"
       >
         <Folder class="w-4 h-4" style="color: #dc2626" />
         <span>Sikker</span>
@@ -55,7 +66,10 @@
       <!-- Current secure folder indicator -->
       <div
         v-if="currentFolderId === 'secure'"
-        class="w-full px-3 py-2 flex items-center gap-2 text-sm bg-gray-700 text-gray-300"
+        :class="[
+          'w-full px-3 flex items-center gap-2 text-sm bg-gray-700 text-gray-300',
+          isMobile ? 'py-4' : 'py-3'
+        ]"
       >
         <Folder class="w-4 h-4" style="color: #dc2626" />
         <span>Sikker</span>
@@ -65,7 +79,10 @@
       <!-- No folders message -->
       <div
         v-if="availableFolders.length === 0 && !showSecureFolder"
-        class="px-3 py-2 text-gray-500 text-sm text-center"
+        :class="[
+          'px-3 text-gray-500 text-sm text-center',
+          isMobile ? 'py-4' : 'py-3'
+        ]"
       >
         Ingen andre mapper tilgængelige
       </div>
@@ -97,6 +114,37 @@ const props = defineProps({
   lockedFolders: {
     type: Set,
     default: () => new Set()
+  }
+})
+
+// Check if we're on mobile
+const isMobile = computed(() => window.innerWidth < 1024)
+
+// Dynamic styling based on device
+const dropdownStyle = computed(() => {
+  if (isMobile.value) {
+    // Centered modal style for mobile
+    return {
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)'
+    }
+  } else {
+    // Positioned relative to trigger for desktop
+    return {
+      top: props.position.top + 'px',
+      left: props.position.left + 'px'
+    }
+  }
+})
+
+const dropdownClasses = computed(() => {
+  const baseClasses = 'absolute bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-2 touch-manipulation'
+  
+  if (isMobile.value) {
+    return `${baseClasses} w-64 max-w-[90vw]`
+  } else {
+    return `${baseClasses} min-w-48 max-w-64`
   }
 })
 
@@ -140,9 +188,15 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 
-/* Ensure dropdown is above other elements */
-.z-50 {
-  z-index: 50;
+/* Ensure dropdown is above other elements - higher z-index for mobile */
+.z-\[60\] {
+  z-index: 60;
+}
+
+/* Touch optimization */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Smooth hover transitions */
@@ -152,5 +206,29 @@ button:disabled {
 
 button:not(:disabled):hover {
   background-color: rgba(55, 65, 81, 0.8);
+}
+
+/* Mobile-specific touch targets */
+@media (max-width: 1024px) {
+  button {
+    min-height: 48px; /* Ensure minimum touch target size */
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Mobile modal style */
+  .mobile-dropdown {
+    animation: fadeInScale 0.2s ease-out;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 </style>
