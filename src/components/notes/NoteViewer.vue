@@ -323,7 +323,6 @@
     show-default-actions
     confirm-text="Slet"
     cancel-text="Annuller"
-    class="z-[70]"
     @confirm="handleConfirmDelete"
     @cancel="handleCancelDelete"
     @close="handleCancelDelete"
