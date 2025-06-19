@@ -12,21 +12,6 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <div 
-          v-if="showPerformanceStats && performanceStats" 
-          class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded text-xs"
-        >
-          <Zap class="w-3 h-3 text-green-400" />
-          <span class="text-green-300">
-            <span v-if="performanceStats.encryptTime">
-              {{ Math.round(performanceStats.encryptTime) }}ms
-            </span>
-            <span v-else-if="performanceStats.loadTime">
-              {{ Math.round(performanceStats.loadTime) }}ms load
-            </span>
-          </span>
-        </div>
-
         <button
           @click="$emit('export')"
           class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 hover:bg-blue-500/20 transition-colors text-sm"
@@ -67,24 +52,12 @@
 </template>
 
 <script setup>
-import { Shield, Brain, Download, Settings, LogOut, Zap } from 'lucide-vue-next'
+import { Shield, Brain, Download, Settings, LogOut } from 'lucide-vue-next'
 
 defineProps({
   user: {
     type: Object,
     default: null
-  },
-  performanceStats: {
-    type: Object,
-    default: null
-  },
-  showPerformanceStats: {
-    type: Boolean,
-    default: true
-  },
-  sessionTimeout: {
-    type: [String, Number],
-    default: 1800000
   }
 })
 

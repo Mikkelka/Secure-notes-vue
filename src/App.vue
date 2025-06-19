@@ -20,8 +20,6 @@
       <!-- Header -->
       <Header
         :user="authStore.user"
-        :performance-stats="notesStore.performanceStats"
-        :show-performance-stats="authStore.settings.showPerformanceStats"
         @logout="authStore.logout"
         @export="uiStore.openDataExport"
         @ai="uiStore.openAiModal"
@@ -101,7 +99,7 @@
                   @lock-secure-folder="foldersStore.lockSecureFolder"
                 />
               </div>
-              <div class="hidden md:block">
+              <div v-if="settingsStore.settings.showPerformanceStats" class="hidden md:block">
                 <PerformanceStats :stats="notesStore.performanceStats" />
               </div>
             </div>
@@ -271,6 +269,7 @@ import { useAuthStore } from "./stores/auth";
 import { useNotesStore } from "./stores/notes";
 import { useFoldersStore } from "./stores/folders";
 import { useUIStore } from "./stores/ui";
+import { useSettingsStore } from "./stores/settings";
 
 // Components
 import ErrorBoundary from "./components/ErrorBoundary.vue";
@@ -297,6 +296,7 @@ const authStore = useAuthStore();
 const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const uiStore = useUIStore();
+const settingsStore = useSettingsStore();
 
 // --- Template refs ---
 const loginFormRef = ref(null);

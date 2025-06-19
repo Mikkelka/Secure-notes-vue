@@ -70,7 +70,7 @@
                   Vis performance statistik
                 </label>
                 <p class="text-xs text-gray-500">
-                  Vis krypteringstider i header
+                  Vis performance blok på forsiden
                 </p>
               </div>
               <button
