@@ -55,6 +55,17 @@
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
                 {{ formatDate(note.createdAt, true) }}
+                <span 
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+                  :style="{
+                    backgroundColor: getFolderDisplay(note.folderId).color + '20',
+                    borderColor: getFolderDisplay(note.folderId).color + '40',
+                    color: getFolderDisplay(note.folderId).color
+                  }"
+                >
+                  <Folder class="w-3 h-3" />
+                  {{ getFolderDisplay(note.folderId).name }}
+                </span>
                 <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
@@ -114,6 +125,17 @@
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
                 {{ formatDate(note.createdAt, true) }}
+                <span 
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+                  :style="{
+                    backgroundColor: getFolderDisplay(note.folderId).color + '20',
+                    borderColor: getFolderDisplay(note.folderId).color + '40',
+                    color: getFolderDisplay(note.folderId).color
+                  }"
+                >
+                  <Folder class="w-3 h-3" />
+                  {{ getFolderDisplay(note.folderId).name }}
+                </span>
                 <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
@@ -169,9 +191,10 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Lock, Star, Trash2, Clock, X } from 'lucide-vue-next'
+import { Search, Lock, Star, Trash2, Clock, X, Folder } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import { extractPlainText } from '../../services/aiService.js'
+import { useFoldersStore } from '../../stores/folders.js'
 
 const props = defineProps({
   notes: {
@@ -193,6 +216,9 @@ const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavo
 const localSearchTerm = ref('')
 const confirmDialog = ref({ isOpen: false, noteId: null })
 const debouncedSearchTerm = ref('')
+
+// Folders store for folder information
+const foldersStore = useFoldersStore()
 
 // Debounce search term with 300ms delay
 let debounceTimeout = null
@@ -244,6 +270,24 @@ const formatDate = (date, includeTime = false) => {
   }
   
   return new Date(date).toLocaleDateString('da-DK', options)
+}
+
+// Get folder display info (name and color)
+const getFolderDisplay = (folderId) => {
+  if (!folderId) {
+    return { name: 'Ukategoriseret', color: '#6b7280' }
+  }
+  
+  if (folderId === 'secure') {
+    return { name: 'Sikker', color: '#dc2626' }
+  }
+  
+  const folder = foldersStore.folders.find(f => f.id === folderId)
+  if (folder) {
+    return { name: folder.name, color: folder.color }
+  }
+  
+  return { name: 'Ukategoriseret', color: '#6b7280' }
 }
 
 const handleToggleFavorite = (noteId) => {

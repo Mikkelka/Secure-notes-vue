@@ -111,6 +111,17 @@
             <div class="flex items-center gap-2 text-gray-400 text-sm">
               <Clock class="w-4 h-4" />
               {{ formatDate(note.createdAt, true) }}
+              <span 
+                class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+                :style="{
+                  backgroundColor: getFolderDisplay(note.folderId).color + '20',
+                  borderColor: getFolderDisplay(note.folderId).color + '40',
+                  color: getFolderDisplay(note.folderId).color
+                }"
+              >
+                <Folder class="w-3 h-3" />
+                {{ getFolderDisplay(note.folderId).name }}
+              </span>
             </div>
             <div class="max-w-none">
               <!-- Direct HTML rendering -->
@@ -249,6 +260,17 @@
           <div class="flex items-center gap-2 text-gray-400 text-sm">
             <Clock class="w-4 h-4" />
             {{ formatDate(note.createdAt, true) }}
+            <span 
+              class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+              :style="{
+                backgroundColor: getFolderDisplay(note.folderId).color + '20',
+                borderColor: getFolderDisplay(note.folderId).color + '40',
+                color: getFolderDisplay(note.folderId).color
+              }"
+            >
+              <Folder class="w-3 h-3" />
+              {{ getFolderDisplay(note.folderId).name }}
+            </span>
           </div>
           <div class="max-w-none">
             <!-- Direct HTML rendering -->
@@ -293,11 +315,12 @@
 
 <script setup>
 import { ref, watch, onBeforeUnmount } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo } from 'lucide-vue-next'
+import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo, Folder } from 'lucide-vue-next'
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import { processTextWithAi } from '../../services/aiService.js'
+import { useFoldersStore } from '../../stores/folders.js'
 
 const props = defineProps({
   note: {
@@ -320,6 +343,9 @@ const isAiProcessing = ref(false)
 const aiProcessCount = ref(0)
 const originalContent = ref('')
 const canUndo = ref(false)
+
+// Folders store for folder information
+const foldersStore = useFoldersStore()
 
 
 // TinyMCE editor content for editing
@@ -477,6 +503,24 @@ const formatDate = (date, includeTime = false) => {
   }
   
   return new Date(date).toLocaleDateString('da-DK', options)
+}
+
+// Get folder display info (name and color)
+const getFolderDisplay = (folderId) => {
+  if (!folderId) {
+    return { name: 'Ukategoriseret', color: '#6b7280' }
+  }
+  
+  if (folderId === 'secure') {
+    return { name: 'Sikker', color: '#dc2626' }
+  }
+  
+  const folder = foldersStore.folders.find(f => f.id === folderId)
+  if (folder) {
+    return { name: folder.name, color: folder.color }
+  }
+  
+  return { name: 'Ukategoriseret', color: '#6b7280' }
 }
 
 onBeforeUnmount(() => {
