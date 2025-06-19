@@ -7,7 +7,7 @@
         </div>
         <div>
           <h1 class="text-lg font-semibold text-white">SecureNotes</h1>
-          <p class="text-gray-400 text-xs">{{ user?.email }}</p>
+          <p class="text-gray-400 text-xs">{{ user?.email?.split('@')[0] }}</p>
         </div>
       </div>
 
