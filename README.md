@@ -106,13 +106,6 @@ Find dine Firebase credentials:
 2. Scroll ned til "Your apps" og vælg din web app
 3. Kopier config værdierne til din `.env` fil
 
-### 5. Google Generative AI Setup (Optional)
-
-For AI funktioner skal du:
-1. Gå til [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Opret en API key
-3. Tilføj `VITE_GOOGLE_AI_API_KEY` til din `.env` fil
-
 ## 🔧 Development
 
 Start development server:
