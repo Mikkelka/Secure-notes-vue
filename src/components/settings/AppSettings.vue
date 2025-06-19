@@ -143,6 +143,7 @@ const showPerformanceStats = ref(true)
 const sessionTimeout = ref('1800000')
 
 const timeoutOptions = [
+  { value: 180000, label: '3 minutter' },
   { value: 900000, label: '15 minutter' },
   { value: 1800000, label: '30 minutter' },
   { value: 3600000, label: '1 time' },

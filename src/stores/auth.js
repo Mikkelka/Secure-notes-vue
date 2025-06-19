@@ -49,10 +49,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Session timeout handler
-  const handleSessionTimeout = () => {
-    encryptionKey.value = null
+  const handleSessionTimeout = async () => {
     showTimeoutWarning.value = false
     clearSessionTimers()
+    await logout()
   }
 
   // Warning handler
