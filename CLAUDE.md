@@ -47,6 +47,7 @@ The application implements **client-side encryption** where user data is encrypt
 - Favorite notes system with automatic sorting
 - Performance monitoring for encryption/decryption operations
 - Fallback decryption for cross-version compatibility
+- `moveNoteToFolder()` method for changing note folder assignments
 
 **folders.js** - Folder organization system:
 - Encrypted folder management with color coding
@@ -123,10 +124,19 @@ The application implements **client-side encryption** where user data is encrypt
 - Drawers (`z-40`) with backdrop dismiss functionality
 - Automatic drawer closure when switching between functions
 
+**Mobile NoteViewer Optimizations:**
+- Compact action buttons in bottom area for thumb accessibility
+- Icon-only design: [Slet] [Favorit] [Edit] [Luk]
+- Removed header action buttons to prevent stretching for top screen areas
+- Optimized z-index hierarchy: NoteViewer (`z-60`), Dropdown (`z-[60]`), Dialogs (`z-[80]`)
+- Touch-optimized folder label interaction with mobile-centered dropdown
+
 **Key Mobile Components:**
 - `MobileBottomMenu.vue` - Primary navigation interface
 - `MobileDrawer.vue` - Generic drawer container
 - `MobileSearchDrawer.vue` - Dedicated search interface
+- `NoteViewer.vue` - Mobile-optimized with bottom action buttons and centered modals
+- `FolderDropdown.vue` - Responsive folder selection dropdown
 
 ### Rich Text Editor Integration
 
@@ -144,6 +154,34 @@ The application implements **client-side encryption** where user data is encrypt
 - Direct HTML rendering in viewer with v-html
 - Simplified architecture eliminates conversion bugs
 - Better performance with no format transformation
+
+### Folder Management System
+
+**Interactive Folder Labels:**
+- Clickable folder labels on all notes showing current folder assignment
+- Color-coded labels matching folder theme colors
+- Special handling for "Ukategoriseret" (uncategorized) and "Sikker" (secure) folders
+- Positioned next to action buttons for easy access
+
+**Folder Dropdown Interface:**
+- `FolderDropdown.vue` component for selecting target folders
+- Shows all available folders with names and colors
+- Filters out locked folders (secure folder when locked)
+- Excludes current folder from selection options
+- Mobile-optimized with centered modal presentation
+
+**Mobile Folder UX:**
+- Desktop: Dropdown positioned below folder label
+- Mobile: Centered modal with backdrop for better touch interaction
+- Touch-optimized button sizes (minimum 48px height)
+- Smooth animations and proper z-index layering
+
+**Folder Movement Workflow:**
+1. Click folder label on any note
+2. Select target folder from dropdown
+3. Note automatically moves with visual feedback
+4. Security validation for protected folders
+5. Real-time UI updates without page refresh
 
 ### AI Integration System
 
@@ -224,3 +262,10 @@ The application implements **client-side encryption** where user data is encrypt
 - Efficient note filtering using computed properties
 - Lazy loading for mobile drawers and modals
 - Performance stats tracking for encryption operations
+
+**Mobile Touch Optimization:**
+- `touch-action: manipulation` for responsive interactions
+- `-webkit-tap-highlight-color: transparent` to remove tap highlights
+- Minimum 44-48px touch targets for accessibility compliance
+- Proper event handling separation for touch vs click events
+- iOS zoom prevention with 16px minimum font sizes

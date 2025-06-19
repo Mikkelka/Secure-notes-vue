@@ -132,6 +132,7 @@
                 @delete-note="notesStore.deleteNote"
                 @note-click="handleNoteClick"
                 @toggle-favorite="handleToggleFavorite"
+                @move-note-to-folder="handleMoveNoteToFolder"
               />
             </div>
           </div>
@@ -147,6 +148,7 @@
         @update="handleViewerUpdate"
         @delete="handleViewerDelete"
         @toggle-favorite="handleToggleFavorite"
+        @move-note-to-folder="handleMoveNoteToFolder"
       />
 
       <!-- Modals and Drawers -->
@@ -412,6 +414,36 @@ const handleViewerDelete = async (noteId) => {
 
 const handleToggleFavorite = async (noteId) => {
   return await notesStore.toggleFavorite(noteId);
+};
+
+// --- Folder Move Handler ---
+const handleMoveNoteToFolder = async (noteId, newFolderId) => {
+  // Check if user has access to the target folder
+  if (newFolderId === 'secure' && foldersStore.lockedFolders.has('secure')) {
+    alert('Du skal først låse op for den sikre mappe');
+    return false;
+  }
+  
+  try {
+    const success = await notesStore.moveNoteToFolder(noteId, newFolderId);
+    
+    if (success) {
+      // Update selectedNote if it's the one being moved
+      if (uiStore.selectedNote?.id === noteId) {
+        uiStore.setSelectedNote({
+          ...uiStore.selectedNote,
+          folderId: newFolderId,
+          updatedAt: new Date()
+        });
+      }
+    }
+    
+    return success;
+  } catch (error) {
+    console.error('Fejl ved flytning af note:', error);
+    alert('Kunne ikke flytte noten. Prøv igen.');
+    return false;
+  }
 };
 
 // --- Folder Handlers ---
