@@ -55,8 +55,11 @@
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
                 {{ formatDate(note.createdAt, true) }}
+                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+              </div>
+              <div class="flex items-center gap-1" @click.stop>
                 <span 
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -66,9 +69,6 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
-              </div>
-              <div class="flex items-center gap-1" @click.stop>
                 <button
                   @click="handleToggleFavorite(note.id)"
                   :class="[
@@ -125,8 +125,11 @@
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
                 {{ formatDate(note.createdAt, true) }}
+                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+              </div>
+              <div class="flex items-center gap-1" @click.stop>
                 <span 
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -136,9 +139,6 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
-              </div>
-              <div class="flex items-center gap-1" @click.stop>
                 <button
                   @click="handleToggleFavorite(note.id)"
                   :class="[

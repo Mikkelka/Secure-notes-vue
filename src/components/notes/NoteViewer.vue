@@ -13,6 +13,17 @@
             {{ isEditing ? 'Edit Note' : note.title }}
           </h2>
           <div class="flex items-center">
+            <span 
+              class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2"
+              :style="{
+                backgroundColor: getFolderDisplay(note.folderId).color + '20',
+                borderColor: getFolderDisplay(note.folderId).color + '40',
+                color: getFolderDisplay(note.folderId).color
+              }"
+            >
+              <Folder class="w-3 h-3" />
+              {{ getFolderDisplay(note.folderId).name }}
+            </span>
             <BaseButton
               v-if="!isEditing"
               variant="ghost"
@@ -111,17 +122,6 @@
             <div class="flex items-center gap-2 text-gray-400 text-sm">
               <Clock class="w-4 h-4" />
               {{ formatDate(note.createdAt, true) }}
-              <span 
-                class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
-                :style="{
-                  backgroundColor: getFolderDisplay(note.folderId).color + '20',
-                  borderColor: getFolderDisplay(note.folderId).color + '40',
-                  color: getFolderDisplay(note.folderId).color
-                }"
-              >
-                <Folder class="w-3 h-3" />
-                {{ getFolderDisplay(note.folderId).name }}
-              </span>
             </div>
             <div class="max-w-none">
               <!-- Direct HTML rendering -->
@@ -158,6 +158,17 @@
           {{ isEditing ? 'Edit Note' : note.title }}
         </h2>
         <div class="flex items-center">
+          <span 
+            class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2"
+            :style="{
+              backgroundColor: getFolderDisplay(note.folderId).color + '20',
+              borderColor: getFolderDisplay(note.folderId).color + '40',
+              color: getFolderDisplay(note.folderId).color
+            }"
+          >
+            <Folder class="w-3 h-3" />
+            {{ getFolderDisplay(note.folderId).name }}
+          </span>
           <BaseButton
             v-if="!isEditing"
             variant="ghost"
@@ -260,17 +271,6 @@
           <div class="flex items-center gap-2 text-gray-400 text-sm">
             <Clock class="w-4 h-4" />
             {{ formatDate(note.createdAt, true) }}
-            <span 
-              class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1"
-              :style="{
-                backgroundColor: getFolderDisplay(note.folderId).color + '20',
-                borderColor: getFolderDisplay(note.folderId).color + '40',
-                color: getFolderDisplay(note.folderId).color
-              }"
-            >
-              <Folder class="w-3 h-3" />
-              {{ getFolderDisplay(note.folderId).name }}
-            </span>
           </div>
           <div class="max-w-none">
             <!-- Direct HTML rendering -->
