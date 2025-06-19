@@ -14,7 +14,9 @@
           </h2>
           <div class="flex items-center">
             <span 
-              class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2"
+              ref="folderLabelRef"
+              @click="handleFolderLabelClick"
+              class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2 cursor-pointer hover:opacity-80 transition-opacity"
               :style="{
                 backgroundColor: getFolderDisplay(note.folderId).color + '20',
                 borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -159,7 +161,9 @@
         </h2>
         <div class="flex items-center">
           <span 
-            class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2"
+            ref="folderLabelRef"
+            @click="handleFolderLabelClick"
+            class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-2 cursor-pointer hover:opacity-80 transition-opacity"
             :style="{
               backgroundColor: getFolderDisplay(note.folderId).color + '20',
               borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -298,6 +302,18 @@
     </div>
   </div>
   
+  <!-- Folder Dropdown -->
+  <FolderDropdown
+    v-if="note"
+    :current-folder-id="note.folderId"
+    :available-folders="foldersStore.folders"
+    :locked-folders="foldersStore.lockedFolders"
+    :is-open="showDropdown"
+    :position="dropdownPosition"
+    @select="handleFolderSelect"
+    @close="closeDropdown"
+  />
+  
   <!-- Confirm Dialog -->
   <BaseDialog
     :is-open="confirmDialog.isOpen"
@@ -309,7 +325,7 @@
     @cancel="handleCancelDelete"
     @close="handleCancelDelete"
   >
-    Er du sikker på at du vil slette denne note? Denne handling kan ikke fortrydes.
+    Er du sikker på at du vil slette denne note? Denna handling kan ikke fortrydes.
   </BaseDialog>
 </template>
 
@@ -319,6 +335,7 @@ import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo, Folder } from 'lucide
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
+import FolderDropdown from '../folders/FolderDropdown.vue'
 import { processTextWithAi } from '../../services/aiService.js'
 import { useFoldersStore } from '../../stores/folders.js'
 
@@ -333,7 +350,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'update', 'delete', 'toggleFavorite'])
+const emit = defineEmits(['close', 'update', 'delete', 'toggleFavorite', 'moveNoteToFolder'])
 
 const isEditing = ref(false)
 const editTitle = ref('')
@@ -346,6 +363,11 @@ const canUndo = ref(false)
 
 // Folders store for folder information
 const foldersStore = useFoldersStore()
+
+// Dropdown state
+const showDropdown = ref(false)
+const dropdownPosition = ref({ top: 0, left: 0 })
+const folderLabelRef = ref(null)
 
 
 // TinyMCE editor content for editing
@@ -521,6 +543,38 @@ const getFolderDisplay = (folderId) => {
   }
   
   return { name: 'Ukategoriseret', color: '#6b7280' }
+}
+
+// Handle folder label click to open dropdown
+const handleFolderLabelClick = (event) => {
+  event.stopPropagation()
+  
+  if (showDropdown.value) {
+    showDropdown.value = false
+    return
+  }
+  
+  // Calculate dropdown position
+  if (folderLabelRef.value) {
+    const rect = folderLabelRef.value.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX
+    }
+  }
+  
+  showDropdown.value = true
+}
+
+// Handle folder selection from dropdown
+const handleFolderSelect = (newFolderId) => {
+  showDropdown.value = false
+  emit('moveNoteToFolder', props.note.id, newFolderId)
+}
+
+// Close dropdown
+const closeDropdown = () => {
+  showDropdown.value = false
 }
 
 onBeforeUnmount(() => {

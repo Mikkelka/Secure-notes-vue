@@ -59,7 +59,9 @@
               </div>
               <div class="flex items-center gap-1" @click.stop>
                 <span 
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1"
+                  :ref="el => setFolderLabelRef(note.id, el)"
+                  @click="handleFolderLabelClick(note.id, $event)"
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1 cursor-pointer hover:opacity-80 transition-opacity"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -129,7 +131,9 @@
               </div>
               <div class="flex items-center gap-1" @click.stop>
                 <span 
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1"
+                  :ref="el => setFolderLabelRef(note.id, el)"
+                  @click="handleFolderLabelClick(note.id, $event)"
+                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1 cursor-pointer hover:opacity-80 transition-opacity"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -174,6 +178,18 @@
     </div>
   </div>
   
+  <!-- Folder Dropdown -->
+  <FolderDropdown
+    v-if="getActiveNote"
+    :current-folder-id="getActiveNote.folderId"
+    :available-folders="foldersStore.folders"
+    :locked-folders="foldersStore.lockedFolders"
+    :is-open="activeDropdown !== null"
+    :position="dropdownPosition"
+    @select="(folderId) => handleFolderSelect(activeDropdown, folderId)"
+    @close="closeDropdown"
+  />
+  
   <!-- Confirm Dialog -->
   <BaseDialog
     :is-open="confirmDialog.isOpen"
@@ -193,6 +209,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Search, Lock, Star, Trash2, Clock, X, Folder } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
+import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
 import { useFoldersStore } from '../../stores/folders.js'
 
@@ -211,7 +228,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite'])
+const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite', 'moveNoteToFolder'])
 
 const localSearchTerm = ref('')
 const confirmDialog = ref({ isOpen: false, noteId: null })
@@ -219,6 +236,11 @@ const debouncedSearchTerm = ref('')
 
 // Folders store for folder information
 const foldersStore = useFoldersStore()
+
+// Dropdown state
+const activeDropdown = ref(null)
+const dropdownPosition = ref({ top: 0, left: 0 })
+const folderLabelRefs = ref(new Map())
 
 // Debounce search term with 300ms delay
 let debounceTimeout = null
@@ -308,6 +330,55 @@ const handleConfirmDelete = () => {
 const handleCancelDelete = () => {
   confirmDialog.value = { isOpen: false, noteId: null }
 }
+
+// Store refs to folder label elements for positioning
+const setFolderLabelRef = (noteId, el) => {
+  if (el) {
+    folderLabelRefs.value.set(noteId, el)
+  } else {
+    folderLabelRefs.value.delete(noteId)
+  }
+}
+
+// Handle folder label click to open dropdown
+const handleFolderLabelClick = async (noteId, event) => {
+  event.stopPropagation()
+  
+  if (activeDropdown.value === noteId) {
+    // Close if already open
+    activeDropdown.value = null
+    return
+  }
+  
+  // Calculate dropdown position
+  const labelElement = folderLabelRefs.value.get(noteId)
+  if (labelElement) {
+    const rect = labelElement.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX
+    }
+  }
+  
+  activeDropdown.value = noteId
+}
+
+// Handle folder selection from dropdown
+const handleFolderSelect = (noteId, newFolderId) => {
+  activeDropdown.value = null
+  emit('moveNoteToFolder', noteId, newFolderId)
+}
+
+// Close dropdown
+const closeDropdown = () => {
+  activeDropdown.value = null
+}
+
+// Get note by ID for dropdown
+const getActiveNote = computed(() => {
+  if (!activeDropdown.value) return null
+  return props.notes.find(note => note.id === activeDropdown.value)
+})
 
 onMounted(() => {
   debouncedSearchTerm.value = props.searchTerm
