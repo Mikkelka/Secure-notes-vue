@@ -79,14 +79,15 @@
         >
           <div class="flex items-center gap-1 flex-shrink-0">
             <component :is="folder.icon" class="w-3 h-3" />
+          </div>
+          <span class="flex-1 text-xs font-medium truncate flex items-center gap-1">{{
+            folder.name
+          }}
             <Lock
               v-if="folder.id === 'secure'"
               class="w-2.5 h-2.5 text-gray-400"
             />
-          </div>
-          <span class="flex-1 text-xs font-medium truncate">{{
-            folder.name
-          }}</span>
+          </span>
           <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right">
             {{ props.noteCounts[folder.id] || 0 }}
           </span>

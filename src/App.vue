@@ -91,9 +91,8 @@
                   @mode-change="handleQuickNoteMode"
                 />
               </div>
-              <div class="hidden md:block">
+              <div v-if="foldersStore.selectedFolderId === 'secure'" class="hidden md:block">
                 <SettingsMenu
-                  :selected-folder-id="foldersStore.selectedFolderId"
                   :locked-folders="foldersStore.lockedFolders"
                   @change-secure-pin="openChangePinDialog"
                   @lock-secure-folder="foldersStore.lockSecureFolder"
@@ -202,13 +201,13 @@
         <QuickNote :is-compact="false" @save="handleSaveNote" @mode-change="handleQuickNoteMode" />
       </MobileDrawer>
       <MobileDrawer
+        v-if="foldersStore.selectedFolderId === 'secure'"
         :is-open="uiStore.showMobileSettings"
         title="Indstillinger"
         height="h-[50vh]"
         @close="uiStore.closeMobileSettings"
       >
         <SettingsMenu
-          :selected-folder-id="foldersStore.selectedFolderId"
           :locked-folders="foldersStore.lockedFolders"
           @change-secure-pin="openChangePinDialog"
           @lock-secure-folder="foldersStore.lockSecureFolder"

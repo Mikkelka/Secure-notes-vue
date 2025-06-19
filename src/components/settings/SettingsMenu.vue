@@ -6,7 +6,7 @@
     </h3>
     
     <div class="space-y-3">
-      <div v-if="selectedFolderId === 'secure'" class="space-y-2">
+      <div class="space-y-2">
         <BaseButton
           @click="$emit('changeSecurePin')"
           variant="secondary"
@@ -27,10 +27,6 @@
           Lås sikker mappe
         </BaseButton>
       </div>
-      
-      <div v-else class="text-sm text-gray-400 text-center py-4">
-        Vælg sikker mappe for PIN indstillinger
-      </div>
     </div>
   </div>
 </template>
@@ -40,10 +36,6 @@ import { Settings, Key, Lock } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 
 defineProps({
-  selectedFolderId: {
-    type: String,
-    default: 'all'
-  },
   lockedFolders: {
     type: Set,
     default: () => new Set()

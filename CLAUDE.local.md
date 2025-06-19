@@ -1,4 +1,3 @@
 - kald mig mikkel
 - du kan ikke bruge npm run build, det er jeg nød til at gøre for dig
-- naar vi har løst et problem saa skriv til sidst i besked: github commit: [navn til commit]
 - undgaa unødvendige Bash tests - mikkel tester selv og giver fejl feedback. Brug kun Bash hvis vi er stuck
