@@ -97,7 +97,7 @@
           <div class="space-y-1 text-xs text-gray-400">
             <div class="flex justify-between">
               <span>Session timeout:</span>
-              <span class="text-white">{{ getTimeoutLabel(sessionTimeout) }}</span>
+              <span class="text-white">{{ getTimeoutLabel(parseInt(sessionTimeout)) }}</span>
             </div>
             <div class="flex justify-between">
               <span>Performance stats:</span>
