@@ -6,7 +6,7 @@
           <Shield class="w-6 h-6 text-white" />
         </div>
         <h1 class="text-2xl font-bold text-white mb-1">SecureNotes</h1>
-        <p class="text-gray-400 text-sm">End-to-end krypterede noter mikkel</p>
+        <p class="text-gray-400 text-sm">End-to-end krypterede noter</p>
     
       </div>
 
