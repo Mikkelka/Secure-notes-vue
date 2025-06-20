@@ -163,13 +163,17 @@ const handleExport = async () => {
   result.value = null
 
   try {
-    // Simulate export logic - in real app would use dataRecovery utils
+    // Create export data matching the format expected by import validation
     const exportData = {
-      version: '0.9.1',
-      timestamp: new Date().toISOString(),
-      user: props.user.uid,
+      exportDate: new Date().toISOString(),
+      userId: props.user.uid,
       notes: props.notes,
-      folders: props.folders
+      folders: props.folders,
+      metadata: {
+        notesCount: props.notes.length,
+        foldersCount: props.folders.length,
+        favoriteCount: props.notes.filter(n => n.isFavorite).length
+      }
     }
     
     const filename = `sikre-noter-backup-${new Date().toISOString().split('T')[0]}.json`

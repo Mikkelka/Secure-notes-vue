@@ -195,6 +195,15 @@ const clearAllUserData = async (userId) => {
     );
     await Promise.all(folderDeletes);
     
+    // Delete user settings (important for cross-user imports)
+    try {
+      const userSettingsRef = doc(db, 'userSettings', userId);
+      await deleteDoc(userSettingsRef);
+    } catch (userSettingsError) {
+      // UserSettings might not exist, which is fine
+      console.log('UserSettings not found or already deleted');
+    }
+    
   } catch (error) {
     throw new Error(`Failed to clear existing data: ${error.message}`);
   }

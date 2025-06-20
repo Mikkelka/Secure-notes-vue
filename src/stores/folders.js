@@ -29,12 +29,23 @@ const loadUserSettings = async (userId, encryptionKey) => {
     if (userSettingsSnap.exists()) {
       const data = userSettingsSnap.data()
       if (data.encryptedSettings) {
-        const decryptedSettings = await decryptText(data.encryptedSettings, encryptionKey)
-        return JSON.parse(decryptedSettings)
+        try {
+          const decryptedSettings = await decryptText(data.encryptedSettings, encryptionKey)
+          return JSON.parse(decryptedSettings)
+        } catch (decryptionError) {
+          console.warn('Kunne ikke dekryptere eksisterende brugerindstillinger, sletter og bruger standard indstillinger')
+          // Delete corrupted userSettings and use defaults
+          try {
+            await deleteDoc(userSettingsRef)
+          } catch (deleteError) {
+            console.error('Kunne ikke slette korrupte brugerindstillinger:', deleteError)
+          }
+          // Fall through to return default settings
+        }
       }
     }
   } catch (error) {
-    console.error('Fejl ved indlæsning eller dekryptering af brugerindstillinger:', error)
+    console.error('Fejl ved indlæsning af brugerindstillinger:', error)
   }
   
   // Returner standardindstillinger, hvis ingen findes, eller hvis der opstod en fejl.
