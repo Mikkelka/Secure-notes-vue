@@ -6,20 +6,22 @@
           <Shield class="w-6 h-6 text-white" />
         </div>
         <h1 class="text-2xl font-bold text-white mb-1">SecureNotes</h1>
-        <p class="text-gray-400 text-sm">End-to-end krypterede noter</p>
+        <p class="text-gray-400 text-sm">End-to-end krypterede noter mikkel</p>
+    
       </div>
 
       <!-- Google Login - Primary option -->
       <div class="mb-6">
-        <BaseButton
+        <button
           @click="handleGoogleSubmit"
-          :loading="loading"
-          variant="secondary"
-          class="w-full bg-white text-gray-900 hover:bg-gray-100"
+          :disabled="loading"
+          style="background-color: white; color: #111827; border: 1px solid #d1d5db;"
+          class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all hover:bg-gray-100 disabled:opacity-50"
         >
-          <Chrome v-if="!loading" class="w-4 h-4" />
+          <div v-if="loading" class="w-4 h-4 border-2 border-gray-400 border-t-gray-900 rounded-full animate-spin" />
+          <Chrome v-else class="w-4 h-4" />
           Login med Google (anbefalet)
-        </BaseButton>
+        </button>
       </div>
 
       <!-- Divider -->
