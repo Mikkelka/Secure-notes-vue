@@ -295,11 +295,8 @@ const selectInstruction = (instructionKey) => {
   selectedInstruction.value = instructionKey
   closeDropdown()
   
-  // Save to session storage (for non-custom instructions)
-  const instruction = instructionOptions.value[instructionKey]
-  if (instruction?.isStandard) {
-    sessionStorage.setItem('ai-instruction-preference', instructionKey)
-  }
+  // Save to session storage (for all instructions)
+  sessionStorage.setItem('ai-instruction-preference', instructionKey)
   
   // Emit change to parent
   emit('instructionChanged', instructionKey)

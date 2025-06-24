@@ -12,7 +12,7 @@
           <h2 class="text-lg font-semibold text-white truncate flex-1 mr-2">
             {{ isEditing ? 'Edit Note' : note.title }}
           </h2>
-          <div class="flex items-center">
+          <div class="flex items-center gap-2">
             <span 
               ref="folderLabelRef"
               @click="handleFolderLabelClick"
@@ -26,8 +26,61 @@
               <Folder class="w-3 h-3" />
               {{ getFolderDisplay(note.folderId).name }}
             </span>
+            
+            <!-- Mobile Menu Button -->
+            <div class="relative">
+              <BaseButton
+                @click="showMobileMenu = !showMobileMenu"
+                variant="ghost"
+                size="sm"
+                class="text-gray-400 hover:text-white p-2"
+              >
+                <MoreVertical class="w-4 h-4" />
+              </BaseButton>
+              
+              <!-- Mobile Menu Dropdown -->
+              <div
+                v-if="showMobileMenu"
+                class="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 overflow-hidden min-w-[160px]"
+              >
+                <button
+                  v-if="!isEditing"
+                  @click="$emit('toggleFavorite', note.id); showMobileMenu = false"
+                  class="w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  :class="note.isFavorite ? 'text-yellow-400' : 'text-gray-300'"
+                >
+                  <Star 
+                    :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
+                    class="w-4 h-4" 
+                  />
+                  {{ note.isFavorite ? 'Fjern favorit' : 'Tilføj favorit' }}
+                </button>
+                <button
+                  v-if="!isEditing"
+                  @click="handleDelete; showMobileMenu = false"
+                  class="w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-red-400"
+                >
+                  <Trash2 class="w-4 h-4" />
+                  Slet note
+                </button>
+                <button
+                  @click="$emit('close'); showMobileMenu = false"
+                  class="w-full px-3 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-gray-300"
+                >
+                  <X class="w-4 h-4" />
+                  Luk
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+        
+        <!-- Mobile Menu Backdrop -->
+        <div
+          v-if="showMobileMenu"
+          @click="showMobileMenu = false"
+          class="fixed inset-0 z-40"
+        ></div>
 
         <!-- Mobile Content -->
         <div class="flex-1 overflow-auto p-4">
@@ -109,45 +162,14 @@
 
         <!-- Mobile Actions -->
         <div v-if="!isEditing" class="p-4 border-t border-gray-700/50">
-          <!-- All action buttons in one row -->
-          <div class="flex justify-center gap-4">
-            <BaseButton
-              @click="handleDelete"
-              variant="ghost"
-              size="sm"
-              class="p-2 rounded-full text-red-400 hover:bg-red-500/20"
-            >
-              <Trash2 class="w-5 h-5" />
-            </BaseButton>
-            <BaseButton
-              @click="$emit('toggleFavorite', note.id)"
-              variant="ghost"
-              size="sm"
-              class="p-2 rounded-full"
-              :class="note.isFavorite ? 'text-yellow-400 hover:bg-yellow-400/20' : 'text-gray-400 hover:bg-gray-700'"
-            >
-              <Star 
-                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
-                class="w-5 h-5" 
-              />
-            </BaseButton>
-            <BaseButton
-              @click="startEdit"
-              variant="ghost"
-              size="sm"
-              class="p-2 rounded-full text-blue-400 hover:bg-blue-500/20"
-            >
-              <Edit3 class="w-5 h-5" />
-            </BaseButton>
-            <BaseButton
-              @click="$emit('close')"
-              variant="ghost"
-              size="sm"
-              class="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
-            >
-              <X class="w-5 h-5" />
-            </BaseButton>
-          </div>
+          <BaseButton
+            @click="startEdit"
+            variant="primary"
+            class="w-full bg-blue-600 hover:bg-blue-500"
+          >
+            <Edit3 class="w-4 h-4" />
+            Rediger Note
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -332,7 +354,7 @@
 
 <script setup>
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Undo, Folder } from 'lucide-vue-next'
+import { Star, Trash2, X, Save, Edit3, Clock, Undo, Folder, MoreVertical } from 'lucide-vue-next'
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
@@ -371,6 +393,7 @@ const foldersStore = useFoldersStore()
 const showDropdown = ref(false)
 const dropdownPosition = ref({ top: 0, left: 0 })
 const folderLabelRef = ref(null)
+const showMobileMenu = ref(false)
 
 
 // TinyMCE editor content for editing

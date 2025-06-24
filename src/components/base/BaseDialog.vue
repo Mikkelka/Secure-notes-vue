@@ -10,7 +10,7 @@
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        class="fixed inset-0 z-[80] flex items-start justify-center p-4 bg-black/50 backdrop-blur-sm lg:items-center overflow-y-auto"
         @click="handleBackdropClick"
       >
         <Transition
@@ -25,7 +25,7 @@
             v-if="isOpen"
             :class="[
               'bg-gray-800/90 backdrop-blur border border-gray-700/50 rounded-2xl shadow-2xl',
-              'max-w-md w-full max-h-[90vh] overflow-hidden',
+              'max-w-md w-full max-h-[90vh] flex flex-col my-4 lg:my-0',
               sizeClasses
             ]"
             @click.stop
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Content -->
-            <div class="px-6 py-4 overflow-y-auto text-white">
+            <div class="px-6 py-4 overflow-y-auto text-white flex-1 min-h-0">
               <slot />
             </div>
 
