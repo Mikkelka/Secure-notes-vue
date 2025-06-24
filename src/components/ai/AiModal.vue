@@ -116,11 +116,11 @@
         </div>
         
         <!-- List of Saved Custom Instructions -->
-        <div v-if="customInstructionsList.length > 0">
+        <div v-if="nonStandardInstructions.length > 0">
           <h4 class="text-sm font-medium text-gray-300 mb-2">Gemte Custom Instructions</h4>
           <div class="space-y-2 max-h-48 overflow-y-auto">
             <div
-              v-for="instruction in customInstructionsList"
+              v-for="instruction in nonStandardInstructions"
               :key="instruction.id"
               class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50"
             >
@@ -148,23 +148,58 @@
           </div>
         </div>
         
-        <!-- Templates/Examples -->
-        <div class="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
-          <h4 class="text-sm font-medium text-blue-300 mb-2">💡 Template Eksempler</h4>
-          <div class="space-y-1 text-xs text-gray-400">
-            <div>📧 <strong>Email Writer:</strong> "Transform content into professional email with greeting, structure, and closing"</div>
-            <div>📝 <strong>Blog Post:</strong> "Convert to engaging blog post with headline, introduction, sections, and conclusion"</div>
-            <div>🔍 <strong>SEO Optimizer:</strong> "Optimize content for SEO with keywords, headings, and meta descriptions"</div>
+        <!-- Standard Instructions -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-blue-300">Standard Instructions</h4>
+            <BaseButton
+              @click="restoreDefaultInstructions"
+              variant="secondary"
+              size="sm"
+              class="text-xs bg-blue-600/20 border-blue-600/50 text-blue-300 hover:bg-blue-600/30"
+            >
+              <RotateCcw class="w-3 h-3" />
+              Restore Defaults
+            </BaseButton>
           </div>
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div class="bg-gray-900/50 rounded-lg p-3">
-        <h3 class="font-medium text-white mb-2">Status:</h3>
-        <div class="text-sm text-gray-300">
-          <span v-if="hasApiKey" class="text-green-400">✓ Konfigureret og klar</span>
-          <span v-else class="text-yellow-400">⚠️ Mangler API nøgle</span>
+          
+          <div class="space-y-2 max-h-40 overflow-y-auto">
+            <div
+              v-for="instruction in standardInstructions"
+              :key="instruction.id"
+              class="bg-blue-900/20 rounded-lg p-3 border border-blue-600/30"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <h5 class="text-sm font-medium text-blue-100 truncate flex items-center gap-1">
+                    {{ instruction.name }}
+                    <span class="text-xs bg-blue-600 text-blue-100 px-1 rounded">Standard</span>
+                  </h5>
+                  <p class="text-xs text-gray-400 mt-1 line-clamp-2">{{ instruction.instruction }}</p>
+                </div>
+                <div class="flex gap-1 flex-shrink-0">
+                  <button
+                    @click="editStandardInstruction(instruction)"
+                    class="p-1 text-gray-400 hover:text-blue-300 transition-colors"
+                  >
+                    <Edit2 class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="deleteStandardInstruction(instruction.id)"
+                    class="p-1 text-gray-400 hover:text-red-300 transition-colors"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Status Info -->
+          <div class="mt-3 text-xs text-gray-400 flex items-center gap-2">
+            <span v-if="hasApiKey" class="text-green-400">✓ Konfigureret og klar</span>
+            <span v-else class="text-yellow-400">⚠️ Mangler API nøgle</span>
+          </div>
         </div>
       </div>
     </div>
@@ -183,8 +218,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { Save, Trash2, Plus, Edit2 } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted } from 'vue'
+import { Save, Trash2, Plus, Edit2, RotateCcw } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import BaseButton from '../base/BaseButton.vue'
 
@@ -211,6 +246,34 @@ const newInstructionName = ref('')
 const newInstructionText = ref('')
 const editingInstruction = ref(null)
 const customInstructionsList = ref([])
+
+// Default instructions definitions
+const DEFAULT_INSTRUCTIONS = [
+  {
+    id: 'std-note-organizer',
+    name: 'Note Organizer',
+    instruction: 'Du er ekspert i at skabe klare, strukturerede noter. Omdann den rå tekst til en professionel note. Fokuser på: Opsummer vigtigste punkter med **fed tekst**, omformuler uklare sætninger til præcise udsagn, organiser logisk med overskrifter og punkter, undgå gentagelser, vær kortfattet men bevar al vigtig information.',
+    isDefault: true
+  },
+  {
+    id: 'std-summarizer',
+    name: 'Summarizer',
+    instruction: 'Du er ekspert i præcise sammendrag. Læs teksten og lav et kort sammendrag der fanger de vigtigste punkter. Brug format: # Sammendrag, **Hovedpunkter:** liste af vigtigste punkter, **Konklusion:** kort afsluttende bemærkning.',
+    isDefault: true
+  },
+  {
+    id: 'std-meeting-notes',
+    name: 'Meeting Noter',
+    instruction: 'Du er ekspert i mødenoter. Strukturer teksten som professionelle mødenoter. Brug format: # Mødenotes, ## Deltagere (liste personer), ## Hovedpunkter (vigtige diskussioner med **fed** for nøglepunkter), ## Beslutninger (konkrete beslutninger), ## Handlingspunkter (opgaver med ansvarlig og deadline).',
+    isDefault: true
+  },
+  {
+    id: 'std-grammar-checker',
+    name: 'Grammatik Rettelse',
+    instruction: 'Du er ekspert i grammatik og sproglige formuleringer. Ret grammatiske fejl, stavefejl og forbedre formuleringer. Bevar det oprindelige indhold, betydning og tone. Fokuser på: ret stavefejl og grammatik, forbedre uklare formuleringer, tilføj manglende ord, ret tegnsætning. VIGTIGT: Ændr ikke væsentligt på indholdet - kun sproglige forbedringer.',
+    isDefault: true
+  }
+]
 
 // Generate unique ID for custom instructions
 const generateId = () => {
@@ -271,6 +334,49 @@ const cancelEdit = () => {
 const deleteCustomInstruction = (id) => {
   customInstructionsList.value = customInstructionsList.value.filter(item => item.id !== id)
   emit('updateAiSettings', { customInstructions: customInstructionsList.value })
+}
+
+// Computed property for standard instructions (filters from customInstructionsList)
+const standardInstructions = computed(() => {
+  return customInstructionsList.value.filter(instruction => instruction.isDefault === true)
+})
+
+// Computed property for non-standard (custom) instructions
+const nonStandardInstructions = computed(() => {
+  return customInstructionsList.value.filter(instruction => instruction.isDefault !== true)
+})
+
+// Edit standard instruction
+const editStandardInstruction = (instruction) => {
+  editingInstruction.value = instruction
+  newInstructionName.value = instruction.name
+  newInstructionText.value = instruction.instruction
+}
+
+// Delete standard instruction
+const deleteStandardInstruction = (id) => {
+  customInstructionsList.value = customInstructionsList.value.filter(item => item.id !== id)
+  emit('updateAiSettings', { customInstructions: customInstructionsList.value })
+}
+
+// Restore default instructions
+const restoreDefaultInstructions = () => {
+  // Remove existing default instructions
+  const nonDefaultInstructions = customInstructionsList.value.filter(item => !item.isDefault)
+  
+  // Add back all default instructions
+  customInstructionsList.value = [...nonDefaultInstructions, ...DEFAULT_INSTRUCTIONS]
+  
+  emit('updateAiSettings', { customInstructions: customInstructionsList.value })
+}
+
+// Initialize default instructions only if this is the very first time (empty array)
+const initializeDefaultInstructions = () => {
+  // Only auto-add defaults if there are NO instructions at all (first time setup)
+  if (customInstructionsList.value.length === 0) {
+    customInstructionsList.value = [...DEFAULT_INSTRUCTIONS]
+    emit('updateAiSettings', { customInstructions: customInstructionsList.value })
+  }
 }
 
 const handleSaveApiKey = async () => {
@@ -335,6 +441,9 @@ onMounted(() => {
       }
     }
   }
+  
+  // Initialize default instructions if not present
+  initializeDefaultInstructions()
 })
 </script>
 

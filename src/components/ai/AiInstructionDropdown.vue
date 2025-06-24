@@ -126,56 +126,39 @@ const props = defineProps({
 const emit = defineEmits(['process', 'instructionChanged'])
 
 const isOpen = ref(false)
-const selectedInstruction = ref('note-organizer')
+const selectedInstruction = ref('std-note-organizer')
 
-// Standard instruction options with descriptions and icons
-const standardInstructionOptions = {
-  'note-organizer': {
-    label: 'Note Organizer',
-    description: 'Skaber velstrukturerede noter med overskrifter, fed tekst og punktopstilling.',
-    icon: 'FileText',
-    isStandard: true
-  },
-  'summarizer': {
-    label: 'Summarizer', 
-    description: 'Laver korte sammendrag med fremhævede nøgleord og struktureret format.',
-    icon: 'Zap',
-    isStandard: true
-  },
-  'meeting-notes': {
-    label: 'Meeting Noter',
-    description: 'Organiserer mødenoter med deltagere, beslutninger og handlingspunkter.',
-    icon: 'Users',
-    isStandard: true
-  },
-  'grammar-checker': {
-    label: 'Grammatik Rettelse',
-    description: 'Retter grammatik og stavefejl uden at ændre væsentligt på indholdet.',
-    icon: 'Edit',
-    isStandard: true
-  }
-}
-
-// Combined instruction options (standard + custom)
+// All instruction options come from customInstructions array in userSettings
 const instructionOptions = computed(() => {
-  const combined = { ...standardInstructionOptions }
+  const options = {}
   
-  // Add custom instructions from userSettings
+  // Get all instructions from userSettings customInstructions
   const customInstructions = props.userSettings?.aiSettings?.customInstructions
   if (customInstructions && Array.isArray(customInstructions)) {
-    customInstructions.forEach(customInstruction => {
-      if (customInstruction && customInstruction.id && customInstruction.name) {
-        combined[customInstruction.id] = {
-          label: customInstruction.name,
-          description: customInstruction.instruction || '',
-          icon: 'Settings',
-          isStandard: false
+    customInstructions.forEach(instruction => {
+      if (instruction && instruction.id && instruction.name) {
+        // Determine icon based on instruction type
+        let icon = 'Settings' // Default for custom instructions
+        
+        if (instruction.isDefault) {
+          // Standard instruction icons
+          if (instruction.id === 'std-note-organizer') icon = 'FileText'
+          else if (instruction.id === 'std-summarizer') icon = 'Zap'
+          else if (instruction.id === 'std-meeting-notes') icon = 'Users'
+          else if (instruction.id === 'std-grammar-checker') icon = 'Edit'
+        }
+        
+        options[instruction.id] = {
+          label: instruction.name,
+          description: instruction.instruction || '',
+          icon,
+          isStandard: instruction.isDefault || false
         }
       }
     })
   }
   
-  return combined
+  return options
 })
 
 // Get icon component for instruction
@@ -198,10 +181,10 @@ const getShortLabel = (instructionKey) => {
   
   // For standard instructions, use predefined short labels
   const standardLabels = {
-    'note-organizer': 'Organizer',
-    'summarizer': 'Summary',
-    'meeting-notes': 'Meeting',
-    'grammar-checker': 'Grammar'
+    'std-note-organizer': 'Organizer',
+    'std-summarizer': 'Summary',
+    'std-meeting-notes': 'Meeting',
+    'std-grammar-checker': 'Grammar'
   }
   
   if (instruction.isStandard) {
@@ -222,23 +205,23 @@ const getSuggestedInstruction = (content) => {
   // Check for meeting-related keywords
   const meetingKeywords = ['møde', 'meeting', 'deltagere', 'beslutning', 'action', 'handlingsplan', 'agenda']
   if (meetingKeywords.some(keyword => lowerContent.includes(keyword))) {
-    return 'meeting-notes'
+    return 'std-meeting-notes'
   }
   
   // Check for grammar/spelling issues (simple heuristic)
   const grammarIssues = ['fejl', 'retning', 'stavning', 'grammatik']
   if (grammarIssues.some(keyword => lowerContent.includes(keyword))) {
-    return 'grammar-checker'
+    return 'std-grammar-checker'
   }
   
   // Check for summary keywords
   const summaryKeywords = ['sammendrag', 'konklusion', 'opsummering', 'oversigt']
   if (summaryKeywords.some(keyword => lowerContent.includes(keyword))) {
-    return 'summarizer'
+    return 'std-summarizer'
   }
   
   // Default suggestion
-  return 'note-organizer'
+  return 'std-note-organizer'
 }
 
 // Check if instruction is suggested based on content
@@ -288,9 +271,15 @@ const selectInstruction = (instructionKey) => {
   emit('instructionChanged', instructionKey)
 }
 
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (isOpen.value && !event.target.closest('.relative')) {
+    closeDropdown()
+  }
+}
+
 // Load saved preference on mount
 onMounted(() => {
-  // Note: customInstructions in userSettings is now an array, not a string
   // Fall back to session storage for initial selection
   const saved = sessionStorage.getItem('ai-instruction-preference')
   if (saved && instructionOptions.value[saved]) {
@@ -299,16 +288,8 @@ onMounted(() => {
   
   // Emit initial instruction to parent
   emit('instructionChanged', selectedInstruction.value)
-})
-
-// Close dropdown when clicking outside
-const handleClickOutside = (event) => {
-  if (isOpen.value && !event.target.closest('.relative')) {
-    closeDropdown()
-  }
-}
-
-onMounted(() => {
+  
+  // Add click outside listener
   document.addEventListener('click', handleClickOutside)
 })
 

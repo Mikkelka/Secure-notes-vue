@@ -123,26 +123,26 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
   
   let prompt;
   
-  // Check if it's a custom instruction ID (starts with 'custom-')
-  if (instructionType && instructionType.startsWith('custom-') && userSettings?.aiSettings?.customInstructions) {
+  // Check if it's a custom or standard instruction ID (starts with 'custom-' or 'std-')
+  if (instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')) && userSettings?.aiSettings?.customInstructions) {
     const customInstructionsArray = userSettings.aiSettings.customInstructions;
     
     // Ensure customInstructions is an array (not the old string format)
     if (Array.isArray(customInstructionsArray)) {
-      const customInstruction = customInstructionsArray.find(
-        instruction => instruction.id === instructionType
+      const instruction = customInstructionsArray.find(
+        instr => instr.id === instructionType
       );
       
-      if (customInstruction) {
-        // Build prompt with formatting instructions for custom instructions
-        prompt = `${customInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
+      if (instruction) {
+        // Build prompt with formatting instructions
+        prompt = `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
         instructionCache.set(instructionType, prompt);
         return prompt;
       }
     }
   }
   
-  // Fallback to standard prompt definitions
+  // Fallback to standard prompt definitions (for legacy instruction types)
   prompt = PROMPT_DEFINITIONS[instructionType] || PROMPT_DEFINITIONS["note-organizer"];
   instructionCache.set(instructionType, prompt);
   return prompt;
@@ -160,7 +160,7 @@ const getAiSettings = (userSettings) => {
     return {
       apiKey: apiKey || "",
       model: selectedModel || "gemini-2.5-flash",
-      instructionType: customInstructions || "note-organizer",
+      instructionType: customInstructions || "std-note-organizer",
     };
   }
 
@@ -171,7 +171,7 @@ const getAiSettings = (userSettings) => {
     instructionType:
       sessionStorage.getItem("ai-instruction-preference") || 
       sessionStorage.getItem("ai-instructions") || 
-      "note-organizer",
+      "std-note-organizer",
   };
 };
 
