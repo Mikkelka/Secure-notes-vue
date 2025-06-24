@@ -50,7 +50,7 @@
         <editor
           api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
           v-model="htmlContent"
-          :init="getTinymceConfig(isCompact ? 200 : 300)"
+          :init="getTinymceConfig(isCompact)"
         />
       </div>
       
@@ -100,28 +100,45 @@ const htmlContent = ref('')
 const isAdvancedMode = ref(false)
 
 // TinyMCE Configuration
-const getTinymceConfig = (height = 300) => ({
-  height,
-  menubar: false,
-  statusbar: false,
-  branding: false,
-  plugins: 'lists link autolink',
-  toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
-  formats: {
-    h1: { block: 'h1' },
-    h2: { block: 'h2' },
-    h3: { block: 'h3' }
-  },
-  block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-  content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
-  skin: 'oxide-dark',
-  content_css: 'dark',
-  analytics: false,
-  usage_tracking: false,
-  telemetry: false,
-  touch_ui: false,
-  auto_update: false
-})
+const getTinymceConfig = (isCompact = false) => {
+  const isMobileView = window.innerWidth < 1024
+  const viewportHeight = window.innerHeight
+  
+  // Smaller heights for QuickNote component
+  const minHeight = isCompact ? 80 : (isMobileView ? 120 : 150)
+  const maxHeight = Math.min(
+    viewportHeight * (isMobileView ? 0.4 : 0.5), 
+    isCompact ? 200 : (isMobileView ? 300 : 400)
+  )
+  
+  return {
+    // Responsive height configuration
+    min_height: minHeight,
+    max_height: maxHeight,
+    menubar: false,
+    statusbar: false,
+    branding: false,
+    plugins: 'lists link autolink autoresize',
+    toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
+    formats: {
+      h1: { block: 'h1' },
+      h2: { block: 'h2' },
+      h3: { block: 'h3' }
+    },
+    block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+    skin: 'oxide-dark',
+    content_css: 'dark',
+    analytics: false,
+    usage_tracking: false,
+    telemetry: false,
+    touch_ui: false,
+    auto_update: false,
+    // Auto resize options
+    autoresize_bottom_margin: 12,
+    autoresize_overflow_padding: 0
+  }
+}
 
 // Content Management
 const getCurrentContent = () => {

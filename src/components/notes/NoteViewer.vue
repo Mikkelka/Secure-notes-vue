@@ -42,7 +42,7 @@
               <editor
                 api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
                 v-model="editorHtmlContent"
-                :init="getTinymceConfig(400)"
+                :init="getTinymceConfig()"
               />
             </div>
             <div class="space-y-3">
@@ -220,7 +220,7 @@
             <editor
               api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
               v-model="editorHtmlContent"
-              :init="getTinymceConfig(350)"
+              :init="getTinymceConfig()"
             />
           </div>
           <div class="space-y-2">
@@ -376,31 +376,41 @@ const folderLabelRef = ref(null)
 const editorHtmlContent = ref('')
 
 // TinyMCE configuration
-const getTinymceConfig = (height = 400) => ({
-  height,
-  menubar: false,
-  statusbar: false,
-  branding: false,
-  plugins: 'lists link autolink',
-  toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
-  formats: {
-    h1: { block: 'h1' },
-    h2: { block: 'h2' },
-    h3: { block: 'h3' }
-  },
-  block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-  content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
-  skin: 'oxide-dark',
-  content_css: 'dark',
-  // Disable analytics and tracking
-  analytics: false,
-  usage_tracking: false,
-  telemetry: false,
-  // Reduce touch sensitivity warnings
-  touch_ui: false,
-  // Disable automatic updates
-  auto_update: false
-})
+const getTinymceConfig = () => {
+  const isMobileView = window.innerWidth < 1024
+  const viewportHeight = window.innerHeight
+  
+  return {
+    // Responsive height configuration
+    min_height: isMobileView ? 150 : 200,
+    max_height: Math.min(viewportHeight * (isMobileView ? 0.6 : 0.7), isMobileView ? 500 : 800),
+    menubar: false,
+    statusbar: false,
+    branding: false,
+    plugins: 'lists link autolink autoresize',
+    toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
+    formats: {
+      h1: { block: 'h1' },
+      h2: { block: 'h2' },
+      h3: { block: 'h3' }
+    },
+    block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+    skin: 'oxide-dark',
+    content_css: 'dark',
+    // Disable analytics and tracking
+    analytics: false,
+    usage_tracking: false,
+    telemetry: false,
+    // Reduce touch sensitivity warnings
+    touch_ui: false,
+    // Disable automatic updates
+    auto_update: false,
+    // Auto resize options
+    autoresize_bottom_margin: 16,
+    autoresize_overflow_padding: 0
+  }
+}
 
 
 
