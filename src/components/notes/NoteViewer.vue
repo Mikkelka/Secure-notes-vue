@@ -48,16 +48,16 @@
             <div class="space-y-3">
               <!-- AI and Undo buttons -->
               <div class="flex gap-2">
-                <BaseButton
-                  @click="handleAiProcess"
-                  :disabled="isAiProcessing || !editContent.trim()"
-                  variant="primary"
-                  class="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div v-if="isAiProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <Brain v-else class="w-4 h-4" />
-                  {{ isAiProcessing ? 'Processing...' : 'AI Process' }}
-                </BaseButton>
+                <div class="flex-1">
+                  <AiInstructionDropdown
+                    @process="handleAiProcess"
+                    @instruction-changed="handleInstructionChanged"
+                    :is-processing="isAiProcessing"
+                    :disabled="!editContent.trim()"
+                    :user-settings="props.userSettings"
+                    :content="editContent"
+                  />
+                </div>
                 <BaseButton
                   v-if="canUndo"
                   @click="handleUndo"
@@ -226,17 +226,16 @@
           <div class="space-y-2">
             <!-- AI and Undo buttons -->
             <div class="flex gap-2">
-              <BaseButton
-                @click="handleAiProcess"
-                :disabled="isAiProcessing || !editContent.trim()"
-                variant="primary"
-                size="sm"
-                class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div v-if="isAiProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <Brain v-else class="w-4 h-4" />
-                {{ isAiProcessing ? 'Processing...' : 'AI Process' }}
-              </BaseButton>
+              <div class="flex-1">
+                <AiInstructionDropdown
+                  @process="handleAiProcess"
+                  @instruction-changed="handleInstructionChanged"
+                  :is-processing="isAiProcessing"
+                  :disabled="!editContent.trim()"
+                  :user-settings="props.userSettings"
+                  :content="editContent"
+                />
+              </div>
               <BaseButton
                 v-if="canUndo"
                 @click="handleUndo"
@@ -333,11 +332,12 @@
 
 <script setup>
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
-import { Star, Trash2, X, Save, Edit3, Clock, Brain, Undo, Folder } from 'lucide-vue-next'
+import { Star, Trash2, X, Save, Edit3, Clock, Undo, Folder } from 'lucide-vue-next'
 import Editor from '@tinymce/tinymce-vue'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
+import AiInstructionDropdown from '../ai/AiInstructionDropdown.vue'
 import { processTextWithAi } from '../../services/aiService.js'
 import { useFoldersStore } from '../../stores/folders.js'
 
@@ -362,6 +362,7 @@ const isAiProcessing = ref(false)
 const aiProcessCount = ref(0)
 const originalContent = ref('')
 const canUndo = ref(false)
+const currentInstruction = ref('note-organizer')
 
 // Folders store for folder information
 const foldersStore = useFoldersStore()
@@ -423,7 +424,16 @@ const handleAiProcess = async () => {
   originalContent.value = editContent.value
   
   try {
-    const processedContent = await processTextWithAi(editContent.value, props.userSettings)
+    // Create userSettings with current instruction override
+    const settingsWithInstruction = {
+      ...props.userSettings,
+      aiSettings: {
+        ...props.userSettings?.aiSettings,
+        customInstructions: currentInstruction.value
+      }
+    }
+    
+    const processedContent = await processTextWithAi(editContent.value, settingsWithInstruction)
     editContent.value = processedContent
     
     // Update HTML content for TinyMCE directly
@@ -437,6 +447,11 @@ const handleAiProcess = async () => {
   } finally {
     isAiProcessing.value = false
   }
+}
+
+// Handle instruction changes from dropdown
+const handleInstructionChanged = (instruction) => {
+  currentInstruction.value = instruction
 }
 
 const handleUndo = () => {

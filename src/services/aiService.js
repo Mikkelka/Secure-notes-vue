@@ -111,16 +111,39 @@ export const convertTextToHtml = (text) => {
 
 /**
  * Henter AI-instruktion baseret på type (med cache).
- * @param {string} instructionType - Typen af instruktion.
+ * @param {string} instructionType - Typen af instruktion eller custom instruction ID.
+ * @param {object | null} [userSettings=null] - Brugerens indstillinger for at tilgå custom instructions.
  * @returns {string} Den færdige prompt.
  */
-const getInstructionPrompt = (instructionType) => {
+const getInstructionPrompt = (instructionType, userSettings = null) => {
+  // Check cache first
   if (instructionCache.has(instructionType)) {
     return instructionCache.get(instructionType);
   }
-  // Brug definitionsobjektet med et fallback til 'note-organizer'
-  const prompt =
-    PROMPT_DEFINITIONS[instructionType] || PROMPT_DEFINITIONS["note-organizer"];
+  
+  let prompt;
+  
+  // Check if it's a custom instruction ID (starts with 'custom-')
+  if (instructionType && instructionType.startsWith('custom-') && userSettings?.aiSettings?.customInstructions) {
+    const customInstructionsArray = userSettings.aiSettings.customInstructions;
+    
+    // Ensure customInstructions is an array (not the old string format)
+    if (Array.isArray(customInstructionsArray)) {
+      const customInstruction = customInstructionsArray.find(
+        instruction => instruction.id === instructionType
+      );
+      
+      if (customInstruction) {
+        // Build prompt with formatting instructions for custom instructions
+        prompt = `${customInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
+        instructionCache.set(instructionType, prompt);
+        return prompt;
+      }
+    }
+  }
+  
+  // Fallback to standard prompt definitions
+  prompt = PROMPT_DEFINITIONS[instructionType] || PROMPT_DEFINITIONS["note-organizer"];
   instructionCache.set(instructionType, prompt);
   return prompt;
 };
@@ -146,7 +169,9 @@ const getAiSettings = (userSettings) => {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
     model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash",
     instructionType:
-      sessionStorage.getItem("ai-instructions") || "note-organizer",
+      sessionStorage.getItem("ai-instruction-preference") || 
+      sessionStorage.getItem("ai-instructions") || 
+      "note-organizer",
   };
 };
 
@@ -171,7 +196,7 @@ export const processTextWithAi = async (content, userSettings = null) => {
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const instructionPrompt = getInstructionPrompt(instructionType);
+    const instructionPrompt = getInstructionPrompt(instructionType, userSettings);
 
     // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
