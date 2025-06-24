@@ -429,7 +429,7 @@ const handleAiProcess = async () => {
       ...props.userSettings,
       aiSettings: {
         ...props.userSettings?.aiSettings,
-        customInstructions: currentInstruction.value
+        selectedInstruction: currentInstruction.value
       }
     }
     
