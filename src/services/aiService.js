@@ -77,8 +77,8 @@ export const convertTextToHtml = (text) => {
 };
 
 // --- AI Service Logik ---
-// Default instructions definitions - same as in AiModal
-const DEFAULT_INSTRUCTIONS = [
+// Default instructions definitions - exported for use in AiModal
+export const DEFAULT_INSTRUCTIONS = [
   {
     id: 'std-note-organizer',
     name: 'Note Organizer',

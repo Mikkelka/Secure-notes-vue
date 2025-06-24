@@ -216,6 +216,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Save, Trash2, Plus, Edit2, RotateCcw } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import BaseButton from '../base/BaseButton.vue'
+import { DEFAULT_INSTRUCTIONS } from '../../services/aiService.js'
 
 const props = defineProps({
   isOpen: {
@@ -241,33 +242,6 @@ const newInstructionText = ref('')
 const editingInstruction = ref(null)
 const customInstructionsList = ref([])
 
-// Default instructions definitions
-const DEFAULT_INSTRUCTIONS = [
-  {
-    id: 'std-note-organizer',
-    name: 'Note Organizer',
-    instruction: 'Du er ekspert i at skabe klare, strukturerede noter. Omdann den rå tekst til en professionel note. Fokuser på: Opsummer vigtigste punkter med **fed tekst**, omformuler uklare sætninger til præcise udsagn, organiser logisk med overskrifter og punkter, undgå gentagelser, vær kortfattet men bevar al vigtig information.',
-    isDefault: true
-  },
-  {
-    id: 'std-summarizer',
-    name: 'Summarizer',
-    instruction: 'Du er ekspert i præcise sammendrag. Læs teksten og lav et kort sammendrag der fanger de vigtigste punkter. Brug format: # Sammendrag, **Hovedpunkter:** liste af vigtigste punkter, **Konklusion:** kort afsluttende bemærkning.',
-    isDefault: true
-  },
-  {
-    id: 'std-meeting-notes',
-    name: 'Meeting Noter',
-    instruction: 'Du er ekspert i mødenoter. Strukturer teksten som professionelle mødenoter. Brug format: # Mødenotes, ## Deltagere (liste personer), ## Hovedpunkter (vigtige diskussioner med **fed** for nøglepunkter), ## Beslutninger (konkrete beslutninger), ## Handlingspunkter (opgaver med ansvarlig og deadline).',
-    isDefault: true
-  },
-  {
-    id: 'std-grammar-checker',
-    name: 'Grammatik Rettelse',
-    instruction: 'Du er ekspert i grammatik og sproglige formuleringer. Ret grammatiske fejl, stavefejl og forbedre formuleringer. Bevar det oprindelige indhold, betydning og tone. Fokuser på: ret stavefejl og grammatik, forbedre uklare formuleringer, tilføj manglende ord, ret tegnsætning. VIGTIGT: Ændr ikke væsentligt på indholdet - kun sproglige forbedringer.',
-    isDefault: true
-  }
-]
 
 // Generate unique ID for custom instructions
 const generateId = () => {
