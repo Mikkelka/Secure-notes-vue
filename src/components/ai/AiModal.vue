@@ -194,12 +194,6 @@
               </div>
             </div>
           </div>
-          
-          <!-- Status Info -->
-          <div class="mt-3 text-xs text-gray-400 flex items-center gap-2">
-            <span v-if="hasApiKey" class="text-green-400">✓ Konfigureret og klar</span>
-            <span v-else class="text-yellow-400">⚠️ Mangler API nøgle</span>
-          </div>
         </div>
       </div>
     </div>

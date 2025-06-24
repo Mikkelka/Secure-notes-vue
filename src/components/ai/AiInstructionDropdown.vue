@@ -28,7 +28,11 @@
     <!-- Dropdown Menu -->
     <div
       v-if="isOpen"
-      class="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 overflow-hidden"
+      ref="dropdownRef"
+      :class="[
+        'absolute left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 overflow-hidden',
+        dropdownDirection === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'
+      ]"
     >
       <!-- Standard Instructions -->
       <div
@@ -100,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { Brain, ChevronDown, Check, FileText, Zap, Users, Edit, Settings } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 
@@ -127,6 +131,8 @@ const emit = defineEmits(['process', 'instructionChanged'])
 
 const isOpen = ref(false)
 const selectedInstruction = ref('std-note-organizer')
+const dropdownRef = ref(null)
+const dropdownDirection = ref('down')
 
 // All instruction options come from customInstructions array in userSettings
 const instructionOptions = computed(() => {
@@ -247,9 +253,37 @@ const groupedInstructions = computed(() => {
   return { standard, custom }
 })
 
+// Calculate dropdown direction based on available space
+const calculateDropdownDirection = () => {
+  if (!dropdownRef.value) return
+  
+  const rect = dropdownRef.value.getBoundingClientRect()
+  const viewportHeight = window.innerHeight
+  const spaceBelow = viewportHeight - rect.bottom
+  const spaceAbove = rect.top
+  
+  // Estimate dropdown height (approximate)
+  const estimatedDropdownHeight = Math.min(300, (groupedInstructions.value.standard.length + groupedInstructions.value.custom.length) * 60)
+  
+  // Choose direction based on available space
+  if (spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow) {
+    dropdownDirection.value = 'up'
+  } else {
+    dropdownDirection.value = 'down'
+  }
+}
+
 // Dropdown controls
 const toggleDropdown = () => {
-  isOpen.value = !isOpen.value
+  if (!isOpen.value) {
+    isOpen.value = true
+    // Calculate direction on next tick when dropdown is rendered
+    nextTick(() => {
+      calculateDropdownDirection()
+    })
+  } else {
+    isOpen.value = false
+  }
 }
 
 const closeDropdown = () => {
