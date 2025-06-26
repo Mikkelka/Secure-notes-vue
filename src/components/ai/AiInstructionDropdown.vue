@@ -1,7 +1,7 @@
 <template>
   <div class="relative">
     <!-- Split Button -->
-    <div class="flex">
+    <div ref="buttonContainerRef" class="flex">
       <!-- Main AI Process Button -->
       <BaseButton
         @click="$emit('process')"
@@ -16,7 +16,7 @@
       
       <!-- Dropdown Toggle Button -->
       <BaseButton
-        @click="toggleDropdown"
+        @click.stop="toggleDropdown"
         :disabled="disabled"
         variant="primary"
         class="px-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-none border-l border-purple-500"
@@ -26,14 +26,20 @@
     </div>
     
     <!-- Dropdown Menu -->
-    <div
-      v-if="isOpen"
-      ref="dropdownRef"
-      :class="[
-        'absolute left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 overflow-hidden',
-        dropdownDirection === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'
-      ]"
-    >
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        ref="dropdownRef"
+        @click.stop
+        :style="{
+          position: 'fixed',
+          left: dropdownPosition.left + 'px',
+          top: dropdownPosition.top + 'px',
+          width: dropdownPosition.width + 'px',
+          transform: dropdownDirection === 'up' ? 'translateY(-100%)' : 'none'
+        }"
+        class="bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-[70] overflow-hidden"
+      >
       <!-- Standard Instructions -->
       <div
         v-for="instruction in groupedInstructions.standard"
@@ -92,19 +98,20 @@
           <Check class="w-4 h-4 text-green-400" />
         </div>
       </div>
-    </div>
+      </div>
+    </Teleport>
     
     <!-- Backdrop to close dropdown -->
     <div
       v-if="isOpen"
       @click="closeDropdown"
-      class="fixed inset-0 z-40"
+      class="fixed inset-0 z-[65]"
     ></div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, Teleport } from 'vue'
 import { Brain, ChevronDown, Check, FileText, Zap, Users, Edit, Settings } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 
@@ -133,6 +140,8 @@ const isOpen = ref(false)
 const selectedInstruction = ref('std-note-organizer')
 const dropdownRef = ref(null)
 const dropdownDirection = ref('down')
+const dropdownPosition = ref({ left: 0, top: 0, width: 0 })
+const buttonContainerRef = ref(null)
 
 // All instruction options come from customInstructions array in userSettings
 const instructionOptions = computed(() => {
@@ -253,11 +262,11 @@ const groupedInstructions = computed(() => {
   return { standard, custom }
 })
 
-// Calculate dropdown direction based on available space
+// Calculate dropdown direction and position based on button container
 const calculateDropdownDirection = () => {
-  if (!dropdownRef.value) return
+  if (!buttonContainerRef.value) return
   
-  const rect = dropdownRef.value.getBoundingClientRect()
+  const rect = buttonContainerRef.value.getBoundingClientRect()
   const viewportHeight = window.innerHeight
   const spaceBelow = viewportHeight - rect.bottom
   const spaceAbove = rect.top
@@ -265,11 +274,14 @@ const calculateDropdownDirection = () => {
   // Estimate dropdown height (approximate)
   const estimatedDropdownHeight = Math.min(300, (groupedInstructions.value.standard.length + groupedInstructions.value.custom.length) * 60)
   
-  // Choose direction based on available space
-  if (spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow) {
-    dropdownDirection.value = 'up'
-  } else {
-    dropdownDirection.value = 'down'
+  // Always show dropdown above the button
+  dropdownDirection.value = 'up'
+  
+  // Calculate fixed position (always above button)
+  dropdownPosition.value = {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width
   }
 }
 
