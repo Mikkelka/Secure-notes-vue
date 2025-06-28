@@ -1,5 +1,7 @@
 # Secure Notes Vue
 
+![Lines of Code](https://img.shields.io/badge/lines%20of%20code-6799%20lines-blue)
+
 En sikker notesapplikation med end-to-end kryptering, bygget med Vue.js 3, Firebase og client-side kryptering. Alle noter krypteres lokalt før de gemmes i databasen.
 
 ## ✨ Funktioner
