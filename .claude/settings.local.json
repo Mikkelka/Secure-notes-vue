@@ -21,7 +21,12 @@
       "Bash(wget:*)",
       "Bash(tar:*)",
       "Bash(./tokei)",
-      "Bash(npm run lines:*)"
+      "Bash(npm run lines:*)",
+      "Bash(./tokei --sort lines)",
+      "Bash(./tokei --files)",
+      "Bash(./tokei --output json)",
+      "Bash(ls:*)",
+      "Bash(./tokei:*)"
     ],
     "deny": []
   }
