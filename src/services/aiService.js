@@ -18,30 +18,10 @@ const SAFETY_SETTINGS = [
 // Fælles formateringsinstruktioner
 const FORMATTING_INSTRUCTIONS = `Formatering: BEVAR AL EKSISTERENDE FORMATERING og brug: **omkring tekst** for fed skrift, *omkring tekst* for kursiv, ~~omkring tekst~~ for gennemstreget, start linjer med - for punktopstilling, # for store overskrifter, ## for mindre overskrifter. Brug KUN ét linjeskift mellem afsnit - undgå for mange tomme linjer. Hvis originalteksten har formatering, SKAL du bevare den og forbedre den. Returner kun den færdige note.`;
 
-// Optimeret prompt-struktur for nemmere vedligeholdelse
-const PROMPT_DEFINITIONS = {
-  "note-organizer": `Du er ekspert i at skabe klare, strukturerede noter. Omdann den rå tekst til en professionel note. ${FORMATTING_INSTRUCTIONS} Fokuser på: Opsummer vigtigste punkter med **fed tekst**, omformuler uklare sætninger til præcise udsagn, organiser logisk med overskrifter og punkter, undgå gentagelser, vær kortfattet men bevar al vigtig information.`,
-  summarizer: `Du er ekspert i præcise sammendrag. Læs teksten og lav et kort sammendrag der fanger de vigtigste punkter. ${FORMATTING_INSTRUCTIONS} Brug format: # Sammendrag, **Hovedpunkter:** liste af vigtigste punkter, **Konklusion:** kort afsluttende bemærkning.`,
-  "meeting-notes": `Du er ekspert i mødenoter. Strukturer teksten som professionelle mødenoter. ${FORMATTING_INSTRUCTIONS} Brug format: # Mødenotes, ## Deltagere (liste personer), ## Hovedpunkter (vigtige diskussioner med **fed** for nøglepunkter), ## Beslutninger (konkrete beslutninger), ## Handlingspunkter (opgaver med ansvarlig og deadline).`,
-  "grammar-checker": `Du er ekspert i grammatik og sproglige formuleringer. Ret grammatiske fejl, stavefejl og forbedre formuleringer. Bevar det oprindelige indhold, betydning og tone. Fokuser på: ret stavefejl og grammatik, forbedre uklare formuleringer, tilføj manglende ord, ret tegnsætning. VIGTIGT: Ændr ikke væsentligt på indholdet - kun sproglige forbedringer.`,
-};
-
-// --- HTML Content Processing Utilities ---
-
-/**
- * Simple check for HTML content (always assume HTML now)
- * @param {string} content - Indholdet der skal tjekkes.
- * @returns {boolean}
- */
 export const isHtmlContent = (content) => {
   return typeof content === "string" && content.length > 0;
 };
 
-/**
- * Henter ren tekst fra HTML indhold (med cache).
- * @param {string} htmlContent - HTML string.
- * @returns {string} Den udpakkede rene tekst.
- */
 export const extractPlainText = (htmlContent) => {
   if (!htmlContent) return "";
   if (textExtractionCache.has(htmlContent)) {
@@ -58,11 +38,6 @@ export const extractPlainText = (htmlContent) => {
   return result;
 };
 
-/**
- * Konverterer HTML til plain text format til AI processering.
- * @param {string} htmlContent - HTML string.
- * @returns {string} Plain text formateret tekst.
- */
 export const convertHtmlToPlainText = (htmlContent) => {
   if (!htmlContent) return "";
   
@@ -80,12 +55,6 @@ export const convertHtmlToPlainText = (htmlContent) => {
     .trim();
 };
 
-
-/**
- * Konverterer plain text til HTML format.
- * @param {string} text - Plain text fra AI'en.
- * @returns {string} HTML string.
- */
 export const convertTextToHtml = (text) => {
   if (!text) return '<p></p>';
 
@@ -108,36 +77,116 @@ export const convertTextToHtml = (text) => {
 };
 
 // --- AI Service Logik ---
+// Default instructions definitions - exported for use in AiModal
+export const DEFAULT_INSTRUCTIONS = [
+  {
+    id: 'std-note-organizer',
+    name: 'Note Organizer',
+    instruction: 'Du er ekspert i at skabe klare, strukturerede noter. Omdann den rå tekst til en professionel note. Fokuser på: Opsummer vigtigste punkter med **fed tekst**, omformuler uklare sætninger til præcise udsagn, organiser logisk med overskrifter og punkter, undgå gentagelser, vær kortfattet men bevar al vigtig information.',
+    isDefault: true
+  },
+  {
+    id: 'std-summarizer',
+    name: 'Summarizer',
+    instruction: 'Du er ekspert i præcise sammendrag. Læs teksten og lav et kort sammendrag der fanger de vigtigste punkter. Brug format: # Sammendrag, **Hovedpunkter:** liste af vigtigste punkter, **Konklusion:** kort afsluttende bemærkning.',
+    isDefault: true
+  },
+  {
+    id: 'std-meeting-notes',
+    name: 'Meeting Noter',
+    instruction: 'Du er ekspert i mødenoter. Strukturer teksten som professionelle mødenoter. Brug format: # Mødenotes, ## Deltagere (liste personer), ## Hovedpunkter (vigtige diskussioner med **fed** for nøglepunkter), ## Beslutninger (konkrete beslutninger), ## Handlingspunkter (opgaver med ansvarlig og deadline).',
+    isDefault: true
+  },
+  {
+    id: 'std-grammar-checker',
+    name: 'Grammatik Rettelse',
+    instruction: 'Du er ekspert i grammatik og sproglige formuleringer. Ret grammatiske fejl, stavefejl og forbedre formuleringer. Bevar det oprindelige indhold, betydning og tone. Fokuser på: ret stavefejl og grammatik, forbedre uklare formuleringer, tilføj manglende ord, ret tegnsætning. VIGTIGT: Ændr ikke væsentligt på indholdet - kun sproglige forbedringer.',
+    isDefault: true
+  }
+]
 
-/**
- * Henter AI-instruktion baseret på type (med cache).
- * @param {string} instructionType - Typen af instruktion.
- * @returns {string} Den færdige prompt.
- */
-const getInstructionPrompt = (instructionType) => {
+const getInstructionPrompt = (instructionType, userSettings = null) => {
+  // Debug logging
+  console.log('=== getInstructionPrompt DEBUG ===');
+  console.log('instructionType:', instructionType);
+  console.log('userSettings:', userSettings);
+  console.log('userSettings?.aiSettings:', userSettings?.aiSettings);
+  console.log('customInstructions array:', userSettings?.aiSettings?.customInstructions);
+  
+  // Check cache first
   if (instructionCache.has(instructionType)) {
+    console.log('Found in cache');
     return instructionCache.get(instructionType);
   }
-  // Brug definitionsobjektet med et fallback til 'note-organizer'
-  const prompt =
-    PROMPT_DEFINITIONS[instructionType] || PROMPT_DEFINITIONS["note-organizer"];
-  instructionCache.set(instructionType, prompt);
-  return prompt;
+  
+  let prompt;
+  
+  // Check if it's a custom or standard instruction ID (starts with 'custom-' or 'std-')
+  if (instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')) && userSettings?.aiSettings?.customInstructions) {
+    const customInstructionsArray = userSettings.aiSettings.customInstructions;
+    console.log('Checking customInstructions array:', customInstructionsArray);
+    
+    // Ensure customInstructions is an array (not the old string format)
+    if (Array.isArray(customInstructionsArray)) {
+      console.log('customInstructions is array, looking for:', instructionType);
+      const instruction = customInstructionsArray.find(
+        instr => instr.id === instructionType
+      );
+      console.log('Found instruction:', instruction);
+      
+      if (instruction) {
+        // Build prompt with formatting instructions
+        prompt = `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
+        console.log('Using custom/standard instruction from userSettings');
+        instructionCache.set(instructionType, prompt);
+        return prompt;
+      } else {
+        console.log('Instruction not found in customInstructions array');
+      }
+    } else {
+      console.log('customInstructions is not an array:', typeof customInstructionsArray);
+    }
+  } else {
+    console.log('Conditions not met for customInstructions lookup');
+    console.log('- instructionType exists:', !!instructionType);
+    console.log('- starts with custom-/std-:', instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')));
+    console.log('- userSettings.aiSettings.customInstructions exists:', !!userSettings?.aiSettings?.customInstructions);
+  }
+  
+  // Fallback to default instructions if not found in userSettings
+  if (instructionType && instructionType.startsWith('std-')) {
+    console.log('Using fallback DEFAULT_INSTRUCTIONS for:', instructionType);
+    const defaultInstruction = DEFAULT_INSTRUCTIONS.find(instr => instr.id === instructionType);
+    if (defaultInstruction) {
+      prompt = `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
+      instructionCache.set(instructionType, prompt);
+      return prompt;
+    }
+  }
+  
+  console.log('=== END getInstructionPrompt DEBUG ===');
+  // This should never happen in normal use
+  throw new Error(`AI instruction not found: ${instructionType}. Please check your AI settings.`);
 };
 
-/**
- * Henter AI-indstillinger fra userSettings eller falder tilbage til sessionStorage.
- * @param {object | null} userSettings - Brugerens indstillinger.
- * @returns {{apiKey: string, model: string, instructionType: string}}
- */
 const getAiSettings = (userSettings) => {
+  // Get instruction type - prioritize override from userSettings, then session storage
+  let instructionType = sessionStorage.getItem("ai-instruction-preference") || 
+                       sessionStorage.getItem("ai-instructions") || 
+                       "std-note-organizer";
+
   if (userSettings?.aiSettings) {
-    const { apiKey, selectedModel, customInstructions } =
-      userSettings.aiSettings;
+    const { apiKey, selectedModel, selectedInstruction } = userSettings.aiSettings;
+    
+    // Use selectedInstruction override if provided
+    if (selectedInstruction) {
+      instructionType = selectedInstruction;
+    }
+    
     return {
       apiKey: apiKey || "",
       model: selectedModel || "gemini-2.5-flash",
-      instructionType: customInstructions || "note-organizer",
+      instructionType,
     };
   }
 
@@ -145,17 +194,10 @@ const getAiSettings = (userSettings) => {
   return {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
     model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash",
-    instructionType:
-      sessionStorage.getItem("ai-instructions") || "note-organizer",
+    instructionType,
   };
 };
 
-/**
- * Processerer HTML med AI og returnerer forbedret HTML.
- * @param {string} content - HTML indholdet.
- * @param {object | null} [userSettings=null] - Brugerens indstillinger.
- * @returns {Promise<string>} En Promise der resolver til HTML string.
- */
 export const processTextWithAi = async (content, userSettings = null) => {
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
 
@@ -171,7 +213,7 @@ export const processTextWithAi = async (content, userSettings = null) => {
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const instructionPrompt = getInstructionPrompt(instructionType);
+    const instructionPrompt = getInstructionPrompt(instructionType, userSettings);
 
     // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
@@ -191,6 +233,15 @@ KRITISKE HTML FORMATERINGS REGLER:
 
 Input HTML:
 ${content}`;
+
+    // Debug: Log the complete prompt being sent to Gemini
+    // console.log('=== GEMINI PROMPT DEBUG ===');
+    // console.log('Instruction Type:', instructionType);
+    // console.log('Instruction Prompt:', instructionPrompt);
+    console.log('Complete Prompt:');
+    console.log(prompt);
+    // console.log('Input Content:', content);
+    // console.log('=== END PROMPT DEBUG ===');
 
     const response = await ai.models.generateContent({
       model,

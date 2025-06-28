@@ -12,47 +12,105 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          @click="$emit('export')"
-          class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 hover:bg-blue-500/20 transition-colors text-sm"
-          title="Eksporter data"
-        >
-          <Download class="w-4 h-4" />
-          <span class="hidden sm:inline">Export</span>
-        </button>
+        <!-- Desktop buttons -->
+        <div class="hidden lg:flex items-center gap-3">
+          <button
+            @click="$emit('export')"
+            class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 hover:bg-blue-500/20 transition-colors text-sm"
+            title="Eksporter data"
+          >
+            <Download class="w-4 h-4" />
+            <span>Export</span>
+          </button>
+          
+          <button
+            @click="$emit('ai')"
+            class="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded text-purple-300 hover:bg-purple-500/20 transition-colors text-sm"
+            title="AI Indstillinger"
+          >
+            <Brain class="w-4 h-4" />
+            <span>AI</span>
+          </button>
+          
+          <button
+            @click="$emit('settings')"
+            class="flex items-center gap-2 px-3 py-1.5 bg-gray-500/10 border border-gray-500/20 rounded text-gray-300 hover:bg-gray-500/20 transition-colors text-sm"
+            title="Indstillinger"
+          >
+            <Settings class="w-4 h-4" />
+            <span>Indstillinger</span>
+          </button>
+          
+          <button
+            @click="$emit('logout')"
+            class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded text-red-300 hover:bg-red-500/20 transition-colors text-sm"
+          >
+            <LogOut class="w-4 h-4" />
+            <span>Logout</span>
+          </button>
+        </div>
         
-        <button
-          @click="$emit('ai')"
-          class="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded text-purple-300 hover:bg-purple-500/20 transition-colors text-sm"
-          title="AI Indstillinger"
-        >
-          <Brain class="w-4 h-4" />
-          <span class="hidden sm:inline">AI</span>
-        </button>
-        
-        <button
-          @click="$emit('settings')"
-          class="flex items-center gap-2 px-3 py-1.5 bg-gray-500/10 border border-gray-500/20 rounded text-gray-300 hover:bg-gray-500/20 transition-colors text-sm"
-          title="Indstillinger"
-        >
-          <Settings class="w-4 h-4" />
-          <span class="hidden sm:inline">Indstillinger</span>
-        </button>
-        
-        <button
-          @click="$emit('logout')"
-          class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded text-red-300 hover:bg-red-500/20 transition-colors text-sm"
-        >
-          <LogOut class="w-4 h-4" />
-          <span class="hidden sm:inline">Logout</span>
-        </button>
+        <!-- Mobile menu -->
+        <div class="lg:hidden relative">
+          <button
+            @click="showMobileMenu = !showMobileMenu"
+            class="flex items-center gap-2 px-3 py-1.5 bg-gray-500/10 border border-gray-500/20 rounded text-gray-300 hover:bg-gray-500/20 transition-colors text-sm"
+          >
+            <Menu class="w-4 h-4" />
+          </button>
+          
+          <!-- Mobile dropdown menu -->
+          <div
+            v-if="showMobileMenu"
+            class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-[55] overflow-hidden min-w-[180px]"
+          >
+            <button
+              @click="$emit('export'); showMobileMenu = false"
+              class="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 text-blue-300"
+            >
+              <Download class="w-4 h-4" />
+              Export
+            </button>
+            <button
+              @click="$emit('ai'); showMobileMenu = false"
+              class="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 text-purple-300"
+            >
+              <Brain class="w-4 h-4" />
+              AI Indstillinger
+            </button>
+            <button
+              @click="$emit('settings'); showMobileMenu = false"
+              class="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-300"
+            >
+              <Settings class="w-4 h-4" />
+              Indstillinger
+            </button>
+            <button
+              @click="$emit('logout'); showMobileMenu = false"
+              class="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 text-red-300 border-t border-gray-600"
+            >
+              <LogOut class="w-4 h-4" />
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
+  
+  <!-- Mobile menu backdrop -->
+  <div
+    v-if="showMobileMenu"
+    @click="showMobileMenu = false"
+    class="fixed inset-0 z-[45]"
+  ></div>
 </template>
 
 <script setup>
-import { Shield, Brain, Download, Settings, LogOut } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Shield, Brain, Download, Settings, LogOut, Menu } from 'lucide-vue-next'
+
+const showMobileMenu = ref(false)
 
 defineProps({
   user: {
