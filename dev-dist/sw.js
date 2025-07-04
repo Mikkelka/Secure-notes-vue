@@ -13,7 +13,7 @@
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
-  let registry = {};
+  const registry = {};
 
   // Used for `eval` and `importScripts` where we can't get script URL by other means.
   // In both cases, it's safe to use a global var because those functions are synchronous.
@@ -37,7 +37,7 @@ if (!self.define) {
         })
       
       .then(() => {
-        let promise = registry[uri];
+        const promise = registry[uri];
         if (!promise) {
           throw new Error(`Module ${uri} didn’t register its module`);
         }
@@ -52,7 +52,7 @@ if (!self.define) {
       // Module is already loading or loaded.
       return;
     }
-    let exports = {};
+    const exports = {};
     const require = depUri => singleRequire(depUri, uri);
     const specialDeps = {
       module: { uri },
@@ -82,7 +82,7 @@ define(['./workbox-3d1c42bc'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.pc48m6m9ato"
+    "revision": "0.bjgulq0duto"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {

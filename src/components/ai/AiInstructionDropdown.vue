@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onBeforeUnmount, Teleport } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { Brain, ChevronDown, Check, FileText, Zap, Users, Edit, Settings } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 
@@ -268,11 +268,11 @@ const calculateDropdownDirection = () => {
   
   const rect = buttonContainerRef.value.getBoundingClientRect()
   const viewportHeight = window.innerHeight
-  const spaceBelow = viewportHeight - rect.bottom
-  const spaceAbove = rect.top
+  const _spaceBelow = viewportHeight - rect.bottom
+  const _spaceAbove = rect.top
   
   // Estimate dropdown height (approximate)
-  const estimatedDropdownHeight = Math.min(300, (groupedInstructions.value.standard.length + groupedInstructions.value.custom.length) * 60)
+  const _estimatedDropdownHeight = Math.min(300, (groupedInstructions.value.standard.length + groupedInstructions.value.custom.length) * 60)
   
   // Always show dropdown above the button
   dropdownDirection.value = 'up'

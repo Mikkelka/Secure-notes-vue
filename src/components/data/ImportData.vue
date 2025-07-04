@@ -186,7 +186,7 @@ const handleFileSelect = (event) => {
           error.value = validation.error
           importData.value = null
         }
-      } catch (err) {
+      } catch {
         error.value = 'Ugyldig backup fil'
         importData.value = null
       }

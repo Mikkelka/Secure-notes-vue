@@ -51,7 +51,7 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'prefer-const': 'error',
-      'indent': ['error', 2, { 'SwitchCase': 1 }],
+      // 'indent': ['error', 2, { 'SwitchCase': 1 }],
       
       // Vue Specifikke Forbedringer
       'vue/require-explicit-emits': 'error',

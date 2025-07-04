@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Shield, Unlock, Plus, Eye, EyeOff, Lock, AlertCircle, Chrome } from 'lucide-vue-next'
+import { Shield, Unlock, Plus, Eye, EyeOff, Lock, AlertCircle } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 
 defineProps({

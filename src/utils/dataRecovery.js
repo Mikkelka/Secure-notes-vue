@@ -199,9 +199,9 @@ const clearAllUserData = async (userId) => {
     try {
       const userSettingsRef = doc(db, 'userSettings', userId);
       await deleteDoc(userSettingsRef);
-    } catch (userSettingsError) {
+    } catch {
       // UserSettings might not exist, which is fine
-      console.log('UserSettings not found or already deleted');
+      console.warn('UserSettings not found or already deleted');
     }
     
   } catch (error) {

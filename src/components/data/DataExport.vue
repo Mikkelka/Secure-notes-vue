@@ -139,7 +139,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'openImport'])
+defineEmits(['close', 'openImport'])
 
 const loading = ref(false)
 const password = ref('')

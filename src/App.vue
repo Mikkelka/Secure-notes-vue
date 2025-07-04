@@ -198,7 +198,7 @@
         height="h-[90vh]"
         @close="handleMobileQuickNoteClose"
       >
-        <QuickNote :is-compact="false" :hide-title="true" :is-in-drawer="true" @save="handleSaveNote" @mode-change="handleQuickNoteMode" />
+        <QuickNote :is-compact="false" hide-title is-in-drawer @save="handleSaveNote" @mode-change="handleQuickNoteMode" />
       </MobileDrawer>
       <MobileDrawer
         v-if="foldersStore.selectedFolderId === 'secure'"

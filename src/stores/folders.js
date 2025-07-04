@@ -32,7 +32,7 @@ const loadUserSettings = async (userId, encryptionKey) => {
         try {
           const decryptedSettings = await decryptText(data.encryptedSettings, encryptionKey)
           return JSON.parse(decryptedSettings)
-        } catch (decryptionError) {
+        } catch {
           console.warn('Kunne ikke dekryptere eksisterende brugerindstillinger, sletter og bruger standard indstillinger')
           // Delete corrupted userSettings and use defaults
           try {
