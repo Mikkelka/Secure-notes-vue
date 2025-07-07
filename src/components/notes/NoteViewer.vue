@@ -754,6 +754,48 @@ onBeforeUnmount(() => {
   margin-bottom: 0;
 }
 
+/* Horizontal Rules */
+.prose-content :deep(hr) {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid #4b5563;
+  opacity: 0.7;
+}
+
+/* Code blocks */
+.prose-content :deep(pre) {
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.prose-content :deep(code) {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  color: #e5e7eb;
+}
+
+.prose-content :deep(pre code) {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Inline code */
+.prose-content :deep(p code:not(pre code)),
+.prose-content :deep(li code:not(pre code)) {
+  background-color: #374151;
+  color: #fbbf24;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
 /* Mobile touch optimization */
 .touch-manipulation {
   touch-action: manipulation;
