@@ -16,7 +16,11 @@ const SAFETY_SETTINGS = [
 ];
 
 // Fælles formateringsinstruktioner
-const FORMATTING_INSTRUCTIONS = `Formatering: BEVAR AL EKSISTERENDE FORMATERING og brug: **omkring tekst** for fed skrift, *omkring tekst* for kursiv, ~~omkring tekst~~ for gennemstreget, start linjer med - for punktopstilling, # for store overskrifter, ## for mindre overskrifter. Brug KUN ét linjeskift mellem afsnit - undgå for mange tomme linjer. Hvis originalteksten har formatering, SKAL du bevare den og forbedre den. Returner kun den færdige note.`;
+const FORMATTING_INSTRUCTIONS = `Formatering: BEVAR AL EKSISTERENDE FORMATERING og brug: **omkring tekst** for fed skrift, *omkring tekst* for kursiv, ~~omkring tekst~~ for gennemstreget, start linjer med - for punktopstilling, # for store overskrifter, ## for mindre overskrifter. Brug KUN ét linjeskift mellem afsnit - undgå for mange tomme linjer. Hvis originalteksten har formatering, SKAL du bevare den og forbedre den.
+
+HTML FORMATERING: Du MÅ tilføje passende HTML formatering hvor det forbedrer struktur og læsbarhed: <h1>, <h2>, <h3> for overskrifter, <strong> for vigtige ord/sætninger, <em> for fremhævning, <ul><li> for lister, <p> for almindelige afsnit, <hr> for adskillelse mellem sektioner. Returner KUN valid HTML - ingen markdown. Organiser indholdet logisk med passende overskrifter og fremhæv nøgleord med <strong> hvor det giver mening.
+
+VIGTIGT: Brug ALDRIG borders, rammer, border-stil, eller CSS borders i outputtet - ignorer eksisterende borders i input. Returner kun den færdige note.`;
 
 export const isHtmlContent = (content) => {
   return typeof content === "string" && content.length > 0;
@@ -217,19 +221,6 @@ export const processTextWithAi = async (content, userSettings = null) => {
 
     // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
-
-KRITISKE HTML FORMATERINGS REGLER:
-- Input nedenfor er HTML indhold der kan forbedres med formatering
-- Du SKAL bevare eksisterende HTML formatering (overskrifter, fed tekst, etc.)
-- Du MÅ tilføje passende HTML formatering hvor det forbedrer struktur og læsbarhed:
-  * Brug <h1>, <h2>, <h3> for overskrifter
-  * Brug <strong> for vigtige ord/sætninger
-  * Brug <em> for fremhævning
-  * Brug <ul><li> for lister  
-  * Brug <p> for almindelige afsnit
-- Returner KUN valid HTML - ingen markdown
-- Organiser indholdet logisk med passende overskrifter
-- Fremhæv nøgleord med <strong> hvor det giver mening
 
 Input HTML:
 ${content}`;
