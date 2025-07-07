@@ -566,12 +566,13 @@ const handleImportComplete = async () => {
 let unsubscribeAuth = null;
 let cleanupActivityListeners = null;
 
+// Watch both user AND encryption key to avoid race condition
 watch(
   [() => authStore.user, () => authStore.encryptionKey],
-  async ([user, key]) => {
-    if (user && key) {
+  async ([user, encryptionKey]) => {
+    if (user && encryptionKey) {
       await reloadAllData();
-    } else {
+    } else if (!user) {
       notesStore.resetNotes();
       foldersStore.resetFolders();
     }

@@ -21,13 +21,19 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(true)
   const showTimeoutWarning = ref(false)
   
+  // Reactive trigger for encryption key changes
+  const encryptionKeyTrigger = ref(0)
+  
   // Computed property that checks both user and encryption key
   const isLoggedIn = computed(() => {
     return !!(user.value && SecureStorage.hasEncryptionKey())
   })
   
-  // Computed property for accessing encryption key
+  // Computed property for accessing encryption key (reactive to trigger)
   const encryptionKey = computed(() => {
+    // Access trigger to make this reactive
+    encryptionKeyTrigger.value
+    
     try {
       return SecureStorage.getEncryptionKey()
     } catch {
@@ -154,6 +160,10 @@ export const useAuthStore = defineStore('auth', () => {
         logout()
       })
       
+      // Trigger reactivity for encryptionKey computed property
+      encryptionKeyTrigger.value++
+      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
+      
       return { success: true }
     } catch (error) {
       let errorMessage = 'Login fejlede'
@@ -221,6 +231,10 @@ export const useAuthStore = defineStore('auth', () => {
         logout()
       })
       
+      // Trigger reactivity for encryptionKey computed property
+      encryptionKeyTrigger.value++
+      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
+      
       return { success: true }
     } catch (error) {
       let errorMessage = 'Registrering fejlede'
@@ -271,6 +285,10 @@ export const useAuthStore = defineStore('auth', () => {
         console.log('Session timed out - logging out user')
         logout()
       })
+      
+      // Trigger reactivity for encryptionKey computed property
+      encryptionKeyTrigger.value++
+      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
       
       return { success: true, needsPassword: false }
     } catch (error) {
@@ -356,6 +374,9 @@ export const useAuthStore = defineStore('auth', () => {
               console.log('Session timed out during auth state change - logging out user')
               logout()
             })
+            
+            // Trigger reactivity for encryptionKey computed property
+            encryptionKeyTrigger.value++
           } else {
             SecureStorage.clearEncryptionKey()
           }

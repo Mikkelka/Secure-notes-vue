@@ -44,17 +44,26 @@ The application implements **client-side encryption** where user data is encrypt
 - Activity-based session extension for active users
 - Error handling for missing keys with descriptive messages
 
+**Vue Reactivity Integration:**
+The auth store includes a reactivity trigger system to ensure Vue components properly detect SecureStorage changes:
+- `encryptionKeyTrigger` ref that increments when encryption key is set
+- Computed `encryptionKey` property accesses this trigger to become reactive
+- Prevents race conditions during page refresh and authentication flow
+- Ensures App.vue waits for both user and encryption key before loading data
+
 **Key Benefits:**
 - **Consistency**: All stores use same encryption key source
 - **Security**: Automatic session management with timeout
 - **Performance**: Single key instance, no parameter passing
 - **Maintainability**: Centralized key logic reduces complexity
-- **Future-proof**: Easy to extend with additional security features
+- **Vue Integration**: Fully reactive with Vue's reactivity system
+- **Race Condition Safe**: Prevents data loading before encryption key is available
 
 **API Usage Pattern:**
 ```javascript
 // Setting key (typically in auth.js)
 SecureStorage.setEncryptionKey(derivedKey, () => logout())
+encryptionKeyTrigger.value++ // Trigger Vue reactivity
 
 // Getting key (in any store)
 const encryptionKey = SecureStorage.getEncryptionKey()
@@ -72,8 +81,9 @@ SecureStorage.extendSession()
 - Firebase auth integration with Google and email providers
 - Encryption key generation from passwords using PBKDF2
 - SecureStorage integration with automatic logout callbacks
+- Vue reactivity trigger system for encryption key changes
 - Session timeout with activity tracking and warning system
-- Computed property for safe encryption key access
+- Race condition prevention for page refresh scenarios
 
 **notes.js** - Notes data management:
 - Uses SecureStorage for consistent encryption key access
@@ -355,6 +365,8 @@ if (loginType === 'google') {
 - Test grundigt før migration af encryption/database kode
 - Brug export funktionen til backup før refactoring
 - Verificer at data kan læses korrekt efter ændringer
+- Test page refresh behavior efter auth/encryption ændringer
+- Sørg for Vue reactivity virker korrekt med SecureStorage
 
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
@@ -368,6 +380,13 @@ if (loginType === 'google') {
 - Let SecureStorage handle session timeout and cleanup
 - Use proper error handling for missing keys
 - Implement logout callbacks for automatic session management
+- Remember to trigger Vue reactivity when setting keys: `encryptionKeyTrigger.value++`
+
+**Race Condition Prevention:**
+- App.vue watches both `authStore.user` AND `authStore.encryptionKey` before loading data
+- Auth state change properly triggers Vue reactivity for encryption key availability
+- Prevents data loading attempts before encryption key is fully initialized
+- Ensures consistent behavior on page refresh and authentication flows
 
 **Security Considerations:**
 - Never log encryption keys or passwords
