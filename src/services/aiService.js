@@ -202,7 +202,7 @@ const getAiSettings = (userSettings) => {
   };
 };
 
-export const processTextWithAi = async (content, userSettings = null) => {
+export const processTextWithAi = async (content, title, userSettings = null) => {
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
 
   if (!apiKey) {
@@ -222,6 +222,8 @@ export const processTextWithAi = async (content, userSettings = null) => {
     // HTML-direkte prompt der tilføjer intelligent formatering
     const prompt = `${instructionPrompt}
 
+Note titel (kun til kontekst - inkluder IKKE i output): "${title}"
+
 Input HTML:
 ${content}`;
 
@@ -240,7 +242,7 @@ ${content}`;
       config: {
         safetySettings: SAFETY_SETTINGS,
         thinkingConfig: {
-          thinkingBudget: 0, // Disable thinking capabilities
+          thinkingBudget: -1, // Enable dynamic thinking - model decides when to think
         },
       },
     });

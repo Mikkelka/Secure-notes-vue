@@ -437,7 +437,7 @@ const handleAiProcess = async () => {
       }
     }
     
-    const processedContent = await processTextWithAi(editContent.value, settingsWithInstruction)
+    const processedContent = await processTextWithAi(editContent.value, editTitle.value, settingsWithInstruction)
     editContent.value = processedContent
     
     // Update HTML content for TinyMCE directly
