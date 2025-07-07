@@ -30,8 +30,8 @@
         </div>
 
         <!-- Mobile Content -->
-        <div class="flex-1 overflow-auto p-4">
-          <div v-if="isEditing" class="space-y-4">
+        <div class="flex-1 overflow-auto p-4 pb-0">
+          <div v-if="isEditing" class="space-y-4 pb-4">
             <input
               v-model="editTitle"
               type="text"
@@ -44,50 +44,6 @@
                 v-model="editorHtmlContent"
                 :init="getTinymceConfig()"
               />
-            </div>
-            <div class="space-y-3">
-              <!-- AI and Undo buttons -->
-              <div class="flex gap-2">
-                <div class="flex-1">
-                  <AiInstructionDropdown
-                    @process="handleAiProcess"
-                    @instruction-changed="handleInstructionChanged"
-                    :is-processing="isAiProcessing"
-                    :disabled="!editContent.trim()"
-                    :user-settings="props.userSettings"
-                    :content="editContent"
-                  />
-                </div>
-                <BaseButton
-                  v-if="canUndo"
-                  @click="handleUndo"
-                  variant="secondary"
-                  class="bg-orange-600 hover:bg-orange-500"
-                >
-                  <Undo class="w-4 h-4" />
-                  Undo
-                </BaseButton>
-              </div>
-              
-              <!-- Save and Cancel buttons -->
-              <div class="flex gap-3">
-                <BaseButton
-                  @click="handleSave"
-                  :disabled="!editTitle.trim() || !editContent.trim()"
-                  variant="primary"
-                  class="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Save class="w-4 h-4" />
-                  Save
-                </BaseButton>
-                <BaseButton
-                  @click="cancelEdit"
-                  variant="secondary"
-                  class="flex-1 bg-gray-600 hover:bg-gray-500"
-                >
-                  Cancel
-                </BaseButton>
-              </div>
             </div>
           </div>
 
@@ -103,6 +59,54 @@
                 v-html="note.content"
                 style="color: #d1d5db !important;"
               ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Editing Actions -->
+        <div v-if="isEditing" class="p-4 border-t border-gray-700/50">
+          <div class="space-y-3">
+            <!-- AI and Undo buttons -->
+            <div class="flex gap-2">
+              <div class="flex-1">
+                <AiInstructionDropdown
+                  @process="handleAiProcess"
+                  @instruction-changed="handleInstructionChanged"
+                  :is-processing="isAiProcessing"
+                  :disabled="!editContent.trim()"
+                  :user-settings="props.userSettings"
+                  :content="editContent"
+                />
+              </div>
+              <BaseButton
+                v-if="canUndo"
+                @click="handleUndo"
+                variant="secondary"
+                class="bg-orange-600 hover:bg-orange-500"
+              >
+                <Undo class="w-4 h-4" />
+                Undo
+              </BaseButton>
+            </div>
+            
+            <!-- Save and Cancel buttons -->
+            <div class="flex gap-3">
+              <BaseButton
+                @click="handleSave"
+                :disabled="!editTitle.trim() || !editContent.trim()"
+                variant="primary"
+                class="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save class="w-4 h-4" />
+                Save
+              </BaseButton>
+              <BaseButton
+                @click="cancelEdit"
+                variant="secondary"
+                class="flex-1 bg-gray-600 hover:bg-gray-500"
+              >
+                Cancel
+              </BaseButton>
             </div>
           </div>
         </div>
@@ -208,8 +212,8 @@
       </div>
 
       <!-- Desktop Content -->
-      <div class="flex-1 overflow-auto p-4">
-        <div v-if="isEditing" class="space-y-4">
+      <div class="flex-1 overflow-auto p-4 pb-0">
+        <div v-if="isEditing" class="space-y-4 pb-4">
           <input
             v-model="editTitle"
             type="text"
@@ -222,53 +226,6 @@
               v-model="editorHtmlContent"
               :init="getTinymceConfig()"
             />
-          </div>
-          <div class="space-y-2">
-            <!-- AI and Undo buttons -->
-            <div class="flex gap-2">
-              <div class="flex-1">
-                <AiInstructionDropdown
-                  @process="handleAiProcess"
-                  @instruction-changed="handleInstructionChanged"
-                  :is-processing="isAiProcessing"
-                  :disabled="!editContent.trim()"
-                  :user-settings="props.userSettings"
-                  :content="editContent"
-                />
-              </div>
-              <BaseButton
-                v-if="canUndo"
-                @click="handleUndo"
-                variant="secondary"
-                size="sm"
-                class="bg-orange-600 hover:bg-orange-500"
-              >
-                <Undo class="w-4 h-4" />
-                Undo
-              </BaseButton>
-            </div>
-            
-            <!-- Save and Cancel buttons -->
-            <div class="flex gap-2">
-              <BaseButton
-                @click="handleSave"
-                :disabled="!editTitle.trim() || !editContent.trim()"
-                variant="primary"
-                size="sm"
-                class="bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save class="w-4 h-4" />
-                Save
-              </BaseButton>
-              <BaseButton
-                @click="cancelEdit"
-                variant="secondary"
-                size="sm"
-                class="bg-gray-600 hover:bg-gray-500"
-              >
-                Cancel
-              </BaseButton>
-            </div>
           </div>
         </div>
 
@@ -284,6 +241,57 @@
               v-html="note.content"
               style="color: #d1d5db !important;"
             ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Editing Actions -->
+      <div v-if="isEditing" class="p-4 border-t border-gray-700/50">
+        <div class="space-y-2">
+          <!-- AI and Undo buttons -->
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <AiInstructionDropdown
+                @process="handleAiProcess"
+                @instruction-changed="handleInstructionChanged"
+                :is-processing="isAiProcessing"
+                :disabled="!editContent.trim()"
+                :user-settings="props.userSettings"
+                :content="editContent"
+              />
+            </div>
+            <BaseButton
+              v-if="canUndo"
+              @click="handleUndo"
+              variant="secondary"
+              size="sm"
+              class="bg-orange-600 hover:bg-orange-500"
+            >
+              <Undo class="w-4 h-4" />
+              Undo
+            </BaseButton>
+          </div>
+          
+          <!-- Save and Cancel buttons -->
+          <div class="flex gap-2">
+            <BaseButton
+              @click="handleSave"
+              :disabled="!editTitle.trim() || !editContent.trim()"
+              variant="primary"
+              size="sm"
+              class="bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save class="w-4 h-4" />
+              Save
+            </BaseButton>
+            <BaseButton
+              @click="cancelEdit"
+              variant="secondary"
+              size="sm"
+              class="bg-gray-600 hover:bg-gray-500"
+            >
+              Cancel
+            </BaseButton>
           </div>
         </div>
       </div>
