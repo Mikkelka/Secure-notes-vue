@@ -223,22 +223,40 @@ export const useFoldersStore = defineStore('folders', () => {
     return false
   }
   
-  // SIKKERHEDSNOTE: Denne funktion er en usikker pladsholder.
-  // For at gøre den sikker, skal du implementere en rigtig password verifikationsmekanisme.
-  const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, _user) => {
-    console.warn("verifyAndUnlockWithMasterPassword er usikker og kun til demo. Implementer rigtig verifikation.");
-    // EKSEMPEL PÅ SIKKER IMPLEMENTERING:
-    // if (!user?.uid || !userSettings.value?.passwordVerifier) return false;
-    // const isValid = await verifyPassword(masterPassword, user.uid, userSettings.value.passwordVerifier);
-    // if (isValid) { ... }
-    
-    // Midlertidig demo-logik:
-    if (masterPassword) { // Accepterer ethvert input for at demonstrere flowet
-      lockedFolders.value.delete(folderId);
-      selectFolder(folderId);
-      return true;
+  const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, user) => {
+    if (!user?.uid || !masterPassword.trim()) {
+      return false;
     }
-    return false;
+
+    try {
+      // Tjek hvordan brugeren er logget ind
+      const loginType = localStorage.getItem(`loginType_${user.uid}`);
+      
+      if (loginType === 'google') {
+        // For Google brugere: brug deres email som master password
+        if (masterPassword === user.email) {
+          lockedFolders.value.delete(folderId);
+          selectFolder(folderId);
+          return true;
+        }
+      } else if (loginType === 'email') {
+        // For email/password brugere: sammenlign med deres gemte password
+        const encryptedPassword = localStorage.getItem(`encryptedPassword_${user.uid}`);
+        if (encryptedPassword) {
+          const storedPassword = atob(encryptedPassword);
+          if (masterPassword === storedPassword) {
+            lockedFolders.value.delete(folderId);
+            selectFolder(folderId);
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Fejl ved master password verifikation:', error);
+      return false;
+    }
   }
 
   const changeSecurePin = async (newPin, user, encryptionKey) => {
@@ -303,7 +321,8 @@ export const useFoldersStore = defineStore('folders', () => {
     deleteFolder,
     selectFolder,
     unlockFolder,
-    verifyAndUnlockWithMasterPassword, // Omdøbt for klarhed
+    verifyAndUnlockWithMasterPassword,
+    unlockWithMasterPassword: verifyAndUnlockWithMasterPassword, // Alias for bagudkompatibilitet
     changeSecurePin,
     lockSecureFolder,
     updateAiSettings,

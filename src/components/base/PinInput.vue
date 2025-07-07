@@ -55,7 +55,7 @@
           <input
             v-model="masterPassword"
             type="password"
-            placeholder="Indtast din hovedadgangskode... (Hint: master)"
+            :placeholder="masterPasswordHint"
             class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             ref="masterPasswordInput"
           />
@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch } from 'vue'
+import { ref, reactive, nextTick, watch, computed } from 'vue'
 
 const props = defineProps({
   length: {
@@ -99,10 +99,31 @@ const props = defineProps({
   isVisible: {
     type: Boolean,
     default: true
+  },
+  user: {
+    type: Object,
+    default: null
   }
 })
 
 const emit = defineEmits(['complete', 'cancel', 'masterPasswordUnlock'])
+
+// Beregn master password hint baseret på login type
+const masterPasswordHint = computed(() => {
+  if (!props.user?.uid) {
+    return 'Indtast din hovedadgangskode...'
+  }
+  
+  const loginType = localStorage.getItem(`loginType_${props.user.uid}`)
+  
+  if (loginType === 'google') {
+    return 'Indtast din Google email adresse'
+  } else if (loginType === 'email') {
+    return 'Indtast dit login password'
+  }
+  
+  return 'Indtast din hovedadgangskode...'
+})
 
 // PIN state
 const pin = ref(new Array(props.length).fill(''))

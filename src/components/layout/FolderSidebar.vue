@@ -135,6 +135,7 @@
     <PinInput
       v-if="showPinPrompt === 'secure'"
       :length="4"
+      :user="user"
       @complete="handleUnlockFolder"
       @cancel="showPinPrompt = null"
       @master-password-unlock="handleMasterPasswordUnlock"
@@ -173,6 +174,10 @@ const props = defineProps({
   lockedFolders: {
     type: Set,
     default: () => new Set(),
+  },
+  user: {
+    type: Object,
+    default: null,
   },
 });
 

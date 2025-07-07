@@ -34,6 +34,7 @@
             :selected-folder-id="foldersStore.selectedFolderId"
             :note-counts="noteCounts"
             :locked-folders="foldersStore.lockedFolders"
+            :user="authStore.user"
             @folder-select="handleFolderSelect"
             @folder-create="handleFolderCreate"
             @folder-update="handleFolderUpdate"
@@ -61,6 +62,7 @@
               :selected-folder-id="foldersStore.selectedFolderId"
               :note-counts="noteCounts"
               :locked-folders="foldersStore.lockedFolders"
+              :user="authStore.user"
               @folder-select="handleFolderSelect"
               @folder-create="handleFolderCreate"
               @folder-update="handleFolderUpdate"
@@ -482,7 +484,7 @@ const handleUnlockFolder = async (folderId, pin) => {
 };
 
 const handleMasterPasswordUnlock = async (folderId, masterPassword) => {
-  const success = await foldersStore.unlockWithMasterPassword(folderId, masterPassword);
+  const success = await foldersStore.unlockWithMasterPassword(folderId, masterPassword, authStore.user);
   if (success && uiStore.showMobileSidebar) {
     uiStore.closeMobileSidebar();
   }
