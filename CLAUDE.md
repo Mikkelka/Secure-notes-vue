@@ -155,6 +155,13 @@ The application implements **client-side encryption** where user data is encrypt
 - Simplified architecture eliminates conversion bugs
 - Better performance with no format transformation
 
+**Rich Content Styling:**
+- Comprehensive CSS styling for all HTML elements in `NoteViewer.vue`
+- Code block styling with `<pre><code>` support and monospace fonts
+- Inline code styling with background highlighting
+- Horizontal rule styling with proper spacing and dark theme integration
+- All formatting optimized for dark theme and mobile responsiveness
+
 ### Folder Management System
 
 **Interactive Folder Labels:**
@@ -190,8 +197,11 @@ The application implements **client-side encryption** where user data is encrypt
 - Direct HTML processing - preserves and enhances existing formatting
 - Instruction preset system for different note enhancement modes
 - Safety settings configured for minimal content blocking
-- Intelligent formatting addition (headings, bold text, lists) where appropriate
-- Thinking capabilities explicitly disabled (`thinkingBudget: 0`) for consistent responses
+- Intelligent formatting addition (headings, bold text, lists, code blocks, horizontal rules) where appropriate
+- Dynamic thinking capabilities enabled (`thinkingBudget: -1`) for improved AI reasoning
+- Note title context provided to AI for better content understanding
+- Unified formatting instructions system covering both markdown and HTML formatting
+- Explicit border-avoidance instructions to prevent visual clutter
 
 **AI SDK Documentation:**
 - Gemini API Thinking: https://ai.google.dev/gemini-api/docs/thinking
