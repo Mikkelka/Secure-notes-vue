@@ -26,7 +26,7 @@
         @settings="uiStore.openAppSettings"
       />
 
-      <div class="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)]">
+      <div class="flex pb-16">
         <!-- Desktop Sidebar -->
         <div class="hidden md:block w-64 flex-shrink-0">
           <FolderSidebar
@@ -78,7 +78,7 @@
           ]"
         >
           <div
-            class="h-full p-3 grid gap-4"
+            class="h-full px-3 grid gap-4"
             :style="{
               gridTemplateColumns: getGridColumns,
             }"
