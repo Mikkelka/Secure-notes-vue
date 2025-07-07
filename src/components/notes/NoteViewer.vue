@@ -31,14 +31,14 @@
 
         <!-- Mobile Content -->
         <div class="flex-1 overflow-auto p-4 pb-0">
-          <div v-if="isEditing" class="space-y-4 pb-4">
+          <div v-if="isEditing" class="h-full flex flex-col space-y-4 pb-4">
             <input
               v-model="editTitle"
               type="text"
               class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
               placeholder="Title..."
             />
-            <div class="tinymce-wrapper">
+            <div class="tinymce-wrapper flex-1">
               <editor
                 api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
                 v-model="editorHtmlContent"
@@ -213,14 +213,14 @@
 
       <!-- Desktop Content -->
       <div class="flex-1 overflow-auto p-4 pb-0">
-        <div v-if="isEditing" class="space-y-4 pb-4">
+        <div v-if="isEditing" class="h-full flex flex-col space-y-4 pb-4">
           <input
             v-model="editTitle"
             type="text"
             class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 text-sm"
             placeholder="Title..."
           />
-          <div class="tinymce-wrapper">
+          <div class="tinymce-wrapper flex-1">
             <editor
               api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
               v-model="editorHtmlContent"
@@ -387,16 +387,15 @@ const editorHtmlContent = ref('')
 // TinyMCE configuration
 const getTinymceConfig = () => {
   const isMobileView = window.innerWidth < 1024
-  const viewportHeight = window.innerHeight
   
   return {
-    // Responsive height configuration
-    min_height: isMobileView ? 150 : 200,
-    max_height: Math.min(viewportHeight * (isMobileView ? 0.6 : 0.7), isMobileView ? 500 : 800),
+    // Fill 100% height of container
+    height: '100%',
+    resize: false,
     menubar: false,
     statusbar: false,
     branding: false,
-    plugins: 'lists link autolink autoresize',
+    plugins: 'lists link autolink',
     toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
     formats: {
       h1: { block: 'h1' },
@@ -404,7 +403,7 @@ const getTinymceConfig = () => {
       h3: { block: 'h3' }
     },
     block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; padding: 16px; height: 100%; box-sizing: border-box; } p { margin: 0.5em 0; }',
     skin: 'oxide-dark',
     content_css: 'dark',
     // Disable analytics and tracking
@@ -414,10 +413,7 @@ const getTinymceConfig = () => {
     // Reduce touch sensitivity warnings
     touch_ui: false,
     // Disable automatic updates
-    auto_update: false,
-    // Auto resize options
-    autoresize_bottom_margin: 16,
-    autoresize_overflow_padding: 0
+    auto_update: false
   }
 }
 
@@ -631,6 +627,27 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* TinyMCE full height styling */
+.tinymce-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tinymce-wrapper :deep(.tox-editor-container) {
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.tinymce-wrapper :deep(.tox-edit-area) {
+  flex: 1 !important;
+  height: 100% !important;
+}
+
+.tinymce-wrapper :deep(.tox-edit-area iframe) {
+  height: 100% !important;
+}
 /* Links */
 .prose-content :deep(a) {
   color: #60a5fa;
