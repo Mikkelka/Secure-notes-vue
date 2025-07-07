@@ -25,7 +25,7 @@
           <input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
-            placeholder="Indtast dit password"
+            :placeholder="passwordPlaceholder"
             class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
             autofocus
           />
@@ -60,7 +60,7 @@
           <div>📝 {{ notes.length }} noter</div>
           <div>📁 {{ folders.length }} mapper</div>
           <div>⭐ {{ notes.filter(n => n.isFavorite).length }} favoritter</div>
-          <div>👤 User: {{ user.email }}</div>
+          <div>👤 User: {{ username }}</div>
         </div>
       </div>
 
@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { AlertTriangle, Download, CheckCircle, Upload, Eye, EyeOff } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import BaseButton from '../base/BaseButton.vue'
@@ -141,6 +141,32 @@ const props = defineProps({
 
 defineEmits(['close', 'openImport'])
 
+// Computed property for password placeholder based on login type
+const passwordPlaceholder = computed(() => {
+  if (!props.user?.uid) {
+    return 'Indtast dit password'
+  }
+  
+  const loginType = localStorage.getItem(`loginType_${props.user.uid}`)
+  
+  if (loginType === 'google') {
+    return 'Indtast din Google email adresse'
+  } else if (loginType === 'email') {
+    return 'Indtast dit login password'
+  }
+  
+  return 'Indtast dit password'
+})
+
+// Computed property for username (part before @)
+const username = computed(() => {
+  if (!props.user?.email) {
+    return 'Ukendt bruger'
+  }
+  
+  return props.user.email.split('@')[0]
+})
+
 const loading = ref(false)
 const password = ref('')
 const showPassword = ref(false)
@@ -156,12 +182,62 @@ const handleExport = async () => {
   result.value = null
 
   try {
-    // Create export data matching the format expected by import validation
+    // Verify password based on login type (same logic as master password)
+    const loginType = localStorage.getItem(`loginType_${props.user.uid}`)
+    let actualPassword = password.value.trim()
+    
+    if (loginType === 'google') {
+      // For Google users: check if entered password matches their email
+      if (actualPassword !== props.user.email) {
+        result.value = { 
+          success: false, 
+          message: 'Forkert email adresse. Indtast din Google email.' 
+        }
+        return
+      }
+      // Use UID as the actual encryption password for Google users
+      actualPassword = props.user.uid
+    } else if (loginType === 'email') {
+      // For email users: check if entered password matches stored password
+      const encryptedPassword = localStorage.getItem(`encryptedPassword_${props.user.uid}`)
+      if (encryptedPassword) {
+        const storedPassword = atob(encryptedPassword)
+        if (actualPassword !== storedPassword) {
+          result.value = { 
+            success: false, 
+            message: 'Forkert password. Indtast dit login password.' 
+          }
+          return
+        }
+      } else {
+        result.value = { 
+          success: false, 
+          message: 'Kunne ikke verificere password.' 
+        }
+        return
+      }
+    }
+
+    // Create export data - notes are already decrypted in the store
     const exportData = {
       exportDate: new Date().toISOString(),
       userId: props.user.uid,
-      notes: props.notes,
-      folders: props.folders,
+      notes: props.notes.map(note => ({
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        folderId: note.folderId,
+        isFavorite: note.isFavorite,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt
+      })),
+      folders: props.folders.map(folder => ({
+        id: folder.id,
+        name: folder.name,
+        color: folder.color,
+        createdAt: folder.createdAt,
+        updatedAt: folder.updatedAt
+      })),
       metadata: {
         notesCount: props.notes.length,
         foldersCount: props.folders.length,
@@ -188,7 +264,7 @@ const handleExport = async () => {
     console.error('Export failed:', error)
     result.value = {
       success: false,
-      message: 'Export fejlede: ' + error.message
+      message: 'Export fejlede: ' + (error.message || 'Muligvis forkert password')
     }
   } finally {
     loading.value = false

@@ -52,8 +52,9 @@ The application implements **client-side encryption** where user data is encrypt
 **folders.js** - Folder organization system:
 - Encrypted folder management with color coding
 - PIN-protected secure folder functionality
-- Master password fallback for secure folder access
+- Fully implemented master password fallback with login-type-aware verification
 - User settings storage for AI configuration
+- `verifyAndUnlockWithMasterPassword()` supports both Google (email) and email/password users
 
 **ui.js** - UI state coordination:
 - Mobile drawer state management (search, settings, note editor)
@@ -68,11 +69,27 @@ The application implements **client-side encryption** where user data is encrypt
 
 ### Authentication Flow
 
-1. Firebase Authentication (Google OAuth or email/password)
-2. Separate encryption password prompt for client-side encryption
+The application supports two distinct authentication patterns with different encryption key handling:
+
+**Google OAuth Login:**
+1. Firebase Google Authentication
+2. User's Firebase UID used as encryption password (automatic)
 3. PBKDF2 key derivation with user-specific salt
-4. Encrypted data access with session timeout protection
-5. Activity-based session extension or automatic logout
+4. User's email serves as master password for secure folder access
+5. Login type stored as `loginType_${userId}` = 'google'
+
+**Email/Password Login:**
+1. Firebase email/password authentication
+2. User's login password used as encryption password
+3. PBKDF2 key derivation with user-specific salt
+4. Same login password serves as master password for secure folder access
+5. Login type stored as `loginType_${userId}` = 'email'
+
+**Shared Security Features:**
+- Encrypted data access with session timeout protection
+- Activity-based session extension or automatic logout
+- PIN-protected secure folders with master password fallback
+- Password verification for data export operations
 
 ### Data Structure
 
@@ -137,6 +154,7 @@ The application implements **client-side encryption** where user data is encrypt
 - `MobileSearchDrawer.vue` - Dedicated search interface
 - `NoteViewer.vue` - Mobile-optimized with bottom action buttons and centered modals
 - `FolderDropdown.vue` - Responsive folder selection dropdown
+- `PinInput.vue` - PIN entry with login-type-aware master password hints
 
 ### Rich Text Editor Integration
 
@@ -224,10 +242,47 @@ The application implements **client-side encryption** where user data is encrypt
 - Graceful session extension or forced logout
 
 **Security Features:**
-- PIN-protected secure folder with master password fallback
+- PIN-protected secure folder with master password fallback (fully implemented)
+- Login-type-aware password verification for all sensitive operations
 - Client-side encryption key never transmitted
 - Automatic session cleanup on inactivity
-- Password verification for sensitive operations
+- Privacy-focused UI that doesn't display full email addresses
+- Secure data export with proper password verification
+
+### Master Password & Data Export Security
+
+**Master Password System:**
+The master password provides backup access to PIN-protected secure folders:
+
+- **Google Users**: Use their full email address as master password
+- **Email Users**: Use their login password as master password
+- **Verification**: Login type detection via `localStorage.getItem('loginType_${userId}')`
+- **Security**: Master password prompts don't display the actual email for privacy
+- **Implementation**: `verifyAndUnlockWithMasterPassword()` in `folders.js`
+
+**Data Export Security:**
+All data exports require password verification before decryption:
+
+- **Google Users**: Must enter their full email address to export
+- **Email Users**: Must enter their login password to export
+- **UI Privacy**: Export dialog shows only username (before @) not full email
+- **Verification**: Password verified against login type before export proceeds
+- **Implementation**: Enhanced `DataExport.vue` with login-type-aware verification
+
+**Code Example:**
+```javascript
+// Login type detection pattern used throughout
+const loginType = localStorage.getItem(`loginType_${user.uid}`)
+
+if (loginType === 'google') {
+  // Verify against user.email
+  if (enteredPassword === user.email) { /* proceed */ }
+} else if (loginType === 'email') {
+  // Verify against stored encrypted password
+  const storedPassword = atob(localStorage.getItem(`encryptedPassword_${user.uid}`))
+  if (enteredPassword === storedPassword) { /* proceed */ }
+}
+```
 
 ### Data Architecture Simplification
 
@@ -266,6 +321,9 @@ The application implements **client-side encryption** where user data is encrypt
 - Use environment variables for sensitive configuration
 - Implement proper error boundaries for encryption failures
 - Maintain separation between Firebase auth and encryption keys
+- Always check login type before password verification: `localStorage.getItem('loginType_${userId}')`
+- For UI privacy, avoid displaying full email addresses (use username portion only)
+- Implement login-type-aware password prompts with appropriate hints
 
 **Performance Optimization:**
 - Debounced search with 300ms delay

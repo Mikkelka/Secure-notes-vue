@@ -107,6 +107,63 @@ const verifyAndUnlockWithMasterPassword = async (folderId, masterPassword, user)
 
 **Sikkerhedsovervejelse:** Emailen vises ikke i UI teksten for at forhindre, at tilfældige forbipasserende kan se den og få adgang til sikre mapper.
 
+### 2.1. **Fix Export Password Problem** ✅ **LØST**
+
+**Problem:** Export funktionen krævede et password men verificerede det ikke korrekt. Google brugere kunne ikke eksportere fordi de ikke kendte deres encryption password.
+
+**Original problem:**
+```javascript
+// DataExport.vue - USIKKER IMPLEMENTATION
+const handleExport = async () => {
+  if (!password.value.trim()) {
+    result.value = { success: false, message: 'Password er påkrævet' }
+    return
+  }
+  // ... eksporterede direkte uden password verification!
+}
+```
+
+**Løsning implementeret:**
+```javascript
+// DataExport.vue - SIKKER IMPLEMENTATION
+const handleExport = async () => {
+  // Verify password based on login type
+  const loginType = localStorage.getItem(`loginType_${props.user.uid}`)
+  let actualPassword = password.value.trim()
+  
+  if (loginType === 'google') {
+    // For Google users: check if entered password matches their email
+    if (actualPassword !== props.user.email) {
+      result.value = { success: false, message: 'Forkert email adresse.' }
+      return
+    }
+    // Use UID as the actual encryption password for Google users
+    actualPassword = props.user.uid
+  } else if (loginType === 'email') {
+    // For email users: verify against stored password
+    const encryptedPassword = localStorage.getItem(`encryptedPassword_${props.user.uid}`)
+    const storedPassword = atob(encryptedPassword)
+    if (actualPassword !== storedPassword) {
+      result.value = { success: false, message: 'Forkert password.' }
+      return
+    }
+  }
+
+  // Use the proper export function with password verification
+  const exportData = await exportDecryptedData(
+    props.notes, props.folders, actualPassword, props.user.uid
+  )
+}
+```
+
+**Forbedringer:**
+- Password verification implementeret for begge login typer
+- Google brugere: indtaster deres email som password
+- Email brugere: indtaster deres login password  
+- Dynamisk placeholder tekst uden at afsløre email adresse
+- Optimeret til at bruge allerede dekrypterede data fra store (ingen unødvendig dekryptering)
+- Korrekt data format til import funktionen
+
 ### 3. **Forbedre Encryption Key Handling**
 
 **Problem:** Encryption keys håndteres inkonsistent på tværs af stores.
