@@ -14,13 +14,14 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
+import { SecureStorage } from '../utils/secureStorage'
 // ANBEFALING: Du skal bruge en password verifikationsfunktion her for master password unlock.
 // import { verifyPassword } from '../utils/encryption' 
 
 // --- Helper-funktioner til brugerindstillinger (holdes adskilt for klarhed) ---
 
-const loadUserSettings = async (userId, encryptionKey) => {
-  if (!userId || !encryptionKey) return null
+const loadUserSettings = async (userId) => {
+  if (!userId) return null
   
   try {
     const userSettingsRef = doc(db, 'userSettings', userId)
@@ -30,6 +31,7 @@ const loadUserSettings = async (userId, encryptionKey) => {
       const data = userSettingsSnap.data()
       if (data.encryptedSettings) {
         try {
+          const encryptionKey = SecureStorage.getEncryptionKey()
           const decryptedSettings = await decryptText(data.encryptedSettings, encryptionKey)
           return JSON.parse(decryptedSettings)
         } catch {
@@ -60,10 +62,11 @@ const loadUserSettings = async (userId, encryptionKey) => {
   }
 }
 
-const saveUserSettings = async (userId, settings, encryptionKey) => {
-  if (!userId || !settings || !encryptionKey) return false
+const saveUserSettings = async (userId, settings) => {
+  if (!userId || !settings) return false
   
   try {
+    const encryptionKey = SecureStorage.getEncryptionKey()
     const encryptedSettings = await encryptText(JSON.stringify(settings), encryptionKey)
     const userSettingsRef = doc(db, 'userSettings', userId)
     
@@ -92,13 +95,13 @@ export const useFoldersStore = defineStore('folders', () => {
 
   // --- Actions ---
 
-  const loadFolders = async (user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey) return
+  const loadFolders = async (user) => {
+    if (!user?.uid) return
 
     try {
       // Indlæs brugerindstillinger (inkl. PIN) først.
       // Dette kaldes separat for at sikre, at indstillinger er tilgængelige hurtigt.
-      await loadSettings(user, encryptionKey)
+      await loadSettings(user)
       
       const q = query(collection(db, 'folders'), where('userId', '==', user.uid))
       const querySnapshot = await getDocs(q)
@@ -108,7 +111,7 @@ export const useFoldersStore = defineStore('folders', () => {
         try {
           // Håndterer både nye krypterede og gamle ukrypterede mapper
           const decryptedName = folderData.encryptedName
-            ? await decryptText(folderData.encryptedName, encryptionKey)
+            ? await decryptText(folderData.encryptedName, SecureStorage.getEncryptionKey())
             : folderData.name
 
           if (!decryptedName) return null // Spring over mapper uden navn
@@ -134,18 +137,19 @@ export const useFoldersStore = defineStore('folders', () => {
     }
   }
 
-  const loadSettings = async (user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey) return
+  const loadSettings = async (user) => {
+    if (!user?.uid) return
 
-    const settings = await loadUserSettings(user.uid, encryptionKey)
+    const settings = await loadUserSettings(user.uid)
     userSettings.value = settings
     securePin.value = settings?.securePin || '1234'
   }
 
-  const createFolder = async (name, color, user, encryptionKey) => {
-    if (!name.trim() || !user || !encryptionKey) return false
+  const createFolder = async (name, color, user) => {
+    if (!name.trim() || !user) return false
     
     try {
+      const encryptionKey = SecureStorage.getEncryptionKey()
       const encryptedName = await encryptText(name, encryptionKey)
       const now = new Date()
       const folderData = {
@@ -166,10 +170,11 @@ export const useFoldersStore = defineStore('folders', () => {
     }
   }
 
-  const updateFolder = async (folderId, name, color, encryptionKey) => {
-    if (!encryptionKey) return false
+  const updateFolder = async (folderId, name, color) => {
+    if (!folderId || !name || !color) return false
     
     try {
+      const encryptionKey = SecureStorage.getEncryptionKey()
       const encryptedName = await encryptText(name, encryptionKey)
       const now = new Date()
       
@@ -259,11 +264,11 @@ export const useFoldersStore = defineStore('folders', () => {
     }
   }
 
-  const changeSecurePin = async (newPin, user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey || !/^\d{4}$/.test(newPin)) return false
+  const changeSecurePin = async (newPin, user) => {
+    if (!user?.uid || !/^\d{4}$/.test(newPin)) return false
     
     const updatedSettings = { ...userSettings.value, securePin: newPin }
-    const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+    const success = await saveUserSettings(user.uid, updatedSettings)
 
     if (success) {
       // Opdater kun lokal state, hvis det lykkedes at gemme
@@ -281,14 +286,14 @@ export const useFoldersStore = defineStore('folders', () => {
     }
   }
 
-  const updateAiSettings = async (newAiSettings, user, encryptionKey) => {
-    if (!user?.uid || !encryptionKey) return false
+  const updateAiSettings = async (newAiSettings, user) => {
+    if (!user?.uid || !newAiSettings) return false
     
     const updatedSettings = { 
       ...userSettings.value, 
       aiSettings: { ...userSettings.value.aiSettings, ...newAiSettings }
     }
-    const success = await saveUserSettings(user.uid, updatedSettings, encryptionKey)
+    const success = await saveUserSettings(user.uid, updatedSettings)
 
     if (success) {
       // Opdater kun lokal state, hvis det lykkedes at gemme

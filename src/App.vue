@@ -343,8 +343,8 @@ const reloadAllData = async () => {
   if (authStore.user && authStore.encryptionKey) {
     try {
       await Promise.all([
-        notesStore.loadNotes(authStore.user, authStore.encryptionKey),
-        foldersStore.loadFolders(authStore.user, authStore.encryptionKey),
+        notesStore.loadNotes(authStore.user),
+        foldersStore.loadFolders(authStore.user),
       ]);
     } catch (error) {
       console.error("Fejl ved genindlæsning af data:", error);
@@ -383,8 +383,7 @@ const handleSaveNote = async (title, content) => {
       : foldersStore.selectedFolderId;
 
   const success = await notesStore.saveNote(
-    title, content, targetFolderId,
-    authStore.user, authStore.encryptionKey
+    title, content, targetFolderId, authStore.user
   );
 
   if (success && uiStore.showMobileQuickNote) {
@@ -395,8 +394,7 @@ const handleSaveNote = async (title, content) => {
 
 const handleViewerUpdate = async (noteId, title, content) => {
   const success = await notesStore.updateNote(
-    noteId, title, content,
-    authStore.encryptionKey, authStore.user
+    noteId, title, content
   );
   if (success) {
     uiStore.setSelectedNote({
@@ -449,11 +447,11 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
 
 // --- Folder Handlers ---
 const handleFolderCreate = (name, color) => {
-  return foldersStore.createFolder(name, color, authStore.user, authStore.encryptionKey);
+  return foldersStore.createFolder(name, color, authStore.user);
 };
 
 const handleFolderUpdate = (folderId, name, color) => {
-  return foldersStore.updateFolder(folderId, name, color, authStore.encryptionKey, authStore.user);
+  return foldersStore.updateFolder(folderId, name, color, authStore.user);
 };
 
 const handleFolderDelete = (folderId) => {
@@ -501,8 +499,7 @@ const handleChangeSecurePin = async () => {
   if (newPinInput.value && /^\d{4}$/.test(newPinInput.value)) {
     const success = await foldersStore.changeSecurePin(
       newPinInput.value,
-      authStore.user,
-      authStore.encryptionKey
+      authStore.user
     );
     if (success) {
       alert("PIN ændret succesfuldt!");
@@ -519,8 +516,7 @@ const handleChangeSecurePin = async () => {
 const handleUpdateAiSettings = async (newAiSettings) => {
   return await foldersStore.updateAiSettings(
     newAiSettings,
-    authStore.user,
-    authStore.encryptionKey
+    authStore.user
   );
 };
 

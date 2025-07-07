@@ -32,29 +32,65 @@ The application implements **client-side encryption** where user data is encrypt
 - **AES-GCM encryption**: 256-bit keys with random IVs for each encryption operation
 - **Firebase stores only encrypted data**: The server never sees plaintext note content
 - **Cross-version compatibility**: Notes encrypted in React version can be decrypted in Vue version
+- **Centralized encryption key management**: SecureStorage utility for consistent key handling
+
+### SecureStorage Architecture
+
+**Centralized Encryption Key Management** (`utils/secureStorage.js`):
+- Static class managing single encryption key instance across entire application
+- Automatic session timeout with configurable duration (default 30 minutes)
+- Secure key storage with automatic cleanup on timeout or logout
+- Callback system for triggering logout when session expires
+- Activity-based session extension for active users
+- Error handling for missing keys with descriptive messages
+
+**Key Benefits:**
+- **Consistency**: All stores use same encryption key source
+- **Security**: Automatic session management with timeout
+- **Performance**: Single key instance, no parameter passing
+- **Maintainability**: Centralized key logic reduces complexity
+- **Future-proof**: Easy to extend with additional security features
+
+**API Usage Pattern:**
+```javascript
+// Setting key (typically in auth.js)
+SecureStorage.setEncryptionKey(derivedKey, () => logout())
+
+// Getting key (in any store)
+const encryptionKey = SecureStorage.getEncryptionKey()
+
+// Checking availability
+if (SecureStorage.hasEncryptionKey()) { /* proceed */ }
+
+// Activity-based extension
+SecureStorage.extendSession()
+```
 
 ### Pinia Store Architecture
 
 **auth.js** - Authentication state and session management:
 - Firebase auth integration with Google and email providers
 - Encryption key generation from passwords using PBKDF2
+- SecureStorage integration with automatic logout callbacks
 - Session timeout with activity tracking and warning system
-- Automatic logout and unlock flow for security
+- Computed property for safe encryption key access
 
 **notes.js** - Notes data management:
+- Uses SecureStorage for consistent encryption key access
 - Encrypted note storage and retrieval from Firestore
 - Search functionality with plain text extraction from rich content
 - Favorite notes system with automatic sorting
 - Performance monitoring for encryption/decryption operations
 - Fallback decryption for cross-version compatibility
-- `moveNoteToFolder()` method for changing note folder assignments
+- Simplified function signatures without encryptionKey parameters
 
 **folders.js** - Folder organization system:
+- Centralized SecureStorage usage for all encryption operations
 - Encrypted folder management with color coding
 - PIN-protected secure folder functionality
 - Fully implemented master password fallback with login-type-aware verification
 - User settings storage for AI configuration
-- `verifyAndUnlockWithMasterPassword()` supports both Google (email) and email/password users
+- Optimized function signatures using SecureStorage internally
 
 **ui.js** - UI state coordination:
 - Mobile drawer state management (search, settings, note editor)
@@ -69,24 +105,26 @@ The application implements **client-side encryption** where user data is encrypt
 
 ### Authentication Flow
 
-The application supports two distinct authentication patterns with different encryption key handling:
+The application supports two distinct authentication patterns with centralized encryption key management:
 
 **Google OAuth Login:**
 1. Firebase Google Authentication
 2. User's Firebase UID used as encryption password (automatic)
 3. PBKDF2 key derivation with user-specific salt
-4. User's email serves as master password for secure folder access
-5. Login type stored as `loginType_${userId}` = 'google'
+4. Key stored in SecureStorage with logout callback
+5. User's email serves as master password for secure folder access
+6. Login type stored as `loginType_${userId}` = 'google'
 
 **Email/Password Login:**
 1. Firebase email/password authentication
 2. User's login password used as encryption password
 3. PBKDF2 key derivation with user-specific salt
-4. Same login password serves as master password for secure folder access
-5. Login type stored as `loginType_${userId}` = 'email'
+4. Key stored in SecureStorage with logout callback
+5. Same login password serves as master password for secure folder access
+6. Login type stored as `loginType_${userId}` = 'email'
 
 **Shared Security Features:**
-- Encrypted data access with session timeout protection
+- SecureStorage manages encryption key lifecycle automatically
 - Activity-based session extension or automatic logout
 - PIN-protected secure folders with master password fallback
 - Password verification for data export operations
@@ -235,17 +273,18 @@ The application supports two distinct authentication patterns with different enc
 
 ### Session Management and Security
 
-**Automatic Session Timeout:**
+**Automatic Session Timeout (SecureStorage):**
+- Centralized session management through SecureStorage utility
 - Configurable timeout period (default 30 minutes)
-- Activity tracking with throttled updates (5-second intervals)
-- Warning system (2 minutes before timeout)
-- Graceful session extension or forced logout
+- Activity tracking with automatic session extension
+- Automatic logout callback when session expires
+- Graceful cleanup of encryption keys on timeout
 
 **Security Features:**
 - PIN-protected secure folder with master password fallback (fully implemented)
 - Login-type-aware password verification for all sensitive operations
 - Client-side encryption key never transmitted
-- Automatic session cleanup on inactivity
+- Centralized key management prevents key leakage
 - Privacy-focused UI that doesn't display full email addresses
 - Secure data export with proper password verification
 
@@ -310,17 +349,31 @@ if (loginType === 'google') {
 
 ### Development Guidelines
 
+**VIGTIGT - Test og Backup:**
+- Mikkel bruger denne app aktivt i production
+- Lav altid backup før store arkitektur-ændringer
+- Test grundigt før migration af encryption/database kode
+- Brug export funktionen til backup før refactoring
+- Verificer at data kan læses korrekt efter ændringer
+
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
 - Pinia stores for cross-component state management
 - Reactive refs and computed properties for local state
 - Watch for reactive side effects and data synchronization
 
+**SecureStorage Best Practices:**
+- Always use `SecureStorage.getEncryptionKey()` for encryption operations
+- Never pass encryption keys as function parameters
+- Let SecureStorage handle session timeout and cleanup
+- Use proper error handling for missing keys
+- Implement logout callbacks for automatic session management
+
 **Security Considerations:**
 - Never log encryption keys or passwords
 - Use environment variables for sensitive configuration
 - Implement proper error boundaries for encryption failures
-- Maintain separation between Firebase auth and encryption keys
+- Use SecureStorage for all encryption key management
 - Always check login type before password verification: `localStorage.getItem('loginType_${userId}')`
 - For UI privacy, avoid displaying full email addresses (use username portion only)
 - Implement login-type-aware password prompts with appropriate hints
@@ -330,6 +383,7 @@ if (loginType === 'google') {
 - Efficient note filtering using computed properties
 - Lazy loading for mobile drawers and modals
 - Performance stats tracking for encryption operations
+- Centralized encryption key management reduces parameter passing overhead
 
 **Mobile Touch Optimization:**
 - `touch-action: manipulation` for responsive interactions

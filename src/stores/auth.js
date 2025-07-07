@@ -12,15 +12,28 @@ import {
 } from 'firebase/auth'
 import { auth } from '../firebase'
 import { deriveKeyFromPassword, generatePasswordVerifier } from '../utils/encryption'
+import { SecureStorage } from '../utils/secureStorage'
 import { useSettingsStore } from './settings'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
-  const isLoggedIn = ref(false)
-  const encryptionKey = ref(null)
   const passwordVerifier = ref(null)
   const loading = ref(true)
   const showTimeoutWarning = ref(false)
+  
+  // Computed property that checks both user and encryption key
+  const isLoggedIn = computed(() => {
+    return !!(user.value && SecureStorage.hasEncryptionKey())
+  })
+  
+  // Computed property for accessing encryption key
+  const encryptionKey = computed(() => {
+    try {
+      return SecureStorage.getEncryptionKey()
+    } catch {
+      return null
+    }
+  })
 
   // Timers
   let timeoutRef = null
@@ -77,9 +90,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Extend session
+  // Extend session - now uses SecureStorage
   const extendSession = () => {
     showTimeoutWarning.value = false
+    
+    // Extend session in SecureStorage (which handles the actual timeout)
+    SecureStorage.extendSession()
+    
+    // Also reset our UI timers for warning display
     resetSessionTimers()
   }
 
@@ -128,9 +146,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(`encryptedPassword_${result.user.uid}`, btoa(password))
       
       user.value = result.user
-      isLoggedIn.value = true
-      encryptionKey.value = key
       passwordVerifier.value = verifier
+      
+      // Set encryption key in SecureStorage with logout callback
+      SecureStorage.setEncryptionKey(key, () => {
+        console.log('Session timed out - logging out user')
+        logout()
+      })
       
       return { success: true }
     } catch (error) {
@@ -191,9 +213,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(`encryptedPassword_${result.user.uid}`, btoa(password))
       
       user.value = result.user
-      isLoggedIn.value = true
-      encryptionKey.value = key
       passwordVerifier.value = verifier
+      
+      // Set encryption key in SecureStorage with logout callback
+      SecureStorage.setEncryptionKey(key, () => {
+        console.log('Session timed out - logging out user')
+        logout()
+      })
       
       return { success: true }
     } catch (error) {
@@ -238,9 +264,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(`loginType_${result.user.uid}`, 'google')
       
       user.value = result.user
-      isLoggedIn.value = true
-      encryptionKey.value = key
       passwordVerifier.value = verifier
+      
+      // Set encryption key in SecureStorage with logout callback
+      SecureStorage.setEncryptionKey(key, () => {
+        console.log('Session timed out - logging out user')
+        logout()
+      })
       
       return { success: true, needsPassword: false }
     } catch (error) {
@@ -277,6 +307,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       clearSessionTimers()
       
+      // Clear encryption key from SecureStorage
+      SecureStorage.clearEncryptionKey()
+      
       if (user.value?.uid) {
         localStorage.removeItem(`passwordVerifier_${user.value.uid}`)
         localStorage.removeItem(`loginType_${user.value.uid}`)
@@ -296,7 +329,6 @@ export const useAuthStore = defineStore('auth', () => {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         user.value = firebaseUser
-        isLoggedIn.value = true
         
         const storedVerifier = localStorage.getItem(`passwordVerifier_${firebaseUser.uid}`)
         const loginType = localStorage.getItem(`loginType_${firebaseUser.uid}`)
@@ -307,7 +339,6 @@ export const useAuthStore = defineStore('auth', () => {
         
         try {
           let key = null
-          
           
           if (loginType === 'google') {
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
@@ -320,18 +351,21 @@ export const useAuthStore = defineStore('auth', () => {
           }
           
           if (key) {
-            encryptionKey.value = key
+            // Set encryption key in SecureStorage with logout callback
+            SecureStorage.setEncryptionKey(key, () => {
+              console.log('Session timed out during auth state change - logging out user')
+              logout()
+            })
           } else {
-            encryptionKey.value = null
+            SecureStorage.clearEncryptionKey()
           }
         } catch {
-          encryptionKey.value = null
+          SecureStorage.clearEncryptionKey()
         }
       } else {
         user.value = null
-        isLoggedIn.value = false
-        encryptionKey.value = null
         passwordVerifier.value = null
+        SecureStorage.clearEncryptionKey()
       }
       loading.value = false
     })

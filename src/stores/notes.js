@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
+import { SecureStorage } from '../utils/secureStorage'
 
 // Helper til at udtrække ren tekst fra HTML indhold.
 const extractTextFromContent = (content) => {
@@ -80,11 +81,14 @@ export const useNotesStore = defineStore('notes', () => {
 
   // --- Actions ---
 
-  const loadNotes = async (user, encryptionKey) => {
+  const loadNotes = async (user) => {
     loading.value = true
     const startTime = performance.now()
     
     try {
+      // Get encryption key from SecureStorage
+      const encryptionKey = SecureStorage.getEncryptionKey()
+      
       const q = query(
         collection(db, 'notes'), 
         where('userId', '==', user.uid),
@@ -167,10 +171,11 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
-  const saveNote = async (title, content, folderId, user, encryptionKey) => {
-    if (!title.trim() || !content.trim() || !user || !encryptionKey) return false
+  const saveNote = async (title, content, folderId, user) => {
+    if (!title.trim() || !content.trim() || !user) return false
     
     try {
+      const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(title, encryptionKey),
         encryptText(content, encryptionKey)
@@ -207,10 +212,11 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
-  const updateNote = async (noteId, newTitle, newContent, encryptionKey) => {
-    if (!encryptionKey) return false
+  const updateNote = async (noteId, newTitle, newContent) => {
+    if (!noteId || !newTitle || !newContent) return false
     
     try {
+      const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(newTitle, encryptionKey),
         encryptText(newContent, encryptionKey)

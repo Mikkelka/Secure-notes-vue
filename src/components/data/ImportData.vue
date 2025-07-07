@@ -238,8 +238,8 @@ const handleImport = async () => {
 
     // Refresh the stores with the imported data
     await Promise.all([
-      notesStore.loadNotes(authStore.user, authStore.encryptionKey),
-      foldersStore.loadFolders(authStore.user, authStore.encryptionKey)
+      notesStore.loadNotes(authStore.user),
+      foldersStore.loadFolders(authStore.user)
     ])
 
     // Success - close dialog and notify parent
