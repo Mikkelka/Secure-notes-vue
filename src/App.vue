@@ -26,7 +26,7 @@
         @settings="uiStore.openAppSettings"
       />
 
-      <div class="flex pb-16">
+      <div class="flex pb-16 md:pb-0 md:h-[calc(100vh-4rem)]" >
         <!-- Desktop Sidebar -->
         <div class="hidden md:block w-64 flex-shrink-0">
           <FolderSidebar
