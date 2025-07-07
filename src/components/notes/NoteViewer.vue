@@ -403,7 +403,7 @@ const getTinymceConfig = () => {
       h3: { block: 'h3' }
     },
     block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; padding: 16px; height: 100%; box-sizing: border-box; } p { margin: 0.5em 0; }',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; padding: 0; height: 100%; box-sizing: border-box; } p { margin: 0.5em 0; }',
     skin: 'oxide-dark',
     content_css: 'dark',
     // Disable analytics and tracking
