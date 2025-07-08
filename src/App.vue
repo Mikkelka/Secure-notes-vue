@@ -340,25 +340,15 @@ const getGridColumns = computed(() => {
 
 // --- Genindlæsning af data ---
 const reloadAllData = async () => {
-  console.log('📊 reloadAllData called:', {
-    hasUser: !!authStore.user,
-    hasEncryptionKey: !!authStore.encryptionKey,
-    userId: authStore.user?.uid
-  });
-  
   if (authStore.user && authStore.encryptionKey) {
-    console.log('🚀 Starting data reload...');
     try {
       await Promise.all([
         notesStore.loadNotes(authStore.user),
         foldersStore.loadFolders(authStore.user),
       ]);
-      console.log('✅ Data reload completed successfully');
     } catch (error) {
       console.error("❌ Fejl ved genindlæsning af data:", error);
     }
-  } else {
-    console.log('⏸️ reloadAllData skipped - missing user or encryption key');
   }
 };
 
@@ -584,17 +574,14 @@ watch(
       await reloadAllData();
     } else if (user && !encryptionKey) {
       // User is logged in but encryption key is missing - try recovery
-      console.log('User logged in but encryption key missing - attempting recovery...');
       const recovered = await authStore.recoverEncryptionKey();
       if (recovered) {
-        console.log('Encryption key recovered successfully');
         // Small delay to ensure Vue reactivity propagates
         await new Promise(resolve => setTimeout(resolve, 50));
         // Force reload data immediately after recovery
-        console.log('🔄 Forcing data reload after recovery...');
         await reloadAllData();
       } else {
-        console.warn('Failed to recover encryption key - user may need to re-login');
+        console.warn('Failed to recover encryption key');
       }
     } else if (!user) {
       notesStore.resetNotes();

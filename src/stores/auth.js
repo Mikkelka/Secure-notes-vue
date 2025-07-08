@@ -33,19 +33,9 @@ export const useAuthStore = defineStore('auth', () => {
   
   // Helper function to recover encryption key if missing but user is logged in
   const recoverEncryptionKey = async () => {
-    console.log('🔧 Attempting encryption key recovery...', {
-      hasUser: !!user.value,
-      userId: user.value?.uid,
-      hasExistingKey: SecureStorage.hasEncryptionKey()
-    })
-    
     if (!user.value || SecureStorage.hasEncryptionKey()) return false
-    
     const loginType = localStorage.getItem(`loginType_${user.value.uid}`)
-    console.log('🔍 Found login type in localStorage:', loginType)
-    
     if (!loginType) {
-      console.warn('❌ No login type found in localStorage')
       return false
     }
     
@@ -63,18 +53,16 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
       if (key) {
-        console.log('✅ Encryption key recovered successfully')
         SecureStorage.setEncryptionKey(key, () => {
-          console.log('Session recovery timeout - clearing encryption key only')
           SecureStorage.clearEncryptionKey()
         })
         encryptionKeyTrigger.value++
         return true
       } else {
-        console.warn('❌ Failed to derive encryption key during recovery')
+        return false
       }
     } catch (error) {
-      console.error('💥 Exception during encryption key recovery:', error)
+      return false
     }
     
     return false
@@ -207,7 +195,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Set encryption key in SecureStorage with logout callback
       SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
         logout()
       })
       
@@ -277,7 +264,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Set encryption key in SecureStorage with logout callback
       SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
         logout()
       })
       
@@ -331,7 +317,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Set encryption key in SecureStorage with logout callback
       SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
         logout()
       })
       
@@ -395,17 +380,12 @@ export const useAuthStore = defineStore('auth', () => {
     // Set Firebase persistence before auth state listener
     try {
       await setPersistence(auth, browserLocalPersistence)
-      console.log('✅ Firebase persistence set to local')
+   
     } catch (error) {
-      console.error('❌ Failed to set Firebase persistence:', error)
+      return false
     }
     
     return onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔄 Firebase auth state changed:', {
-        hasUser: !!firebaseUser,
-        userId: firebaseUser?.uid,
-        email: firebaseUser?.email
-      })
       if (firebaseUser) {
         user.value = firebaseUser
         
@@ -432,7 +412,6 @@ export const useAuthStore = defineStore('auth', () => {
           if (key) {
             // Set encryption key in SecureStorage with logout callback
             SecureStorage.setEncryptionKey(key, () => {
-              console.log('Session timed out during auth state change - logging out user')
               logout()
             })
             
