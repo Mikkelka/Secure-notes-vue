@@ -180,6 +180,12 @@ export const useNotesStore = defineStore('notes', () => {
     const startTime = performance.now()
     
     try {
+      // Tjek om encryption key er tilgængelig før vi fortsætter
+      if (!SecureStorage.hasEncryptionKey()) {
+        console.warn('Encryption key not available, skipping notes loading')
+        return
+      }
+      
       const encryptionKey = SecureStorage.getEncryptionKey()
       const encryptedNotes = await fetchEncryptedNotes(user.uid)
       const decryptedNotes = await processEncryptedNotes(encryptedNotes, encryptionKey, user.uid)

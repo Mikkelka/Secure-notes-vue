@@ -146,6 +146,12 @@ export const useFoldersStore = defineStore('folders', () => {
       // Dette kaldes separat for at sikre, at indstillinger er tilgængelige hurtigt.
       await loadSettings(user)
       
+      // Tjek om encryption key er tilgængelig før vi fortsætter
+      if (!SecureStorage.hasEncryptionKey()) {
+        console.warn('Encryption key not available, skipping folders loading')
+        return
+      }
+      
       const encryptionKey = SecureStorage.getEncryptionKey()
       const encryptedFolders = await fetchEncryptedFolders(user.uid)
       const decryptedFolders = await processEncryptedFolders(encryptedFolders, encryptionKey)
