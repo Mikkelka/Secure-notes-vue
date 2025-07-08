@@ -65,15 +65,17 @@ export class SecureStorage {
     
     // Set new timeout (30 minutes)
     this.sessionTimeout = setTimeout(() => {
-      console.warn('Session timed out - clearing encryption key');
+      console.warn('Session timed out - clearing encryption key only (Firebase auth preserved)');
       
-      const callback = this.logoutCallback;
-      this.clearEncryptionKey();
+      // Only clear in-memory encryption key, preserve Firebase auth and localStorage
+      this.encryptionKey = null;
+      this.logoutCallback = null;
       
-      // Trigger logout callback if available
-      if (callback && typeof callback === 'function') {
-        callback();
-      }
+      // Clear the timeout reference
+      this.sessionTimeout = null;
+      
+      // NOTE: We do NOT call logout callback to preserve Firebase persistence
+      // User will need to re-authenticate encryption key on next activity
     }, 30 * 60 * 1000); // 30 minutes
   }
   

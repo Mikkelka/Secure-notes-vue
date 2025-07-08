@@ -24,11 +24,62 @@ export const useAuthStore = defineStore('auth', () => {
   // Reactive trigger for encryption key changes
   const encryptionKeyTrigger = ref(0)
   
-  // Computed property that checks both user and encryption key
+  // Computed property that checks both user and encryption key (reactive to trigger)
   const isLoggedIn = computed(() => {
+    // Access trigger to make this reactive
+    encryptionKeyTrigger.value
     return !!(user.value && SecureStorage.hasEncryptionKey())
   })
   
+  // Helper function to recover encryption key if missing but user is logged in
+  const recoverEncryptionKey = async () => {
+    console.log('🔧 Attempting encryption key recovery...', {
+      hasUser: !!user.value,
+      userId: user.value?.uid,
+      hasExistingKey: SecureStorage.hasEncryptionKey()
+    })
+    
+    if (!user.value || SecureStorage.hasEncryptionKey()) return false
+    
+    const loginType = localStorage.getItem(`loginType_${user.value.uid}`)
+    console.log('🔍 Found login type in localStorage:', loginType)
+    
+    if (!loginType) {
+      console.warn('❌ No login type found in localStorage')
+      return false
+    }
+    
+    try {
+      let key = null
+      
+      if (loginType === 'google') {
+        key = await deriveKeyFromPassword(user.value.uid, user.value.uid)
+      } else if (loginType === 'email') {
+        const encryptedPassword = localStorage.getItem(`encryptedPassword_${user.value.uid}`)
+        if (encryptedPassword) {
+          const password = atob(encryptedPassword)
+          key = await deriveKeyFromPassword(password, user.value.uid)
+        }
+      }
+      
+      if (key) {
+        console.log('✅ Encryption key recovered successfully')
+        SecureStorage.setEncryptionKey(key, () => {
+          console.log('Session recovery timeout - clearing encryption key only')
+          SecureStorage.clearEncryptionKey()
+        })
+        encryptionKeyTrigger.value++
+        return true
+      } else {
+        console.warn('❌ Failed to derive encryption key during recovery')
+      }
+    } catch (error) {
+      console.error('💥 Exception during encryption key recovery:', error)
+    }
+    
+    return false
+  }
+
   // Computed property for accessing encryption key (reactive to trigger)
   const encryptionKey = computed(() => {
     // Access trigger to make this reactive
@@ -162,7 +213,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Trigger reactivity for encryptionKey computed property
       encryptionKeyTrigger.value++
-      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
       
       return { success: true }
     } catch (error) {
@@ -233,7 +283,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Trigger reactivity for encryptionKey computed property
       encryptionKeyTrigger.value++
-      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
       
       return { success: true }
     } catch (error) {
@@ -288,7 +337,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Trigger reactivity for encryptionKey computed property
       encryptionKeyTrigger.value++
-      console.log('🔄 Encryption key trigger updated:', encryptionKeyTrigger.value)
       
       return { success: true, needsPassword: false }
     } catch (error) {
@@ -343,8 +391,21 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Initialize auth state listener
-  const initializeAuth = () => {
+  const initializeAuth = async () => {
+    // Set Firebase persistence before auth state listener
+    try {
+      await setPersistence(auth, browserLocalPersistence)
+      console.log('✅ Firebase persistence set to local')
+    } catch (error) {
+      console.error('❌ Failed to set Firebase persistence:', error)
+    }
+    
     return onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('🔄 Firebase auth state changed:', {
+        hasUser: !!firebaseUser,
+        userId: firebaseUser?.uid,
+        email: firebaseUser?.email
+      })
       if (firebaseUser) {
         user.value = firebaseUser
         
@@ -405,6 +466,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     extendSession,
     setupActivityListeners,
-    initializeAuth
+    initializeAuth,
+    recoverEncryptionKey
   }
 })
