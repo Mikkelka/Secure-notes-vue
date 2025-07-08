@@ -2,7 +2,7 @@
   <BaseDialog
     :is-open="isOpen"
     title="AI Indstillinger"
-    size="lg"
+    size="2xl"
     @close="$emit('close')"
   >
     <div class="space-y-4">
@@ -117,8 +117,8 @@
         
         <!-- List of Saved Custom Instructions -->
         <div v-if="nonStandardInstructions.length > 0">
-          <h4 class="text-sm font-medium text-gray-300 mb-2">Gemte Custom Instructions</h4>
-          <div class="space-y-2 max-h-48 overflow-y-auto">
+          <h4 class="text-sm font-medium text-gray-300 mb-3">Gemte Custom Instructions</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div
               v-for="instruction in nonStandardInstructions"
               :key="instruction.id"
@@ -127,7 +127,7 @@
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
                   <h5 class="text-sm font-medium text-white truncate">{{ instruction.name }}</h5>
-                  <p class="text-xs text-gray-400 mt-1 line-clamp-2">{{ instruction.instruction }}</p>
+                  <p class="text-xs text-gray-400 mt-1 line-clamp-3">{{ instruction.instruction }}</p>
                 </div>
                 <div class="flex gap-1 flex-shrink-0">
                   <button
@@ -163,7 +163,7 @@
             </BaseButton>
           </div>
           
-          <div class="space-y-2 max-h-40 overflow-y-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div
               v-for="instruction in standardInstructions"
               :key="instruction.id"
@@ -175,7 +175,7 @@
                     {{ instruction.name }}
                     <span class="text-xs bg-blue-600 text-blue-100 px-1 rounded">Standard</span>
                   </h5>
-                  <p class="text-xs text-gray-400 mt-1 line-clamp-2">{{ instruction.instruction }}</p>
+                  <p class="text-xs text-gray-400 mt-1 line-clamp-3">{{ instruction.instruction }}</p>
                 </div>
                 <div class="flex gap-1 flex-shrink-0">
                   <button
@@ -420,6 +420,13 @@ onMounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

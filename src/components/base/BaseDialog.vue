@@ -25,7 +25,7 @@
             v-if="isOpen"
             :class="[
               'bg-gray-800/90 backdrop-blur border border-gray-700/50 rounded-2xl shadow-2xl',
-              'max-w-md w-full max-h-[90vh] flex flex-col my-4 lg:my-0',
+              'w-full max-h-[90vh] flex flex-col my-4 lg:my-0',
               sizeClasses
             ]"
             @click.stop
@@ -95,7 +95,7 @@ const props = defineProps({
   size: {
     type: String,
     default: 'md',
-    validator: (value) => ['sm', 'md', 'lg', 'xl'].includes(value)
+    validator: (value) => ['sm', 'md', 'lg', 'xl', '2xl'].includes(value)
   },
   showCloseButton: {
     type: Boolean,
@@ -124,7 +124,8 @@ const sizeClasses = computed(() => {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
-    xl: 'max-w-xl'
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl'
   }
   return sizes[props.size]
 })
