@@ -5,7 +5,7 @@
     size="2xl"
     @close="$emit('close')"
   >
-    <div class="space-y-4">
+    <div class="space-y-4 md:space-y-6">
       <!-- API Key Section -->
       <div>
         <div class="flex items-center justify-between mb-2">
@@ -80,7 +80,7 @@
         </p>
         
         <!-- Create New Custom Instruction -->
-        <div class="space-y-3 mb-4">
+        <div class="space-y-3 mb-4 md:mb-6">
           <input
             v-model="newInstructionName"
             type="text"
@@ -118,11 +118,11 @@
         <!-- List of Saved Custom Instructions -->
         <div v-if="nonStandardInstructions.length > 0">
           <h4 class="text-sm font-medium text-gray-300 mb-3">Gemte Custom Instructions</h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             <div
               v-for="instruction in nonStandardInstructions"
               :key="instruction.id"
-              class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50"
+              class="bg-gray-700/30 rounded-lg p-2 md:p-3 border border-gray-600/50"
             >
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -149,7 +149,7 @@
         </div>
         
         <!-- Standard Instructions -->
-        <div class="mt-4">
+        <div class="mt-4 md:mt-6">
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-sm font-medium text-blue-300">Standard Instructions</h4>
             <BaseButton
@@ -163,11 +163,11 @@
             </BaseButton>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             <div
               v-for="instruction in standardInstructions"
               :key="instruction.id"
-              class="bg-blue-900/20 rounded-lg p-3 border border-blue-600/30"
+              class="bg-blue-900/20 rounded-lg p-2 md:p-3 border border-blue-600/30"
             >
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">

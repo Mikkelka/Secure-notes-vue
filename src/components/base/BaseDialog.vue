@@ -10,7 +10,7 @@
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[80] flex items-start justify-center p-4 bg-black/50 backdrop-blur-sm lg:items-center overflow-y-auto"
+        class="fixed inset-0 z-[80] flex items-start justify-center p-2 bg-black/50 backdrop-blur-sm lg:items-center overflow-y-auto"
         @click="handleBackdropClick"
       >
         <Transition
@@ -31,7 +31,7 @@
             @click.stop
           >
             <!-- Header -->
-            <div v-if="title || $slots.header" class="px-6 py-4 border-b border-gray-700/50">
+            <div v-if="title || $slots.header" class="px-4 py-4 border-b border-gray-700/50">
               <slot name="header">
                 <div class="flex items-center justify-between">
                   <h3 class="text-lg font-semibold text-white">{{ title }}</h3>
@@ -49,12 +49,12 @@
             </div>
 
             <!-- Content -->
-            <div class="px-6 py-4 overflow-y-auto text-white flex-1 min-h-0">
+            <div class="px-4 py-4 overflow-y-auto text-white flex-1 min-h-0">
               <slot />
             </div>
 
             <!-- Footer -->
-            <div v-if="$slots.footer || showDefaultActions" class="px-6 py-4 border-t border-gray-700/50">
+            <div v-if="$slots.footer || showDefaultActions" class="px-4 py-4 border-t border-gray-700/50">
               <slot name="footer">
                 <div v-if="showDefaultActions" class="flex gap-3 justify-end">
                   <BaseButton
