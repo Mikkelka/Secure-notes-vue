@@ -110,16 +110,9 @@ export const DEFAULT_INSTRUCTIONS = [
 ]
 
 const getInstructionPrompt = (instructionType, userSettings = null) => {
-  // Debug logging
-  console.log('=== getInstructionPrompt DEBUG ===');
-  console.log('instructionType:', instructionType);
-  console.log('userSettings:', userSettings);
-  console.log('userSettings?.aiSettings:', userSettings?.aiSettings);
-  console.log('customInstructions array:', userSettings?.aiSettings?.customInstructions);
   
   // Check cache first
   if (instructionCache.has(instructionType)) {
-    console.log('Found in cache');
     return instructionCache.get(instructionType);
   }
   
@@ -128,38 +121,24 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
   // Check if it's a custom or standard instruction ID (starts with 'custom-' or 'std-')
   if (instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')) && userSettings?.aiSettings?.customInstructions) {
     const customInstructionsArray = userSettings.aiSettings.customInstructions;
-    console.log('Checking customInstructions array:', customInstructionsArray);
     
     // Ensure customInstructions is an array (not the old string format)
     if (Array.isArray(customInstructionsArray)) {
-      console.log('customInstructions is array, looking for:', instructionType);
       const instruction = customInstructionsArray.find(
         instr => instr.id === instructionType
       );
-      console.log('Found instruction:', instruction);
       
       if (instruction) {
         // Build prompt with formatting instructions
         prompt = `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
-        console.log('Using custom/standard instruction from userSettings');
         instructionCache.set(instructionType, prompt);
         return prompt;
-      } else {
-        console.log('Instruction not found in customInstructions array');
       }
-    } else {
-      console.log('customInstructions is not an array:', typeof customInstructionsArray);
     }
-  } else {
-    console.log('Conditions not met for customInstructions lookup');
-    console.log('- instructionType exists:', !!instructionType);
-    console.log('- starts with custom-/std-:', instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')));
-    console.log('- userSettings.aiSettings.customInstructions exists:', !!userSettings?.aiSettings?.customInstructions);
   }
   
   // Fallback to default instructions if not found in userSettings
   if (instructionType && instructionType.startsWith('std-')) {
-    console.log('Using fallback DEFAULT_INSTRUCTIONS for:', instructionType);
     const defaultInstruction = DEFAULT_INSTRUCTIONS.find(instr => instr.id === instructionType);
     if (defaultInstruction) {
       prompt = `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
@@ -168,7 +147,6 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
     }
   }
   
-  console.log('=== END getInstructionPrompt DEBUG ===');
   // This should never happen in normal use
   throw new Error(`AI instruction not found: ${instructionType}. Please check your AI settings.`);
 };
@@ -231,8 +209,6 @@ ${content}`;
     // console.log('=== GEMINI PROMPT DEBUG ===');
     // console.log('Instruction Type:', instructionType);
     // console.log('Instruction Prompt:', instructionPrompt);
-    console.log('Complete Prompt:');
-    console.log(prompt);
     // console.log('Input Content:', content);
     // console.log('=== END PROMPT DEBUG ===');
 

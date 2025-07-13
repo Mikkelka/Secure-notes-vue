@@ -116,11 +116,9 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         return false
       }
-    } catch (error) {
+    } catch {
       return false
     }
-    
-    return false
   }
 
   // Computed property for accessing encryption key (reactive to trigger)
@@ -337,7 +335,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await setPersistence(auth, browserLocalPersistence)
    
-    } catch (error) {
+    } catch {
       return false
     }
     

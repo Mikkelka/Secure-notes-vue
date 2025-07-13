@@ -10,7 +10,7 @@ export default [
   },
   {
     name: 'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/public/**', '**/node_modules/**'],
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/dev-dist/**', '**/coverage/**', '**/public/**', '**/node_modules/**'],
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
