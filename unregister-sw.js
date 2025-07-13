@@ -1,0 +1,1 @@
+console.log('Checking for service workers...'); navigator.serviceWorker.getRegistrations().then(function(registrations) { console.log('Found registrations:', registrations.length); for(let registration of registrations) { console.log('Unregistering:', registration.scope); registration.unregister(); } }).then(() => console.log('All service workers unregistered'));
