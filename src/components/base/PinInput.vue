@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div v-if="isVisible" class="fixed inset-0 bg-black/50 centered z-50 p-4">
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-sm mx-auto">
       <h3 class="text-white font-medium mb-4 text-center">{{ title }}</h3>
       
@@ -16,7 +16,7 @@
             @input="handleChange($event.target, index)"
             @keydown="handleKeyDown($event, index)"
             @paste="index === 0 ? handlePaste($event) : $event.preventDefault()"
-            class="w-12 h-12 text-center text-xl bg-gray-700/50 border border-gray-600/50 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="pin-digit"
           />
         </div>
 
@@ -29,13 +29,13 @@
         <div class="flex gap-2 mb-3">
           <button
             @click="clearPin"
-            class="flex-1 px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors text-sm"
+            class="btn-small-base btn-gray"
           >
             Ryd
           </button>
           <button
             @click="handleCancel"
-            class="flex-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors text-sm"
+            class="btn-small-base btn-red"
           >
             Annuller
           </button>
@@ -43,7 +43,7 @@
 
         <button
           @click="showMasterPassword = true"
-          class="w-full px-3 py-2 bg-yellow-600/20 border border-yellow-600/30 text-yellow-300 rounded hover:bg-yellow-600/30 transition-colors text-xs"
+          class="btn-warning btn-yellow-subtle"
         >
           Glemt PIN? Brug hovedadgangskode
         </button>
@@ -56,7 +56,7 @@
             v-model="masterPassword"
             type="password"
             :placeholder="masterPasswordHint"
-            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="input-variant-blue px-3 py-2"
             ref="masterPasswordInput"
           />
         </div>
@@ -67,14 +67,14 @@
           <button
             type="button"
             @click="backToPin"
-            class="flex-1 px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors text-sm"
+            class="btn-small-base btn-gray"
           >
             Tilbage
           </button>
           <button
             type="submit"
             :disabled="!masterPassword.trim()"
-            class="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-500 transition-colors text-sm disabled:opacity-50"
+            class="btn-small-base btn-green disabled:opacity-50"
           >
             Lås op
           </button>

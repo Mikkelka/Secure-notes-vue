@@ -26,7 +26,7 @@
           v-model="newFolderName"
           type="text"
           placeholder="Mappenavn..."
-          class="w-full px-2 py-1 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 text-xs"
+          class="input-small text-xs px-2 py-1"
           @keypress.enter="handleCreateFolder"
           ref="folderNameInput"
         />

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="hasError" class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+  <div v-if="hasError" class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black centered p-4">
     <div class="bg-gray-800/80 backdrop-blur border border-gray-700/50 rounded-2xl p-6 w-full max-w-md text-center">
       <div class="inline-flex items-center justify-center w-12 h-12 bg-red-500/20 rounded-xl mb-4">
         <AlertTriangle class="w-6 h-6 text-red-400" />

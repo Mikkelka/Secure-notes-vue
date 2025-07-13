@@ -368,3 +368,141 @@ div[contenteditable="false"] .ProseMirror {
     scroll-behavior: auto !important;
   }
 }
+
+/* Component Utility Classes with @apply */
+
+/* Button Patterns */
+.btn-base {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all;
+}
+
+.btn-disabled {
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-focus {
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-google {
+  @apply w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-md font-medium transition-all hover:shadow-lg hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Input Patterns */
+.input-base {
+  @apply w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all;
+}
+
+.input-small {
+  @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500;
+}
+
+.input-variant-green {
+  @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500;
+}
+
+.input-variant-blue {
+  @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.input-variant-purple {
+  @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500;
+}
+
+/* Layout Patterns */
+.centered {
+  @apply flex items-center justify-center;
+}
+
+.fullscreen-bg {
+  @apply h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4 overflow-hidden;
+}
+
+.icon-container {
+  @apply inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-500 rounded-xl;
+}
+
+.icon-container-small {
+  @apply inline-flex items-center justify-center w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-500 rounded-lg;
+}
+
+/* Toggle Switch Patterns */
+.toggle-base {
+  @apply relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent;
+}
+
+.toggle-focus {
+  @apply transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+.toggle-disabled {
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.toggle-thumb {
+  @apply pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0;
+}
+
+.toggle-thumb-transition {
+  @apply transition duration-200 ease-in-out;
+}
+
+/* PIN Input Patterns */
+.pin-digit {
+  @apply w-12 h-12 text-center text-xl bg-gray-700/50 border border-gray-600/50 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* Button Variants */
+.btn-small-base {
+  @apply flex-1 px-3 py-2 rounded transition-colors text-sm;
+}
+
+.btn-gray {
+  @apply bg-gray-600 text-white hover:bg-gray-500;
+}
+
+.btn-red {
+  @apply bg-red-600 text-white hover:bg-red-500;
+}
+
+.btn-green {
+  @apply bg-green-600 text-white hover:bg-green-500;
+}
+
+.btn-yellow-subtle {
+  @apply bg-yellow-600/20 border border-yellow-600/30 text-yellow-300 hover:bg-yellow-600/30;
+}
+
+.btn-warning {
+  @apply w-full px-3 py-2 rounded transition-colors text-xs;
+}
+
+/* Header Button Patterns */
+.header-btn-base {
+  @apply flex items-center gap-2 px-3 py-1.5 rounded transition-colors text-sm;
+}
+
+.header-btn-blue {
+  @apply bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20;
+}
+
+.header-btn-purple {
+  @apply bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20;
+}
+
+.header-btn-gray {
+  @apply bg-gray-500/10 border border-gray-500/20 text-gray-300 hover:bg-gray-500/20;
+}
+
+.header-btn-red {
+  @apply bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20;
+}
+
+/* Dropdown Button Patterns */
+.dropdown-btn-base {
+  @apply w-full text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation;
+}
+
+.dropdown-btn-mobile {
+  @apply w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3;
+}

@@ -1,8 +1,8 @@
 <template>
-  <div class="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4 overflow-hidden">
+  <div class="fullscreen-bg">
     <div class="bg-gray-800/80 backdrop-blur border border-gray-700/50 rounded-2xl p-6 w-full max-w-md">
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-500 rounded-xl mb-3">
+        <div class="icon-container mb-3">
           <Shield class="w-6 h-6 text-white" />
         </div>
         <h1 class="text-2xl font-bold text-white mb-1">SecureNotes</h1>
@@ -15,7 +15,7 @@
         <button
           @click="handleGoogleSubmit"
           :disabled="loading"
-          class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-md font-medium transition-all hover:shadow-lg hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn-google"
           style="background-color: #ffffff; color: #3c4043; border: 1px solid #dadce0; font-family: 'Google Sans', Roboto, sans-serif;"
         >
           <div v-if="loading" class="w-5 h-5 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
@@ -42,7 +42,7 @@
             v-model="email"
             type="email"
             placeholder="Email"
-            class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all"
+            class="input-base"
           />
         </div>
         
@@ -51,7 +51,7 @@
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Password (bruges til kryptering)"
-            class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all pr-11"
+            class="input-base pr-11"
             @keypress.enter="handleSubmit('login')"
           />
           <button
