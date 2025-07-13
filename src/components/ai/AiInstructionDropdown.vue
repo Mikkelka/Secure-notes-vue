@@ -1,13 +1,13 @@
 <template>
   <div class="relative">
-    <!-- Split Button -->
-    <div ref="buttonContainerRef" class="flex">
+    <!-- Separate Buttons -->
+    <div ref="buttonContainerRef" class="flex gap-2">
       <!-- Main AI Process Button -->
       <BaseButton
         @click="$emit('process')"
         :disabled="disabled"
         variant="primary"
-        class="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-none border-r border-purple-500"
+        class="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div v-if="isProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         <Brain v-else class="w-4 h-4" />
@@ -19,9 +19,10 @@
         @click.stop="toggleDropdown"
         :disabled="disabled"
         variant="primary"
-        class="px-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-none border-l border-purple-500"
+        class="px-3 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <ChevronDown :class="['w-4 h-4 transition-transform', isOpen ? 'rotate-180' : '']" />
+        Skift
       </BaseButton>
     </div>
     
@@ -352,13 +353,9 @@ onBeforeUnmount(() => {
   transition: transform 0.2s ease;
 }
 
-/* Button group styling */
-.flex > button:not(:last-child) {
-  border-right: 1px solid rgba(139, 92, 246, 0.3);
-}
-
-.flex > button:not(:first-child) {
-  border-left: 1px solid rgba(139, 92, 246, 0.3);
+/* Button spacing */
+.flex {
+  gap: 0.5rem;
 }
 
 /* Line clamp utility for truncating text */
