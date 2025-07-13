@@ -16,8 +16,8 @@
             v-model="testConfig.model"
             class="w-full input-base"
           >
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-            <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash Lite</option>
+            <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash Lite (Fastest ~1s)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Standard ~9s)</option>
           </select>
         </div>
         
@@ -38,39 +38,14 @@
 
       <!-- Performance Notes -->
       <div class="p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
-        <h4 class="text-sm font-medium text-blue-300 mb-2">AI Configuration</h4>
+        <h4 class="text-sm font-medium text-blue-300 mb-2">AI Performance Optimization</h4>
         <div class="text-xs text-gray-400 space-y-1">
-          <p><strong>Current:</strong> Optimized with generateContentStream + systemInstruction</p>
-          <p><strong>Performance:</strong> ~7-10 seconds (3x faster than old version)</p>
+          <p><strong>Current:</strong> Streaming + systemInstruction optimization</p>
+          <p><strong>Results:</strong> Flash-Lite ~1.1s, Standard Flash ~9.3s</p>
+          <p><strong>Best:</strong> Gemini 2.5 Flash Lite with any thinking setting</p>
         </div>
       </div>
       
-      <!-- Advanced Test Options -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex items-center">
-          <input
-            id="useFormatting"
-            v-model="testConfig.useFormattingInstructions"
-            type="checkbox"
-            class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-          />
-          <label for="useFormatting" class="ml-2 text-sm text-gray-300">
-            Use Formatting Instructions (Original only)
-          </label>
-        </div>
-        
-        <div class="flex items-center">
-          <input
-            id="useSafetySettings"
-            v-model="testConfig.useSafetySettings"
-            type="checkbox" 
-            class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-          />
-          <label for="useSafetySettings" class="ml-2 text-sm text-gray-300">
-            Use Safety Settings (Original only)
-          </label>
-        </div>
-      </div>
 
       <!-- Test Input -->
       <div>
@@ -226,8 +201,8 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const testConfig = ref({
-  model: 'gemini-2.5-flash',
-  thinkingBudget: -1,
+  model: 'gemini-2.5-flash-lite-preview-06-17', // Default to fastest model
+  thinkingBudget: -1, // Dynamic thinking
   useFormattingInstructions: true,
   useSafetySettings: true
 })

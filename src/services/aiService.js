@@ -145,7 +145,7 @@ const getAiSettings = (userSettings) => {
     
     return {
       apiKey: apiKey || "",
-      model: selectedModel || "gemini-2.5-flash",
+      model: selectedModel || "gemini-2.5-flash-lite-preview-06-17", // Fastest model
       instructionType,
     };
   }
@@ -153,7 +153,7 @@ const getAiSettings = (userSettings) => {
   // Legacy fallback til sessionStorage
   return {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
-    model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash",
+    model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite-preview-06-17", // Fastest model
     instructionType,
   };
 };
@@ -182,11 +182,11 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     const instructionPrompt = getInstructionPrompt(instructionType, userSettings);
     const setupTime = performance.now() - setupStartTime;
 
-    // Phase 2: Prompt Preparation
+    // Phase 2: Prompt Preparation + Performance optimization
     const promptStartTime = performance.now();
     const simplePrompt = `Note titel (kun til kontekst): "${title}"\n\nInput HTML:\n${content}`;
     const promptTime = performance.now() - promptStartTime;
-
+    
     if (enableDebugTiming) {
       console.log('=== STREAMING AI PERFORMANCE DEBUG ===');
       console.log('Model:', model);
@@ -205,10 +205,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       contents: simplePrompt,
       config: {
         systemInstruction: instructionPrompt,
-        safetySettings: SAFETY_SETTINGS,
-        thinkingConfig: {
-          thinkingBudget: -1,
-        },
       },
     });
     
