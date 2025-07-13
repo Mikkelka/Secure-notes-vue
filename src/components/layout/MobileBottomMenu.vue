@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-0 left-0 right-0 h-14 bg-gray-800/90 backdrop-blur border-t border-gray-700/50 z-50 md:hidden">
+  <div class="mobile-bottom-menu">
     <div class="flex items-center justify-around py-2">
       <BaseButton
         variant="ghost"

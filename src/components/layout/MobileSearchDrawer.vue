@@ -10,7 +10,7 @@
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-40 md:hidden pointer-events-none"
+        class="mobile-drawer-backdrop pointer-events-none"
       >
         <Transition
           enter-active-class="duration-300 ease-out"
@@ -23,7 +23,7 @@
           <div
             v-if="isOpen"
             ref="drawerElement"
-            class="absolute left-0 right-0 bg-gray-800/95 backdrop-blur rounded-t-2xl border-t border-gray-700/50 h-32 transition-all duration-200 pointer-events-auto"
+            class="mobile-drawer-container h-32 transition-all duration-200 pointer-events-auto absolute left-0 right-0"
             :style="{ bottom: keyboardOffset + 'px' }"
           >
             <div class="p-4">
@@ -35,7 +35,7 @@
                   @input="emit('searchChange', $event.target.value)"
                   type="text"
                   placeholder="Søg i noter..."
-                  class="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                  class="input-search-mobile"
                 />
                 <BaseButton
                   variant="ghost"

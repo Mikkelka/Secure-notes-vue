@@ -506,3 +506,87 @@ div[contenteditable="false"] .ProseMirror {
 .dropdown-btn-mobile {
   @apply w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3;
 }
+
+/* Dialog & Modal Patterns */
+.modal-backdrop {
+  @apply fixed inset-0 z-[80] flex items-start justify-center p-2 bg-black/50 backdrop-blur-sm lg:items-center overflow-y-auto;
+}
+
+.modal-container {
+  @apply bg-gray-800/90 backdrop-blur border border-gray-700/50 rounded-2xl shadow-2xl;
+}
+
+.modal-close-btn {
+  @apply text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700/50;
+}
+
+/* Note Item Patterns */
+.note-item {
+  @apply bg-gray-800/60 border rounded-lg p-3 transition-all cursor-pointer;
+}
+
+.note-item-selected {
+  @apply border-blue-500/50 bg-blue-500/10;
+}
+
+.note-item-default {
+  @apply border-gray-700/50 hover:bg-gray-800/80;
+}
+
+.folder-label {
+  @apply px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity;
+}
+
+.action-btn-icon {
+  @apply p-2 hover:bg-gray-700 rounded transition-colors;
+}
+
+.delete-btn {
+  @apply p-2 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300;
+}
+
+/* Mobile Drawer Patterns */
+.mobile-drawer-backdrop {
+  @apply fixed inset-0 z-40 md:hidden;
+}
+
+.mobile-drawer-container {
+  @apply absolute bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur rounded-t-2xl border-t border-gray-700/50;
+}
+
+.mobile-bottom-menu {
+  @apply fixed bottom-0 left-0 right-0 h-14 bg-gray-800/90 backdrop-blur border-t border-gray-700/50 z-50 md:hidden;
+}
+
+/* Input Variant Extensions */
+.input-search {
+  @apply w-full pl-9 pr-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all text-sm;
+}
+
+.input-search-mobile {
+  @apply flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500;
+}
+
+/* Select & Dropdown Variants */
+.select-base {
+  @apply w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer;
+}
+
+/* Loading Patterns */
+.loading-container {
+  @apply bg-gray-800/60 border border-gray-700/50 rounded-lg p-6 text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-3;
+}
+
+/* Main App Layout */
+.main-app-bg {
+  @apply min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black;
+}
+
+/* PIN Input Variant */
+.pin-input {
+  @apply w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+}

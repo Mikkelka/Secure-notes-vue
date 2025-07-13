@@ -6,7 +6,7 @@
     @close="$emit('close')"
   >
     <div v-if="loading" class="text-center py-4">
-      <div class="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+      <div class="loading-spinner"></div>
       <p class="text-gray-400 text-sm">Indlæser indstillinger...</p>
     </div>
     
@@ -28,7 +28,7 @@
               <select
                 v-model="sessionTimeout"
                 @change="handleSettingChange('sessionTimeout', parseInt(sessionTimeout))"
-                class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+                class="select-base"
               >
                 <option v-for="option in timeoutOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
@@ -64,13 +64,13 @@
             <button
               @click="handleSettingChange('showPerformanceStats', !showPerformanceStats)"
               :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                'toggle-base toggle-focus',
                 showPerformanceStats ? 'bg-blue-600' : 'bg-gray-600'
               ]"
             >
               <span
                 :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                  'toggle-thumb toggle-thumb-transition h-4 w-4',
                   showPerformanceStats ? 'translate-x-6' : 'translate-x-1'
                 ]"
               />
