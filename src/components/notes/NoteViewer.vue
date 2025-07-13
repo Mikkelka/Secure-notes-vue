@@ -35,7 +35,7 @@
             <input
               v-model="editTitle"
               type="text"
-              class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              class="input-small"
               placeholder="Title..."
             />
             <div class="tinymce-wrapper flex-1">
@@ -217,7 +217,7 @@
           <input
             v-model="editTitle"
             type="text"
-            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 text-sm"
+            class="input-small text-sm"
             placeholder="Title..."
           />
           <div class="tinymce-wrapper flex-1">

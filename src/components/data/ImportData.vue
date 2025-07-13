@@ -43,7 +43,7 @@
             :type="showPassword ? 'text' : 'password'"
             placeholder="Indtast dit password"
             :disabled="loading"
-            class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12 disabled:opacity-50"
+            class="input-variant-blue pr-12 disabled:opacity-50 px-4 py-3"
           />
           <button
             type="button"

@@ -19,7 +19,7 @@
       <button
         @click="handleSelectFolder(null)"
         :class="[
-          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation',
+          'dropdown-btn-base px-3',
           isMobile ? 'py-4' : 'py-3',
           currentFolderId === null ? 'bg-gray-700 text-gray-300' : 'text-gray-300'
         ]"
@@ -39,7 +39,7 @@
         :key="folder.id"
         @click="handleSelectFolder(folder.id)"
         :class="[
-          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation',
+          'dropdown-btn-base px-3',
           isMobile ? 'py-4' : 'py-3',
           currentFolderId === folder.id ? 'bg-gray-700 text-gray-300' : 'text-gray-300'
         ]"
@@ -55,7 +55,7 @@
         v-if="showSecureFolder && currentFolderId !== 'secure'"
         @click="handleSelectFolder('secure')"
         :class="[
-          'w-full px-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm text-gray-300 touch-manipulation',
+          'dropdown-btn-base px-3 text-gray-300',
           isMobile ? 'py-4' : 'py-3'
         ]"
       >

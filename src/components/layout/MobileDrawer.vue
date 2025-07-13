@@ -10,7 +10,7 @@
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-40 md:hidden"
+        class="mobile-drawer-backdrop"
       >
         <div class="absolute inset-0 bg-black/50" @click="$emit('close')" />
         <Transition
@@ -24,7 +24,7 @@
           <div
             v-if="isOpen"
             :class="[
-              'absolute bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur rounded-t-2xl border-t border-gray-700/50',
+              'mobile-drawer-container',
               height
             ]"
           >

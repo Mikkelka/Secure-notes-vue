@@ -15,7 +15,7 @@
     <!-- ANBEFALING: Hele denne v-else blok kunne med fordel flyttes til sin egen komponent, f.eks. 'MainAppLayout.vue', for at holde denne fil mere simpel. -->
     <div
       v-else
-      class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black"
+      class="main-app-bg"
     >
       <!-- Header -->
       <Header
@@ -110,7 +110,7 @@
             >
               <div
                 v-if="notesStore.loading"
-                class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-6 text-center"
+                class="loading-container"
               >
                 <Loader2
                   class="w-6 h-6 text-gray-400 mx-auto mb-3 animate-spin"
@@ -253,7 +253,7 @@
           type="password"
           maxlength="4"
           placeholder="••••"
-          class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="pin-input"
           @keyup.enter="handleChangeSecurePin"
         />
       </BaseDialog>

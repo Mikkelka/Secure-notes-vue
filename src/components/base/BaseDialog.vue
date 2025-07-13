@@ -10,7 +10,7 @@
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[80] flex items-start justify-center p-2 bg-black/50 backdrop-blur-sm lg:items-center overflow-y-auto"
+        class="modal-backdrop"
         @click="handleBackdropClick"
       >
         <Transition
@@ -24,7 +24,7 @@
           <div
             v-if="isOpen"
             :class="[
-              'bg-gray-800/90 backdrop-blur border border-gray-700/50 rounded-2xl shadow-2xl',
+              'modal-container',
               'w-full max-h-[90vh] flex flex-col my-4 lg:my-0',
               sizeClasses
             ]"
@@ -38,7 +38,7 @@
                   <button
                     v-if="showCloseButton"
                     @click="$emit('close')"
-                    class="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700/50"
+                    class="modal-close-btn"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

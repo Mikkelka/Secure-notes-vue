@@ -26,7 +26,7 @@
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             :placeholder="passwordPlaceholder"
-            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+            class="input-variant-green pr-10"
             autofocus
           />
           <button

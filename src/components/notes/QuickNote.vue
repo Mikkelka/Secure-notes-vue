@@ -28,7 +28,7 @@
         type="text"
         placeholder="Titel..."
         :class="[
-          'w-full bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500',
+          'input-small',
           isInDrawer ? 'px-3 py-1.5' : 'px-3 py-2'
         ]"
       />
@@ -40,7 +40,7 @@
         :rows="isInDrawer ? (isCompact ? 6 : 10) : (isCompact ? 4 : 8)"
         placeholder="Skriv din note her..."
         :class="[
-          'w-full bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 resize-none',
+          'input-small resize-none',
           isInDrawer ? 'px-3 py-1.5' : 'px-3 py-2'
         ]"
       />

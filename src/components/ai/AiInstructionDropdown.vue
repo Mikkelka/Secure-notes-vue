@@ -45,7 +45,7 @@
         v-for="instruction in groupedInstructions.standard"
         :key="instruction.key"
         @click="selectInstruction(instruction.key)"
-        class="px-3 py-2 hover:bg-gray-700 cursor-pointer transition-colors flex items-start gap-2 relative"
+        class="dropdown-btn-base px-3 py-2 relative cursor-pointer"
         :class="{ 
           'bg-purple-600/20': selectedInstruction === instruction.key,
           'bg-blue-600/10 border-l-2 border-blue-400': isSuggested(instruction.key)
@@ -78,7 +78,7 @@
         v-for="instruction in groupedInstructions.custom"
         :key="instruction.key"
         @click="selectInstruction(instruction.key)"
-        class="px-3 py-2 hover:bg-gray-700 cursor-pointer transition-colors flex items-start gap-2 relative"
+        class="dropdown-btn-base px-3 py-2 relative cursor-pointer"
         :class="{ 
           'bg-purple-600/20': selectedInstruction === instruction.key,
           'bg-orange-600/10 border-l-2 border-orange-400': true

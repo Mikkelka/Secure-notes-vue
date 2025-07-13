@@ -8,7 +8,7 @@
           v-model="localSearchTerm"
           type="text"
           placeholder="Søg i noter..."
-          class="w-full pl-9 pr-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all text-sm"
+          class="input-search"
         />
         <button
           v-if="localSearchTerm"
@@ -44,10 +44,10 @@
               v-for="note in favoriteNotes"
               :key="note.id"
             :class="[
-              'bg-gray-800/60 border rounded-lg p-3 transition-all cursor-pointer',
+              'note-item',
               selectedNoteId === note.id
-                ? 'border-blue-500/50 bg-blue-500/10'
-                : 'border-gray-700/50 hover:bg-gray-800/80'
+                ? 'note-item-selected'
+                : 'note-item-default'
             ]"
             @click="$emit('noteClick', note)"
           >
@@ -61,7 +61,7 @@
                 <span 
                   :ref="el => setFolderLabelRef(note.id, el)"
                   @click="handleFolderLabelClick(note.id, $event)"
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  class="folder-label mr-1"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -74,7 +74,7 @@
                 <button
                   @click="handleToggleFavorite(note.id)"
                   :class="[
-                    'p-2 hover:bg-gray-700 rounded transition-colors',
+                    'action-btn-icon',
                     note.isFavorite
                       ? 'text-yellow-400 hover:text-yellow-300'
                       : 'text-gray-400 hover:text-yellow-400'
@@ -84,7 +84,7 @@
                 </button>
                 <button
                   @click="handleDeleteNote(note.id)"
-                  class="p-2 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300"
+                  class="delete-btn"
                 >
                   <Trash2 class="w-4 h-4" />
                 </button>
@@ -116,10 +116,10 @@
               v-for="note in regularNotes"
               :key="note.id"
             :class="[
-              'bg-gray-800/60 border rounded-lg p-3 transition-all cursor-pointer',
+              'note-item',
               selectedNoteId === note.id
-                ? 'border-blue-500/50 bg-blue-500/10'
-                : 'border-gray-700/50 hover:bg-gray-800/80'
+                ? 'note-item-selected'
+                : 'note-item-default'
             ]"
             @click="$emit('noteClick', note)"
           >
@@ -133,7 +133,7 @@
                 <span 
                   :ref="el => setFolderLabelRef(note.id, el)"
                   @click="handleFolderLabelClick(note.id, $event)"
-                  class="px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 mr-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  class="folder-label mr-1"
                   :style="{
                     backgroundColor: getFolderDisplay(note.folderId).color + '20',
                     borderColor: getFolderDisplay(note.folderId).color + '40',
@@ -146,7 +146,7 @@
                 <button
                   @click="handleToggleFavorite(note.id)"
                   :class="[
-                    'p-2 hover:bg-gray-700 rounded transition-colors',
+                    'action-btn-icon',
                     note.isFavorite
                       ? 'text-yellow-400 hover:text-yellow-300'
                       : 'text-gray-400 hover:text-yellow-400'
@@ -156,7 +156,7 @@
                 </button>
                 <button
                   @click="handleDeleteNote(note.id)"
-                  class="p-2 hover:bg-red-500/20 rounded transition-colors text-red-400 hover:text-red-300"
+                  class="delete-btn"
                 >
                   <Trash2 class="w-4 h-4" />
                 </button>
