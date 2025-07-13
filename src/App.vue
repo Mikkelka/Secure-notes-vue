@@ -23,6 +23,7 @@
         @logout="authStore.logout"
         @export="uiStore.openDataExport"
         @ai="uiStore.openAiModal"
+        @ai-debug="uiStore.openAiDebug"
         @settings="uiStore.openAppSettings"
       />
 
@@ -172,6 +173,12 @@
         @close="uiStore.closeAiModal"
         @update-ai-settings="handleUpdateAiSettings"
       />
+      <AiDebug
+        v-if="uiStore.showAiDebug"
+        :is-open="uiStore.showAiDebug"
+        :user-settings="foldersStore.userSettings"
+        @close="uiStore.closeAiDebug"
+      />
       <AppSettings
         :is-open="uiStore.showAppSettings"
         @close="uiStore.closeAppSettings"
@@ -289,6 +296,7 @@ import TimeoutWarning from "./components/settings/TimeoutWarning.vue";
 import DataExport from "./components/data/DataExport.vue";
 import ImportData from "./components/data/ImportData.vue";
 import AiModal from "./components/ai/AiModal.vue";
+import AiDebug from "./components/ai/AiDebug.vue";
 import AppSettings from "./components/settings/AppSettings.vue";
 import BaseDialog from "./components/base/BaseDialog.vue";
 

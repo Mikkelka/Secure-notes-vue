@@ -33,6 +33,15 @@
           </button>
           
           <button
+            @click="$emit('ai-debug')"
+            class="header-btn-base header-btn-orange"
+            title="AI Performance Debug"
+          >
+            <Zap class="w-4 h-4" />
+            <span>Debug</span>
+          </button>
+          
+          <button
             @click="$emit('settings')"
             class="header-btn-base header-btn-gray"
             title="Indstillinger"
@@ -79,6 +88,13 @@
               AI Indstillinger
             </button>
             <button
+              @click="$emit('ai-debug'); showMobileMenu = false"
+              class="dropdown-btn-mobile text-orange-300"
+            >
+              <Zap class="w-4 h-4" />
+              AI Debug
+            </button>
+            <button
               @click="$emit('settings'); showMobileMenu = false"
               class="dropdown-btn-mobile text-gray-300"
             >
@@ -108,7 +124,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Shield, Brain, Download, Settings, LogOut, Menu } from 'lucide-vue-next'
+import { Shield, Brain, Download, Settings, LogOut, Menu, Zap } from 'lucide-vue-next'
 
 const showMobileMenu = ref(false)
 
@@ -119,5 +135,5 @@ defineProps({
   }
 })
 
-defineEmits(['logout', 'export', 'ai', 'settings'])
+defineEmits(['logout', 'export', 'ai', 'ai-debug', 'settings'])
 </script>

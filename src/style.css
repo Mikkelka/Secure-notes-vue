@@ -498,6 +498,10 @@ div[contenteditable="false"] .ProseMirror {
   @apply bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20;
 }
 
+.header-btn-orange {
+  @apply bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20;
+}
+
 /* Dropdown Button Patterns */
 .dropdown-btn-base {
   @apply w-full text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation;

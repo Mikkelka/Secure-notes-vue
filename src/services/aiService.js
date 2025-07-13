@@ -180,7 +180,9 @@ const getAiSettings = (userSettings) => {
   };
 };
 
-export const processTextWithAi = async (content, title, userSettings = null) => {
+export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false) => {
+  const totalStartTime = performance.now();
+  
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
 
   if (!apiKey) {
@@ -194,24 +196,35 @@ export const processTextWithAi = async (content, title, userSettings = null) => 
   }
 
   try {
+    // Phase 1: Setup and Initialization
+    const setupStartTime = performance.now();
     const ai = new GoogleGenAI({ apiKey });
     const instructionPrompt = getInstructionPrompt(instructionType, userSettings);
+    const setupTime = performance.now() - setupStartTime;
 
-    // HTML-direkte prompt der tilføjer intelligent formatering
+    // Phase 2: Prompt Preparation
+    const promptStartTime = performance.now();
     const prompt = `${instructionPrompt}
 
 Note titel (kun til kontekst - inkluder IKKE i output): "${title}"
 
 Input HTML:
 ${content}`;
+    const promptTime = performance.now() - promptStartTime;
 
-    // Debug: Log the complete prompt being sent to Gemini
-    // console.log('=== GEMINI PROMPT DEBUG ===');
-    // console.log('Instruction Type:', instructionType);
-    // console.log('Instruction Prompt:', instructionPrompt);
-    // console.log('Input Content:', content);
-    // console.log('=== END PROMPT DEBUG ===');
+    if (enableDebugTiming) {
+      console.log('=== AI PERFORMANCE DEBUG ===');
+      console.log('Model:', model);
+      console.log('Instruction Type:', instructionType);
+      console.log('Content Length:', content.length);
+      console.log('Setup Time:', Math.round(setupTime), 'ms');
+      console.log('Prompt Prep Time:', Math.round(promptTime), 'ms');
+    }
 
+    // Phase 3: AI API Call
+    const apiStartTime = performance.now();
+    console.time(`AI_API_Call_${model}`);
+    
     const response = await ai.models.generateContent({
       model,
       contents: prompt,
@@ -223,6 +236,11 @@ ${content}`;
       },
     });
     
+    console.timeEnd(`AI_API_Call_${model}`);
+    const apiTime = performance.now() - apiStartTime;
+    
+    // Phase 4: Response Processing
+    const processStartTime = performance.now();
     let processedHtml = response.text;
 
     // Minimal cleanup - fjern kun evt. wrapping af AI der ikke er HTML
@@ -236,9 +254,45 @@ ${content}`;
       // Hvis AI returnerede plain text, wrap i paragraph
       processedHtml = `<p>${processedHtml}</p>`;
     }
+    
+    const processTime = performance.now() - processStartTime;
+    const totalTime = performance.now() - totalStartTime;
+
+    if (enableDebugTiming) {
+      console.log('API Call Time:', Math.round(apiTime), 'ms');
+      console.log('Response Processing Time:', Math.round(processTime), 'ms');
+      console.log('Total Time:', Math.round(totalTime), 'ms');
+      console.log('Response Length:', processedHtml.length);
+      console.log('=== END AI PERFORMANCE DEBUG ===');
+    }
+
+    // Store performance metrics for potential use
+    if (typeof window !== 'undefined' && window.aiPerformanceMetrics) {
+      window.aiPerformanceMetrics.push({
+        timestamp: new Date().toISOString(),
+        model,
+        instructionType,
+        inputLength: content.length,
+        outputLength: processedHtml.length,
+        setupTime: Math.round(setupTime),
+        promptTime: Math.round(promptTime),
+        apiTime: Math.round(apiTime),
+        processTime: Math.round(processTime),
+        totalTime: Math.round(totalTime)
+      });
+    }
 
     return processedHtml;
   } catch (error) {
+    const totalTime = performance.now() - totalStartTime;
+    
+    if (enableDebugTiming) {
+      console.log('=== AI ERROR DEBUG ===');
+      console.log('Error occurred after:', Math.round(totalTime), 'ms');
+      console.log('Error:', error.message);
+      console.log('=== END AI ERROR DEBUG ===');
+    }
+    
     console.error("AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";
     const errorText = error.message.toLowerCase();
