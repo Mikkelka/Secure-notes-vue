@@ -20,6 +20,49 @@ import { SecureStorage } from '../utils/secureStorage'
 
 // --- Helper-funktioner til brugerindstillinger (holdes adskilt for klarhed) ---
 
+// Helper til at hente krypterede mapper fra Firestore
+const fetchEncryptedFolders = async (userId) => {
+  const q = query(collection(db, 'folders'), where('userId', '==', userId))
+  const querySnapshot = await getDocs(q)
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+}
+
+// Helper til at dekryptere en enkelt mappe
+const decryptSingleFolder = async (folderData, encryptionKey) => {
+  // Håndterer både nye krypterede og gamle ukrypterede mapper
+  const decryptedName = folderData.encryptedName
+    ? await decryptText(folderData.encryptedName, encryptionKey)
+    : folderData.name
+
+  if (!decryptedName) return null // Spring over mapper uden navn
+
+  return {
+    id: folderData.id,
+    name: decryptedName,
+    color: folderData.color || '#6366f1',
+    createdAt: folderData.createdAt?.toDate() || new Date(),
+    updatedAt: folderData.updatedAt?.toDate() || new Date()
+  }
+}
+
+// Helper til at processere og dekryptere alle mapper
+const processEncryptedFolders = async (encryptedFolders, encryptionKey) => {
+  const decryptionPromises = encryptedFolders.map(async (folderData) => {
+    try {
+      return await decryptSingleFolder(folderData, encryptionKey)
+    } catch (error) {
+      console.error(`Kunne ikke dekryptere mappe ${folderData.id}. Den springes over.`, error)
+      return null
+    }
+  })
+  
+  const resolvedFolders = await Promise.all(decryptionPromises)
+  return resolvedFolders.filter(folder => folder !== null)
+}
+
 const loadUserSettings = async (userId) => {
   if (!userId) return null
   
@@ -103,34 +146,17 @@ export const useFoldersStore = defineStore('folders', () => {
       // Dette kaldes separat for at sikre, at indstillinger er tilgængelige hurtigt.
       await loadSettings(user)
       
-      const q = query(collection(db, 'folders'), where('userId', '==', user.uid))
-      const querySnapshot = await getDocs(q)
+      // Tjek om encryption key er tilgængelig før vi fortsætter
+      if (!SecureStorage.hasEncryptionKey()) {
+        console.warn('Encryption key not available, skipping folders loading')
+        return
+      }
       
-      const decryptionPromises = querySnapshot.docs.map(async (docSnapshot) => {
-        const folderData = docSnapshot.data()
-        try {
-          // Håndterer både nye krypterede og gamle ukrypterede mapper
-          const decryptedName = folderData.encryptedName
-            ? await decryptText(folderData.encryptedName, SecureStorage.getEncryptionKey())
-            : folderData.name
-
-          if (!decryptedName) return null // Spring over mapper uden navn
-
-          return {
-            id: docSnapshot.id,
-            name: decryptedName,
-            color: folderData.color || '#6366f1',
-            createdAt: folderData.createdAt?.toDate() || new Date(),
-            updatedAt: folderData.updatedAt?.toDate() || new Date()
-          }
-        } catch (error) {
-          console.error(`Kunne ikke dekryptere mappe ${docSnapshot.id}. Den springes over.`, error)
-          return null
-        }
-      })
+      const encryptionKey = SecureStorage.getEncryptionKey()
+      const encryptedFolders = await fetchEncryptedFolders(user.uid)
+      const decryptedFolders = await processEncryptedFolders(encryptedFolders, encryptionKey)
       
-      const resolvedFolders = await Promise.all(decryptionPromises)
-      folders.value = resolvedFolders.filter(f => f !== null)
+      folders.value = decryptedFolders
 
     } catch (error) {
       console.error('Fejl under indlæsning af mapper:', error)

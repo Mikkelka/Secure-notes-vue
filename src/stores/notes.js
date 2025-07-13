@@ -26,6 +26,100 @@ const extractTextFromContent = (content) => {
     .trim()
 }
 
+// Helper til at hente krypterede noter fra Firestore
+const fetchEncryptedNotes = async (userId) => {
+  const q = query(
+    collection(db, 'notes'), 
+    where('userId', '==', userId),
+    orderBy('updatedAt', 'desc')
+  )
+  const querySnapshot = await getDocs(q)
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+}
+
+// Helper til at dekryptere med fallback til Google-baseret key
+const tryDecryptWithFallback = async (encryptedData, primaryKey, userId, noteId = null) => {
+  try {
+    // 1. Prøv med primary key først
+    return await decryptText(encryptedData, primaryKey)
+  } catch {
+    // 2. Hvis primary fejler, prøv med Google-baseret key som fallback
+    try {
+      const { deriveKeyFromPassword } = await import('../utils/encryption')
+      const googleKey = await deriveKeyFromPassword(userId, userId)
+      const decryptedData = await decryptText(encryptedData, googleKey)
+      if (noteId) {
+        console.warn(`Note ${noteId} decrypted with Google fallback key`)
+      }
+      return decryptedData
+    } catch {
+      // Begge metoder fejlede
+      throw new Error('Kunne ikke dekryptere med nogen kendte keys')
+    }
+  }
+}
+
+// Helper til at dekryptere en enkelt note
+const decryptSingleNote = async (noteData, encryptionKey, userId) => {
+  const [decryptedTitle, decryptedContent] = await Promise.all([
+    noteData.encryptedTitle 
+      ? tryDecryptWithFallback(noteData.encryptedTitle, encryptionKey, userId, noteData.id)
+      : Promise.resolve(''),
+    tryDecryptWithFallback(noteData.encryptedContent, encryptionKey, userId, noteData.id)
+  ])
+
+  // Hvis titel er tom (f.eks. fra ældre noter), generer en fallback
+  const title = decryptedTitle || (decryptedContent.substring(0, 50) + (decryptedContent.length > 50 ? '...' : ''))
+
+  return {
+    id: noteData.id,
+    title,
+    content: decryptedContent,
+    folderId: noteData.folderId || null,
+    isFavorite: noteData.isFavorite || false,
+    createdAt: noteData.createdAt.toDate(),
+    updatedAt: noteData.updatedAt.toDate()
+  }
+}
+
+// Helper til at processere og dekryptere alle noter
+const processEncryptedNotes = async (encryptedNotes, encryptionKey, userId) => {
+  const decryptionPromises = encryptedNotes.map(async (noteData) => {
+    try {
+      return await decryptSingleNote(noteData, encryptionKey, userId)
+    } catch (error) {
+      // Debug info for problematiske noter
+      console.error(`Kunne ikke dekryptere note ${noteData.id}. Den vil blive sprunget over.`, error)
+      console.error('Note data:', {
+        id: noteData.id,
+        userId: noteData.userId,
+        currentUserId: userId,
+        hasEncryptedTitle: !!noteData.encryptedTitle,
+        hasEncryptedContent: !!noteData.encryptedContent,
+        folderId: noteData.folderId,
+        createdAt: noteData.createdAt,
+        updatedAt: noteData.updatedAt
+      })
+      return null // Returner null hvis en note fejler, så den kan filtreres fra
+    }
+  })
+  
+  const resolvedNotes = await Promise.all(decryptionPromises)
+  return resolvedNotes.filter(note => note !== null) // Fjern noter der ikke kunne dekrypteres
+}
+
+// Helper til at opdatere performance statistikker
+const updatePerformanceStats = (startTime, decryptedNotes) => {
+  return {
+    loadTime: performance.now() - startTime,
+    notesCount: decryptedNotes.length,
+    totalChars: decryptedNotes.reduce((sum, note) => sum + note.content.length + note.title.length, 0)
+  }
+}
+
 export const useNotesStore = defineStore('notes', () => {
   // --- State ---
   const allNotes = ref([]) // Eneste "source of truth" for noter
@@ -86,83 +180,18 @@ export const useNotesStore = defineStore('notes', () => {
     const startTime = performance.now()
     
     try {
-      // Get encryption key from SecureStorage
-      const encryptionKey = SecureStorage.getEncryptionKey()
-      
-      const q = query(
-        collection(db, 'notes'), 
-        where('userId', '==', user.uid),
-        orderBy('updatedAt', 'desc') // Sorter efter senest opdateret
-      )
-      
-      const querySnapshot = await getDocs(q)
-      
-      const decryptionPromises = querySnapshot.docs.map(async (docSnapshot) => {
-        const noteData = docSnapshot.data()
-        
-        // Funktion til at prøve forskellige encryption keys
-        const tryDecryptWithAlternativeKeys = async (encryptedData, primaryKey) => {
-          try {
-            // 1. Prøv med primary key først
-            return await decryptText(encryptedData, primaryKey)
-          } catch {
-            // 2. Hvis primary fejler, prøv med Google-baseret key som fallback
-            try {
-              const { deriveKeyFromPassword } = await import('../utils/encryption')
-              const googleKey = await deriveKeyFromPassword(user.uid, user.uid)
-              const decryptedData = await decryptText(encryptedData, googleKey)
-              console.warn(`Note ${docSnapshot.id} decrypted with Google fallback key`)
-              return decryptedData
-            } catch {
-              // Begge metoder fejlede
-              throw new Error('Kunne ikke dekryptere med nogen kendte keys')
-            }
-          }
-        }
-        
-        try {
-          const [decryptedTitle, decryptedContent] = await Promise.all([
-            noteData.encryptedTitle ? tryDecryptWithAlternativeKeys(noteData.encryptedTitle, encryptionKey) : Promise.resolve(''),
-            tryDecryptWithAlternativeKeys(noteData.encryptedContent, encryptionKey)
-          ])
-
-          // Hvis titel er tom (f.eks. fra ældre noter), generer en fallback
-          const title = decryptedTitle || (decryptedContent.substring(0, 50) + (decryptedContent.length > 50 ? '...' : ''))
-
-          return {
-            id: docSnapshot.id,
-            title,
-            content: decryptedContent,
-            folderId: noteData.folderId || null,
-            isFavorite: noteData.isFavorite || false,
-            createdAt: noteData.createdAt.toDate(),
-            updatedAt: noteData.updatedAt.toDate()
-          }
-        } catch (error) {
-          // Debug info for problematiske noter
-          console.error(`Kunne ikke dekryptere note ${docSnapshot.id}. Den vil blive sprunget over.`, error)
-          console.error('Note data:', {
-            id: docSnapshot.id,
-            userId: noteData.userId,
-            currentUserId: user.uid,
-            hasEncryptedTitle: !!noteData.encryptedTitle,
-            hasEncryptedContent: !!noteData.encryptedContent,
-            folderId: noteData.folderId,
-            createdAt: noteData.createdAt,
-            updatedAt: noteData.updatedAt
-          })
-          return null // Returner null hvis en note fejler, så den kan filtreres fra
-        }
-      })
-      
-      const resolvedNotes = await Promise.all(decryptionPromises)
-      allNotes.value = resolvedNotes.filter(note => note !== null) // Fjern noter der ikke kunne dekrypteres
-      
-      performanceStats.value = {
-        loadTime: performance.now() - startTime,
-        notesCount: allNotes.value.length,
-        totalChars: allNotes.value.reduce((sum, note) => sum + note.content.length + note.title.length, 0)
+      // Tjek om encryption key er tilgængelig før vi fortsætter
+      if (!SecureStorage.hasEncryptionKey()) {
+        console.warn('Encryption key not available, skipping notes loading')
+        return
       }
+      
+      const encryptionKey = SecureStorage.getEncryptionKey()
+      const encryptedNotes = await fetchEncryptedNotes(user.uid)
+      const decryptedNotes = await processEncryptedNotes(encryptedNotes, encryptionKey, user.uid)
+      
+      allNotes.value = decryptedNotes
+      performanceStats.value = updatePerformanceStats(startTime, decryptedNotes)
       
     } catch (error) {
       console.error('Fejl under indlæsning af noter:', error)

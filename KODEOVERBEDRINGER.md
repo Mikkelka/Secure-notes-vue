@@ -16,7 +16,7 @@ Dette dokument indeholder en omfattende analyse af kodebasen og konkrete forslag
 
 ## 🔒 Sikkerhedsforbedringer (Høj Prioritet)
 
-### 1. **Fjern Password Storage fra localStorage**
+### 1. **Fjern Password Storage fra localStorage - (kun imens vi tester appen)**
 
 **Problem:** I `auth.js` gemmes passwordet i localStorage med base64 encoding, hvilket ikke er sikker praksis.
 

@@ -15,6 +15,61 @@ import { deriveKeyFromPassword, generatePasswordVerifier } from '../utils/encryp
 import { SecureStorage } from '../utils/secureStorage'
 import { useSettingsStore } from './settings'
 
+// --- Helper funktioner til authentication ---
+
+// Helper til at sætte Firebase persistence op
+const setupAuthPersistence = async () => {
+  await setPersistence(auth, browserLocalPersistence)
+}
+
+// Helper til at derive og gemme krypteringsnøgler
+const deriveAndStoreKeys = async (user, password, loginType) => {
+  const key = await deriveKeyFromPassword(password, user.uid)
+  const verifier = await generatePasswordVerifier(password, user.uid)
+  
+  localStorage.setItem(`passwordVerifier_${user.uid}`, verifier)
+  localStorage.setItem(`loginType_${user.uid}`, loginType)
+  
+  // Gem encrypted password kun for email login
+  if (loginType === 'email') {
+    localStorage.setItem(`encryptedPassword_${user.uid}`, btoa(password))
+  }
+  
+  return { key, verifier }
+}
+
+// Helper til at mappe Firebase auth fejl til brugervenlige beskeder
+const mapAuthError = (error, operation) => {
+  const commonErrors = {
+    'auth/network-request-failed': 'Netværksfejl. Tjek din forbindelse',
+    'auth/too-many-requests': 'For mange forsøg. Prøv igen senere',
+    'auth/invalid-email': 'Ugyldig email adresse'
+  }
+  
+  const operationErrors = {
+    login: {
+      'auth/user-disabled': 'Denne konto er deaktiveret',
+      'auth/user-not-found': 'Ingen bruger med denne email',
+      'auth/wrong-password': 'Forkert password',
+      'auth/invalid-credential': 'Forkert email eller password'
+    },
+    register: {
+      'auth/email-already-in-use': 'Email er allerede i brug',
+      'auth/weak-password': 'Password er for svagt',
+      'auth/operation-not-allowed': 'Email/password login er ikke aktiveret'
+    },
+    google: {
+      'auth/popup-closed-by-user': 'Login blev annulleret',
+      'auth/popup-blocked': 'Popup blev blokeret af browseren',
+      'auth/cancelled-popup-request': 'Login blev annulleret'
+    }
+  }
+  
+  return commonErrors[error.code] || 
+         operationErrors[operation]?.[error.code] || 
+         `${operation} fejlede: ${error.message}`
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const passwordVerifier = ref(null)
@@ -33,19 +88,9 @@ export const useAuthStore = defineStore('auth', () => {
   
   // Helper function to recover encryption key if missing but user is logged in
   const recoverEncryptionKey = async () => {
-    console.log('🔧 Attempting encryption key recovery...', {
-      hasUser: !!user.value,
-      userId: user.value?.uid,
-      hasExistingKey: SecureStorage.hasEncryptionKey()
-    })
-    
     if (!user.value || SecureStorage.hasEncryptionKey()) return false
-    
     const loginType = localStorage.getItem(`loginType_${user.value.uid}`)
-    console.log('🔍 Found login type in localStorage:', loginType)
-    
     if (!loginType) {
-      console.warn('❌ No login type found in localStorage')
       return false
     }
     
@@ -63,21 +108,17 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
       if (key) {
-        console.log('✅ Encryption key recovered successfully')
         SecureStorage.setEncryptionKey(key, () => {
-          console.log('Session recovery timeout - clearing encryption key only')
           SecureStorage.clearEncryptionKey()
         })
         encryptionKeyTrigger.value++
         return true
       } else {
-        console.warn('❌ Failed to derive encryption key during recovery')
+        return false
       }
-    } catch (error) {
-      console.error('💥 Exception during encryption key recovery:', error)
+    } catch {
+      return false
     }
-    
-    return false
   }
 
   // Computed property for accessing encryption key (reactive to trigger)
@@ -158,6 +199,42 @@ export const useAuthStore = defineStore('auth', () => {
     resetSessionTimers()
   }
 
+  // Helper til at sætte user session op efter successful authentication
+  const setupUserSession = (authUser, verifier, key) => {
+    user.value = authUser
+    passwordVerifier.value = verifier
+    
+    // Set encryption key in SecureStorage with logout callback
+    SecureStorage.setEncryptionKey(key, () => {
+      logout()
+    })
+    
+    // Trigger reactivity for encryptionKey computed property
+    encryptionKeyTrigger.value++
+  }
+
+  // Hovedfunktion til at eksekvere authentication flow
+  const executeAuthFlow = async (authOperation, loginType, password = null) => {
+    loading.value = true
+    
+    try {
+      await setupAuthPersistence()
+      const result = await authOperation()
+      
+      // For Google login, brug UID som password
+      const authPassword = loginType === 'google' ? result.user.uid : password
+      const { key, verifier } = await deriveAndStoreKeys(result.user, authPassword, loginType)
+      
+      setupUserSession(result.user, verifier, key)
+      
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: mapAuthError(error, loginType) }
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Activity tracking
   const handleActivity = () => {
     const now = Date.now()
@@ -189,62 +266,11 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error('Email og password er påkrævet')
     }
     
-    loading.value = true
-    try {
-      await setPersistence(auth, browserLocalPersistence)
-      
-      const result = await signInWithEmailAndPassword(auth, email, password)
-      
-      const key = await deriveKeyFromPassword(password, result.user.uid)
-      const verifier = await generatePasswordVerifier(password, result.user.uid)
-      
-      localStorage.setItem(`passwordVerifier_${result.user.uid}`, verifier)
-      localStorage.setItem(`loginType_${result.user.uid}`, 'email')
-      localStorage.setItem(`encryptedPassword_${result.user.uid}`, btoa(password))
-      
-      user.value = result.user
-      passwordVerifier.value = verifier
-      
-      // Set encryption key in SecureStorage with logout callback
-      SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
-        logout()
-      })
-      
-      // Trigger reactivity for encryptionKey computed property
-      encryptionKeyTrigger.value++
-      
-      return { success: true }
-    } catch (error) {
-      let errorMessage = 'Login fejlede'
-      switch (error.code) {
-        case 'auth/invalid-email':
-          errorMessage = 'Ugyldig email adresse'
-          break
-        case 'auth/user-disabled':
-          errorMessage = 'Denne konto er deaktiveret'
-          break
-        case 'auth/user-not-found':
-          errorMessage = 'Ingen bruger med denne email'
-          break
-        case 'auth/wrong-password':
-          errorMessage = 'Forkert password'
-          break
-        case 'auth/too-many-requests':
-          errorMessage = 'For mange forsøg. Prøv igen senere'
-          break
-        case 'auth/network-request-failed':
-          errorMessage = 'Netværksfejl. Tjek din forbindelse'
-          break
-        case 'auth/invalid-credential':
-          errorMessage = 'Forkert email eller password'
-          break
-      }
-      
-      return { success: false, error: errorMessage }
-    } finally {
-      loading.value = false
-    }
+    return executeAuthFlow(
+      () => signInWithEmailAndPassword(auth, email, password),
+      'login',
+      password
+    )
   }
 
   const handleRegister = async (email, password) => {
@@ -259,112 +285,25 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
     
-    loading.value = true
-    try {
-      await setPersistence(auth, browserLocalPersistence)
-      
-      const result = await createUserWithEmailAndPassword(auth, email, password)
-      
-      const key = await deriveKeyFromPassword(password, result.user.uid)
-      const verifier = await generatePasswordVerifier(password, result.user.uid)
-      
-      localStorage.setItem(`passwordVerifier_${result.user.uid}`, verifier)
-      localStorage.setItem(`loginType_${result.user.uid}`, 'email')
-      localStorage.setItem(`encryptedPassword_${result.user.uid}`, btoa(password))
-      
-      user.value = result.user
-      passwordVerifier.value = verifier
-      
-      // Set encryption key in SecureStorage with logout callback
-      SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
-        logout()
-      })
-      
-      // Trigger reactivity for encryptionKey computed property
-      encryptionKeyTrigger.value++
-      
-      return { success: true }
-    } catch (error) {
-      let errorMessage = 'Registrering fejlede'
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage = 'Email er allerede i brug'
-          break
-        case 'auth/invalid-email':
-          errorMessage = 'Ugyldig email adresse'
-          break
-        case 'auth/weak-password':
-          errorMessage = 'Password er for svagt'
-          break
-        case 'auth/operation-not-allowed':
-          errorMessage = 'Email/password login er ikke aktiveret'
-          break
-      }
-      
-      return { success: false, error: errorMessage }
-    } finally {
-      loading.value = false
-    }
+    return executeAuthFlow(
+      () => createUserWithEmailAndPassword(auth, email, password),
+      'register',
+      password
+    )
   }
 
   const handleGoogleLogin = async () => {
-    loading.value = true
-    try {
-      await setPersistence(auth, browserLocalPersistence)
-      
-      const provider = new GoogleAuthProvider()
-      provider.addScope('email')
-      provider.addScope('profile')
-      
-      const result = await signInWithPopup(auth, provider)
-      
-      const googlePassword = result.user.uid
-      const key = await deriveKeyFromPassword(googlePassword, result.user.uid)
-      const verifier = await generatePasswordVerifier(googlePassword, result.user.uid)
-      
-      localStorage.setItem(`passwordVerifier_${result.user.uid}`, verifier)
-      localStorage.setItem(`loginType_${result.user.uid}`, 'google')
-      
-      user.value = result.user
-      passwordVerifier.value = verifier
-      
-      // Set encryption key in SecureStorage with logout callback
-      SecureStorage.setEncryptionKey(key, () => {
-        console.log('Session timed out - logging out user')
-        logout()
-      })
-      
-      // Trigger reactivity for encryptionKey computed property
-      encryptionKeyTrigger.value++
-      
-      return { success: true, needsPassword: false }
-    } catch (error) {
-      let errorMessage = 'Google login fejlede'
-      switch (error.code) {
-        case 'auth/popup-closed-by-user':
-          errorMessage = 'Login blev annulleret'
-          break
-        case 'auth/popup-blocked':
-          errorMessage = 'Popup blev blokeret af browseren'
-          break
-        case 'auth/cancelled-popup-request':
-          errorMessage = 'Login blev annulleret'
-          break
-        case 'auth/network-request-failed':
-          errorMessage = 'Netværksfejl. Tjek din forbindelse'
-          break
-        case 'auth/too-many-requests':
-          errorMessage = 'For mange forsøg. Prøv igen senere'
-          break
-        default:
-          errorMessage = `Google login fejl: ${error.message}`
-      }
-      
-      return { success: false, error: errorMessage }
-    } finally {
-      loading.value = false
-    }
+    const provider = new GoogleAuthProvider()
+    provider.addScope('email')
+    provider.addScope('profile')
+    
+    const result = await executeAuthFlow(
+      () => signInWithPopup(auth, provider),
+      'google'
+    )
+    
+    // Tilføj needsPassword: false til Google login response
+    return { ...result, needsPassword: false }
   }
 
   const logout = async () => {
@@ -395,17 +334,12 @@ export const useAuthStore = defineStore('auth', () => {
     // Set Firebase persistence before auth state listener
     try {
       await setPersistence(auth, browserLocalPersistence)
-      console.log('✅ Firebase persistence set to local')
-    } catch (error) {
-      console.error('❌ Failed to set Firebase persistence:', error)
+   
+    } catch {
+      return false
     }
     
     return onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔄 Firebase auth state changed:', {
-        hasUser: !!firebaseUser,
-        userId: firebaseUser?.uid,
-        email: firebaseUser?.email
-      })
       if (firebaseUser) {
         user.value = firebaseUser
         
@@ -432,7 +366,6 @@ export const useAuthStore = defineStore('auth', () => {
           if (key) {
             // Set encryption key in SecureStorage with logout callback
             SecureStorage.setEncryptionKey(key, () => {
-              console.log('Session timed out during auth state change - logging out user')
               logout()
             })
             

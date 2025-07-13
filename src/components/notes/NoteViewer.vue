@@ -386,8 +386,6 @@ const editorHtmlContent = ref('')
 
 // TinyMCE configuration
 const getTinymceConfig = () => {
-  const isMobileView = window.innerWidth < 1024
-  
   return {
     // Fill 100% height of container
     height: '100%',
