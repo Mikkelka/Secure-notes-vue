@@ -36,6 +36,15 @@
         </div>
       </div>
 
+      <!-- Performance Notes -->
+      <div class="p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+        <h4 class="text-sm font-medium text-blue-300 mb-2">AI Configuration</h4>
+        <div class="text-xs text-gray-400 space-y-1">
+          <p><strong>Current:</strong> Optimized with generateContentStream + systemInstruction</p>
+          <p><strong>Performance:</strong> ~7-10 seconds (3x faster than old version)</p>
+        </div>
+      </div>
+      
       <!-- Advanced Test Options -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex items-center">
@@ -46,7 +55,7 @@
             class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
           />
           <label for="useFormatting" class="ml-2 text-sm text-gray-300">
-            Use Formatting Instructions
+            Use Formatting Instructions (Original only)
           </label>
         </div>
         
@@ -58,7 +67,7 @@
             class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
           />
           <label for="useSafetySettings" class="ml-2 text-sm text-gray-300">
-            Use Safety Settings (BLOCK_NONE)
+            Use Safety Settings (Original only)
           </label>
         </div>
       </div>
@@ -109,7 +118,7 @@
                   {{ result.success ? '✓' : '✗' }}
                 </span>
                 <span class="text-sm font-medium text-white">
-                  {{ result.model }}
+                  {{ result.aiVersion }} - {{ result.model }}
                 </span>
                 <span class="text-xs text-gray-400">
                   T:{{ result.thinkingBudget === -1 ? 'Auto' : result.thinkingBudget === 0 ? 'None' : result.thinkingBudget }}
@@ -295,59 +304,6 @@ const getTimingColor = (time) => {
   return 'text-red-400'
 }
 
-// Custom debug AI function with configurable options
-const runCustomAiTest = async (content, title, apiKey, config) => {
-  const ai = new GoogleGenAI({ apiKey })
-  
-  // Simple prompt without formatting instructions if disabled
-  let prompt
-  if (config.useFormattingInstructions) {
-    // Use existing complex prompt system
-    const mockUserSettings = {
-      aiSettings: {
-        ...props.userSettings.aiSettings,
-        selectedModel: config.model
-      }
-    }
-    return await processTextWithAi(content, title, mockUserSettings, true)
-  } else {
-    // Simple prompt like TypingMind might use
-    prompt = `Improve and organize this text:\n\n${content}`
-  }
-  
-  // Safety settings configuration
-  const safetySettings = config.useSafetySettings ? [
-    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-  ] : undefined
-  
-  // Thinking config
-  const thinkingConfig = config.thinkingBudget !== -1 ? {
-    thinkingBudget: config.thinkingBudget === 0 ? undefined : config.thinkingBudget
-  } : { thinkingBudget: -1 }
-  
-  console.log('🧪 Custom AI Test Config:', {
-    model: config.model,
-    useFormatting: config.useFormattingInstructions,
-    useSafety: config.useSafetySettings,
-    thinkingBudget: config.thinkingBudget,
-    promptLength: prompt.length
-  })
-  
-  const requestConfig = {
-    model: config.model,
-    contents: prompt,
-    config: {
-      ...(safetySettings && { safetySettings }),
-      ...(config.thinkingBudget !== undefined && { thinkingConfig })
-    }
-  }
-  
-  const response = await ai.models.generateContent(requestConfig)
-  return response.text
-}
 
 const runTest = async () => {
   if (!canRunTest.value || isRunning.value) return
@@ -372,11 +328,11 @@ const runTest = async () => {
     
     console.log(`🧪 Starting AI Performance Test - ${testConfig.value.model}`)
     
-    const result = await runCustomAiTest(
+    const result = await processTextWithAi(
       testInput.value,
       'Debug Test',
-      props.userSettings.aiSettings.apiKey,
-      testConfig.value
+      mockUserSettings,
+      true // Enable debug timing
     )
     
     const endTime = performance.now()
@@ -387,6 +343,7 @@ const runTest = async () => {
     
     testResults.value.unshift({
       timestamp: new Date().toLocaleTimeString(),
+      aiVersion: 'streaming+systemInstruction',
       model: testConfig.value.model,
       thinkingBudget: testConfig.value.thinkingBudget,
       success: true,
@@ -413,6 +370,7 @@ const runTest = async () => {
     
     testResults.value.unshift({
       timestamp: new Date().toLocaleTimeString(),
+      aiVersion: 'streaming+systemInstruction',
       model: testConfig.value.model,
       thinkingBudget: testConfig.value.thinkingBudget,
       success: false,

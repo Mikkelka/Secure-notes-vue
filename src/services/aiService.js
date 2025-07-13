@@ -158,6 +158,8 @@ const getAiSettings = (userSettings) => {
   };
 };
 
+
+// AI Processing with streaming and systemInstruction optimization
 export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false) => {
   const totalStartTime = performance.now();
   
@@ -182,54 +184,63 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
 
     // Phase 2: Prompt Preparation
     const promptStartTime = performance.now();
-    const prompt = `${instructionPrompt}
-
-Note titel (kun til kontekst - inkluder IKKE i output): "${title}"
-
-Input HTML:
-${content}`;
+    const simplePrompt = `Note titel (kun til kontekst): "${title}"\n\nInput HTML:\n${content}`;
     const promptTime = performance.now() - promptStartTime;
 
     if (enableDebugTiming) {
-      console.log('=== AI PERFORMANCE DEBUG ===');
+      console.log('=== STREAMING AI PERFORMANCE DEBUG ===');
       console.log('Model:', model);
-      console.log('Instruction Type:', instructionType);
+      console.log('Using systemInstruction + Streaming: YES');
       console.log('Content Length:', content.length);
       console.log('Setup Time:', Math.round(setupTime), 'ms');
       console.log('Prompt Prep Time:', Math.round(promptTime), 'ms');
     }
 
-    // Phase 3: AI API Call
+    // Phase 3: AI API Call with streaming optimization
     const apiStartTime = performance.now();
-    console.time(`AI_API_Call_${model}`);
+    console.time(`AI_API_Call_Streaming_${model}`);
     
-    const response = await ai.models.generateContent({
+    const streamResponse = await ai.models.generateContentStream({
       model,
-      contents: prompt,
+      contents: simplePrompt,
       config: {
+        systemInstruction: instructionPrompt,
         safetySettings: SAFETY_SETTINGS,
         thinkingConfig: {
-          thinkingBudget: -1, // Enable dynamic thinking - model decides when to think
+          thinkingBudget: -1,
         },
       },
     });
     
-    console.timeEnd(`AI_API_Call_${model}`);
+    // Collect all chunks from stream
+    let fullResponse = '';
+    let firstChunkTime = null;
+    for await (const chunk of streamResponse) {
+      if (firstChunkTime === null) {
+        firstChunkTime = performance.now() - apiStartTime;
+        if (enableDebugTiming) {
+          console.log('First chunk received in:', Math.round(firstChunkTime), 'ms');
+        }
+      }
+      if (chunk.text) {
+        fullResponse += chunk.text;
+      }
+    }
+    
+    console.timeEnd(`AI_API_Call_Streaming_${model}`);
     const apiTime = performance.now() - apiStartTime;
     
     // Phase 4: Response Processing
     const processStartTime = performance.now();
-    let processedHtml = response.text;
+    let processedHtml = fullResponse;
 
-    // Minimal cleanup - fjern kun evt. wrapping af AI der ikke er HTML
+    // Minimal cleanup
     processedHtml = processedHtml
-      .replace(/^```html\s*/, '') // Fjern evt. code block start
-      .replace(/\s*```$/, '') // Fjern evt. code block end  
+      .replace(/^```html\s*/, '')
+      .replace(/\s*```$/, '')  
       .trim();
 
-    // Valider at vi har noget HTML-lignende content
     if (!processedHtml.includes('<') || !processedHtml.includes('>')) {
-      // Hvis AI returnerede plain text, wrap i paragraph
       processedHtml = `<p>${processedHtml}</p>`;
     }
     
@@ -237,19 +248,24 @@ ${content}`;
     const totalTime = performance.now() - totalStartTime;
 
     if (enableDebugTiming) {
-      console.log('API Call Time:', Math.round(apiTime), 'ms');
+      console.log('First Chunk Time:', Math.round(firstChunkTime || 0), 'ms');
+      console.log('Total API Time:', Math.round(apiTime), 'ms');
       console.log('Response Processing Time:', Math.round(processTime), 'ms');
       console.log('Total Time:', Math.round(totalTime), 'ms');
       console.log('Response Length:', processedHtml.length);
-      console.log('=== END AI PERFORMANCE DEBUG ===');
+      console.log('=== END STREAMING AI PERFORMANCE DEBUG ===');
     }
 
-    // Store performance metrics for potential use
+    // Store performance metrics
     if (typeof window !== 'undefined' && window.aiPerformanceMetrics) {
       window.aiPerformanceMetrics.push({
         timestamp: new Date().toISOString(),
         model,
         instructionType,
+        optimized: true,
+        systemInstruction: true,
+        streaming: true,
+        firstChunkTime: Math.round(firstChunkTime || 0),
         inputLength: content.length,
         outputLength: processedHtml.length,
         setupTime: Math.round(setupTime),
@@ -265,13 +281,13 @@ ${content}`;
     const totalTime = performance.now() - totalStartTime;
     
     if (enableDebugTiming) {
-      console.log('=== AI ERROR DEBUG ===');
+      console.log('=== STREAMING AI ERROR DEBUG ===');
       console.log('Error occurred after:', Math.round(totalTime), 'ms');
       console.log('Error:', error.message);
-      console.log('=== END AI ERROR DEBUG ===');
+      console.log('=== END STREAMING AI ERROR DEBUG ===');
     }
     
-    console.error("AI Processing Error:", error);
+    console.error("Streaming AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";
     const errorText = error.message.toLowerCase();
 
@@ -288,3 +304,4 @@ ${content}`;
     throw new Error(errorMessage);
   }
 };
+
