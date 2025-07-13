@@ -36,6 +36,24 @@
         </div>
       </div>
 
+      <!-- Thought Summaries Option -->
+      <div class="p-4 bg-green-900/20 border border-green-600/30 rounded-lg">
+        <div class="flex items-center">
+          <input
+            id="includeThoughts"
+            v-model="testConfig.includeThoughts"
+            type="checkbox"
+            class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2"
+          />
+          <label for="includeThoughts" class="ml-2 text-sm text-gray-300">
+            Show Thought Summaries (includeThoughts)
+          </label>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">
+          Reveals the model's internal reasoning process. May slightly impact performance.
+        </p>
+      </div>
+
       <!-- Performance Notes -->
       <div class="p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
         <h4 class="text-sm font-medium text-blue-300 mb-2">AI Performance Optimization</h4>
@@ -111,16 +129,37 @@
               <div>Response: {{ result.responseSize }} chars</div>
             </div>
             
+            <!-- Thought Summaries Information -->
+            <div v-if="result.configUsed?.includeThoughts" class="text-xs mb-2">
+              <span class="text-blue-300">🧠 Thoughts:</span>
+              <span :class="result.hasThoughts ? 'text-green-400' : 'text-gray-500'">
+                {{ result.hasThoughts ? 'YES' : 'NO' }}
+              </span>
+              <span v-if="result.hasThoughts" class="text-gray-400 ml-2">
+                ({{ result.thoughtLength }} chars)
+              </span>
+            </div>
+            
             <div v-if="!result.success" class="text-sm text-red-400 mb-2">
               Error: {{ result.error }}
             </div>
             
-            <details class="text-sm">
+            <details class="text-sm mb-2">
               <summary class="cursor-pointer text-gray-400 hover:text-white">
                 Response Preview
               </summary>
               <div class="mt-2 p-2 bg-gray-800/50 rounded text-gray-300 max-h-32 overflow-y-auto">
                 {{ result.response?.substring(0, 200) }}{{ result.response?.length > 200 ? '...' : '' }}
+              </div>
+            </details>
+            
+            <!-- Thought Summaries Display -->
+            <details v-if="result.hasThoughts && result.thoughtSummaries" class="text-sm">
+              <summary class="cursor-pointer text-blue-300 hover:text-blue-200">
+                🧠 Thought Summaries ({{ result.thoughtLength }} chars)
+              </summary>
+              <div class="mt-2 p-2 bg-blue-900/20 border border-blue-600/30 rounded text-blue-100 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                {{ result.thoughtSummaries }}
               </div>
             </details>
           </div>
@@ -204,7 +243,8 @@ const testConfig = ref({
   model: 'gemini-2.5-flash-lite-preview-06-17', // Default to fastest model
   thinkingBudget: -1, // Dynamic thinking
   useFormattingInstructions: true,
-  useSafetySettings: true
+  useSafetySettings: true,
+  includeThoughts: false // Show thought summaries
 })
 
 const testInput = ref('')
@@ -297,7 +337,8 @@ const runTest = async () => {
     const mockUserSettings = {
       aiSettings: {
         ...props.userSettings.aiSettings,
-        selectedModel: testConfig.value.model
+        selectedModel: testConfig.value.model,
+        includeThoughts: testConfig.value.includeThoughts
       }
     }
     
@@ -331,8 +372,13 @@ const runTest = async () => {
       detailedMetrics: latestMetrics || null,
       configUsed: {
         useFormatting: testConfig.value.useFormattingInstructions,
-        useSafety: testConfig.value.useSafetySettings
-      }
+        useSafety: testConfig.value.useSafetySettings,
+        includeThoughts: testConfig.value.includeThoughts
+      },
+      // Thought summaries information
+      hasThoughts: latestMetrics?.hasThoughts || false,
+      thoughtSummaries: latestMetrics?.thoughtSummaries || null,
+      thoughtLength: latestMetrics?.thoughtLength || 0
     })
     
     console.log(`✅ AI Test completed in ${totalTime}ms`)

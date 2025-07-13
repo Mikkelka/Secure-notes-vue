@@ -200,17 +200,30 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     const apiStartTime = performance.now();
     console.time(`AI_API_Call_Streaming_${model}`);
     
+    // Build config object conditionally
+    const config = {
+      systemInstruction: instructionPrompt,
+    };
+    
+    // Add thinking config if thoughts are requested
+    if (userSettings?.aiSettings?.includeThoughts) {
+      config.thinkingConfig = {
+        includeThoughts: true
+      };
+    }
+    
     const streamResponse = await ai.models.generateContentStream({
       model,
       contents: simplePrompt,
-      config: {
-        systemInstruction: instructionPrompt,
-      },
+      config,
     });
     
-    // Collect all chunks from stream
+    // Collect all chunks from stream - separate thoughts from answers
     let fullResponse = '';
+    let thoughtSummaries = '';
     let firstChunkTime = null;
+    let hasThoughts = false;
+    
     for await (const chunk of streamResponse) {
       if (firstChunkTime === null) {
         firstChunkTime = performance.now() - apiStartTime;
@@ -218,7 +231,25 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
           console.log('First chunk received in:', Math.round(firstChunkTime), 'ms');
         }
       }
-      if (chunk.text) {
+      
+      // Handle response parts (for thought summaries)
+      if (chunk.candidates && chunk.candidates[0]?.content?.parts) {
+        for (const part of chunk.candidates[0].content.parts) {
+          if (!part.text) continue;
+          
+          if (part.thought) {
+            thoughtSummaries += part.text;
+            hasThoughts = true;
+            if (enableDebugTiming) {
+              console.log('🧠 Thought chunk received:', part.text.substring(0, 100) + '...');
+            }
+          } else {
+            fullResponse += part.text;
+          }
+        }
+      }
+      // Fallback for simple text chunks (no thoughts)
+      else if (chunk.text) {
         fullResponse += chunk.text;
       }
     }
@@ -249,6 +280,13 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       console.log('Response Processing Time:', Math.round(processTime), 'ms');
       console.log('Total Time:', Math.round(totalTime), 'ms');
       console.log('Response Length:', processedHtml.length);
+      if (hasThoughts) {
+        console.log('🧠 Thoughts Detected: YES');
+        console.log('🧠 Thought Summary Length:', thoughtSummaries.length);
+        console.log('🧠 Thought Preview:', thoughtSummaries.substring(0, 200) + '...');
+      } else {
+        console.log('🧠 Thoughts Detected: NO');
+      }
       console.log('=== END STREAMING AI PERFORMANCE DEBUG ===');
     }
 
@@ -268,7 +306,12 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
         promptTime: Math.round(promptTime),
         apiTime: Math.round(apiTime),
         processTime: Math.round(processTime),
-        totalTime: Math.round(totalTime)
+        totalTime: Math.round(totalTime),
+        // Thought summaries information
+        hasThoughts,
+        thoughtSummaries: hasThoughts ? thoughtSummaries : null,
+        thoughtLength: hasThoughts ? thoughtSummaries.length : 0,
+        includeThoughtsEnabled: userSettings?.aiSettings?.includeThoughts || false
       });
     }
 
