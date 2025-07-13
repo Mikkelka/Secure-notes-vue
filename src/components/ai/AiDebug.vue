@@ -36,6 +36,33 @@
         </div>
       </div>
 
+      <!-- Advanced Test Options -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-center">
+          <input
+            id="useFormatting"
+            v-model="testConfig.useFormattingInstructions"
+            type="checkbox"
+            class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+          />
+          <label for="useFormatting" class="ml-2 text-sm text-gray-300">
+            Use Formatting Instructions
+          </label>
+        </div>
+        
+        <div class="flex items-center">
+          <input
+            id="useSafetySettings"
+            v-model="testConfig.useSafetySettings"
+            type="checkbox" 
+            class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+          />
+          <label for="useSafetySettings" class="ml-2 text-sm text-gray-300">
+            Use Safety Settings (BLOCK_NONE)
+          </label>
+        </div>
+      </div>
+
       <!-- Test Input -->
       <div>
         <label class="block text-sm font-medium text-gray-300 mb-2">
@@ -85,7 +112,8 @@
                   {{ result.model }}
                 </span>
                 <span class="text-xs text-gray-400">
-                  Thinking: {{ result.thinkingBudget === -1 ? 'Auto' : result.thinkingBudget === 0 ? 'None' : result.thinkingBudget }}
+                  T:{{ result.thinkingBudget === -1 ? 'Auto' : result.thinkingBudget === 0 ? 'None' : result.thinkingBudget }}
+                  {{ result.configUsed ? `F:${result.configUsed.useFormatting ? 'Y' : 'N'} S:${result.configUsed.useSafety ? 'Y' : 'N'}` : '' }}
                 </span>
               </div>
               <span class="text-sm font-mono" :class="getTimingColor(result.totalTime)">
@@ -173,6 +201,7 @@ import { ref, computed, onMounted } from 'vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import BaseButton from '../base/BaseButton.vue'
 import { processTextWithAi } from '../../services/aiService.js'
+import { GoogleGenAI } from "@google/genai"
 
 const props = defineProps({
   isOpen: {
@@ -189,7 +218,9 @@ const emit = defineEmits(['close'])
 
 const testConfig = ref({
   model: 'gemini-2.5-flash',
-  thinkingBudget: -1
+  thinkingBudget: -1,
+  useFormattingInstructions: true,
+  useSafetySettings: true
 })
 
 const testInput = ref('')
@@ -264,6 +295,60 @@ const getTimingColor = (time) => {
   return 'text-red-400'
 }
 
+// Custom debug AI function with configurable options
+const runCustomAiTest = async (content, title, apiKey, config) => {
+  const ai = new GoogleGenAI({ apiKey })
+  
+  // Simple prompt without formatting instructions if disabled
+  let prompt
+  if (config.useFormattingInstructions) {
+    // Use existing complex prompt system
+    const mockUserSettings = {
+      aiSettings: {
+        ...props.userSettings.aiSettings,
+        selectedModel: config.model
+      }
+    }
+    return await processTextWithAi(content, title, mockUserSettings, true)
+  } else {
+    // Simple prompt like TypingMind might use
+    prompt = `Improve and organize this text:\n\n${content}`
+  }
+  
+  // Safety settings configuration
+  const safetySettings = config.useSafetySettings ? [
+    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+  ] : undefined
+  
+  // Thinking config
+  const thinkingConfig = config.thinkingBudget !== -1 ? {
+    thinkingBudget: config.thinkingBudget === 0 ? undefined : config.thinkingBudget
+  } : { thinkingBudget: -1 }
+  
+  console.log('🧪 Custom AI Test Config:', {
+    model: config.model,
+    useFormatting: config.useFormattingInstructions,
+    useSafety: config.useSafetySettings,
+    thinkingBudget: config.thinkingBudget,
+    promptLength: prompt.length
+  })
+  
+  const requestConfig = {
+    model: config.model,
+    contents: prompt,
+    config: {
+      ...(safetySettings && { safetySettings }),
+      ...(config.thinkingBudget !== undefined && { thinkingConfig })
+    }
+  }
+  
+  const response = await ai.models.generateContent(requestConfig)
+  return response.text
+}
+
 const runTest = async () => {
   if (!canRunTest.value || isRunning.value) return
   
@@ -287,11 +372,11 @@ const runTest = async () => {
     
     console.log(`🧪 Starting AI Performance Test - ${testConfig.value.model}`)
     
-    const result = await processTextWithAi(
+    const result = await runCustomAiTest(
       testInput.value,
       'Debug Test',
-      mockUserSettings,
-      true // Enable debug timing
+      props.userSettings.aiSettings.apiKey,
+      testConfig.value
     )
     
     const endTime = performance.now()
@@ -311,7 +396,11 @@ const runTest = async () => {
       responseSize: result.length,
       response: result,
       inputLength: testInput.value.length,
-      detailedMetrics: latestMetrics || null
+      detailedMetrics: latestMetrics || null,
+      configUsed: {
+        useFormatting: testConfig.value.useFormattingInstructions,
+        useSafety: testConfig.value.useSafetySettings
+      }
     })
     
     console.log(`✅ AI Test completed in ${totalTime}ms`)

@@ -3,10 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 
 // --- Konstanter og Konfiguration ---
 
-// Cache for at undgå at genskabe instruktioner og parse tekst unødigt
-const instructionCache = new Map();
-const textExtractionCache = new Map();
-
 // Sikkerhedsindstillinger - tillad alt indhold for at undgå blokering af legitim tekst
 const SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -28,18 +24,12 @@ export const isHtmlContent = (content) => {
 
 export const extractPlainText = (htmlContent) => {
   if (!htmlContent) return "";
-  if (textExtractionCache.has(htmlContent)) {
-    return textExtractionCache.get(htmlContent);
-  }
 
   // Simpel HTML → plain text konvertering
-  const result = htmlContent
+  return htmlContent
     .replace(/<[^>]*>/g, ' ') // Fjern HTML tags
     .replace(/\s+/g, ' ') // Sammenfold whitespace
     .trim();
-
-  textExtractionCache.set(htmlContent, result);
-  return result;
 };
 
 export const convertHtmlToPlainText = (htmlContent) => {
@@ -110,14 +100,6 @@ export const DEFAULT_INSTRUCTIONS = [
 ]
 
 const getInstructionPrompt = (instructionType, userSettings = null) => {
-  
-  // Check cache first
-  if (instructionCache.has(instructionType)) {
-    return instructionCache.get(instructionType);
-  }
-  
-  let prompt;
-  
   // Check if it's a custom or standard instruction ID (starts with 'custom-' or 'std-')
   if (instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')) && userSettings?.aiSettings?.customInstructions) {
     const customInstructionsArray = userSettings.aiSettings.customInstructions;
@@ -130,9 +112,7 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
       
       if (instruction) {
         // Build prompt with formatting instructions
-        prompt = `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
-        instructionCache.set(instructionType, prompt);
-        return prompt;
+        return `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
       }
     }
   }
@@ -141,9 +121,7 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
   if (instructionType && instructionType.startsWith('std-')) {
     const defaultInstruction = DEFAULT_INSTRUCTIONS.find(instr => instr.id === instructionType);
     if (defaultInstruction) {
-      prompt = `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
-      instructionCache.set(instructionType, prompt);
-      return prompt;
+      return `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
     }
   }
   
