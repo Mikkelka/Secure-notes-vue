@@ -20,7 +20,7 @@ This project was successfully migrated from React to Vue.js 3 to reduce code com
 **State Management:** Pinia stores replace React hooks and context
 **UI Framework:** Vue 3 Composition API with `<script setup>` 
 **Rich Text:** TipTap editor with Lexical content compatibility
-**Styling:** Tailwind CSS v4 with Vite plugin
+**Styling:** Tailwind CSS v4 with Vite plugin and extensive @apply component patterns
 **Icons:** Lucide Vue Next (replacing lucide-react)
 
 ### Core Security Model
@@ -403,6 +403,7 @@ if (loginType === 'google') {
 - Lazy loading for mobile drawers and modals
 - Performance stats tracking for encryption operations
 - Centralized encryption key management reduces parameter passing overhead
+- @apply directive system reduces CSS bundle size and improves maintainability
 
 **Mobile Touch Optimization:**
 - `touch-action: manipulation` for responsive interactions
