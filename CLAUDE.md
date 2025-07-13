@@ -13,15 +13,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a secure notes application built with Vue.js 3, Firebase, and client-side encryption. The app uses Danish language throughout the UI and includes AI-powered note enhancement features.
 
-### Migration Context
-
-This project was successfully migrated from React to Vue.js 3 to reduce code complexity. The Vue version maintains feature parity while achieving more concise code through:
-
-**State Management:** Pinia stores replace React hooks and context
-**UI Framework:** Vue 3 Composition API with `<script setup>` 
-**Rich Text:** TipTap editor with Lexical content compatibility
-**Styling:** Tailwind CSS v4 with Vite plugin and extensive @apply component patterns
-**Icons:** Lucide Vue Next (replacing lucide-react)
+**Tech Stack:**
+- **State Management:** Pinia stores 
+- **UI Framework:** Vue 3 Composition API with `<script setup>` 
+- **Rich Text:** TinyMCE with pure HTML storage
+- **Styling:** Tailwind CSS v4 with extensive @apply component patterns
+- **Icons:** Lucide Vue Next
 
 ### Core Security Model
 
@@ -31,7 +28,6 @@ The application implements **client-side encryption** where user data is encrypt
 - **User-specific salts**: Each user has a unique salt (`securenotes_v1_${userId}`)
 - **AES-GCM encryption**: 256-bit keys with random IVs for each encryption operation
 - **Firebase stores only encrypted data**: The server never sees plaintext note content
-- **Cross-version compatibility**: Notes encrypted in React version can be decrypted in Vue version
 - **Centralized encryption key management**: SecureStorage utility for consistent key handling
 
 ### SecureStorage Architecture
@@ -40,24 +36,7 @@ The application implements **client-side encryption** where user data is encrypt
 - Static class managing single encryption key instance across entire application
 - Automatic session timeout with configurable duration (default 30 minutes)
 - Secure key storage with automatic cleanup on timeout or logout
-- Callback system for triggering logout when session expires
-- Activity-based session extension for active users
-- Error handling for missing keys with descriptive messages
-
-**Vue Reactivity Integration:**
-The auth store includes a reactivity trigger system to ensure Vue components properly detect SecureStorage changes:
-- `encryptionKeyTrigger` ref that increments when encryption key is set
-- Computed `encryptionKey` property accesses this trigger to become reactive
-- Prevents race conditions during page refresh and authentication flow
-- Ensures App.vue waits for both user and encryption key before loading data
-
-**Key Benefits:**
-- **Consistency**: All stores use same encryption key source
-- **Security**: Automatic session management with timeout
-- **Performance**: Single key instance, no parameter passing
-- **Maintainability**: Centralized key logic reduces complexity
-- **Vue Integration**: Fully reactive with Vue's reactivity system
-- **Race Condition Safe**: Prevents data loading before encryption key is available
+- Vue reactivity integration with trigger system to prevent race conditions
 
 **API Usage Pattern:**
 ```javascript
@@ -68,76 +47,24 @@ encryptionKeyTrigger.value++ // Trigger Vue reactivity
 // Getting key (in any store)
 const encryptionKey = SecureStorage.getEncryptionKey()
 
-// Checking availability
-if (SecureStorage.hasEncryptionKey()) { /* proceed */ }
-
 // Activity-based extension
 SecureStorage.extendSession()
 ```
 
 ### Pinia Store Architecture
 
-**auth.js** - Authentication state and session management:
-- Firebase auth integration with Google and email providers
-- Encryption key generation from passwords using PBKDF2
-- SecureStorage integration with automatic logout callbacks
-- Vue reactivity trigger system for encryption key changes
-- Session timeout with activity tracking and warning system
-- Race condition prevention for page refresh scenarios
-
-**notes.js** - Notes data management:
-- Uses SecureStorage for consistent encryption key access
-- Encrypted note storage and retrieval from Firestore
-- Search functionality with plain text extraction from rich content
-- Favorite notes system with automatic sorting
-- Performance monitoring for encryption/decryption operations
-- Fallback decryption for cross-version compatibility
-- Simplified function signatures without encryptionKey parameters
-
-**folders.js** - Folder organization system:
-- Centralized SecureStorage usage for all encryption operations
-- Encrypted folder management with color coding
-- PIN-protected secure folder functionality
-- Fully implemented master password fallback with login-type-aware verification
-- User settings storage for AI configuration
-- Optimized function signatures using SecureStorage internally
-
-**ui.js** - UI state coordination:
-- Mobile drawer state management (search, settings, note editor)
-- Note viewer state and selection tracking
-- Modal and dialog state (export, import, AI configuration)
-- Mobile-first responsive state handling
-
-**settings.js** - Application settings:
-- Session timeout configuration
-- Performance stats visibility toggle
-- Local storage persistence for user preferences
+**auth.js** - Authentication state and session management
+**notes.js** - Notes data management with SecureStorage integration
+**folders.js** - Folder organization with PIN-protected secure folder
+**ui.js** - UI state coordination (mobile drawers, modals, note viewer)
+**settings.js** - Application settings with local storage persistence
 
 ### Authentication Flow
 
-The application supports two distinct authentication patterns with centralized encryption key management:
+**Google OAuth Login:** Firebase auth → UID as encryption password → SecureStorage
+**Email/Password Login:** Firebase auth → login password as encryption password → SecureStorage
 
-**Google OAuth Login:**
-1. Firebase Google Authentication
-2. User's Firebase UID used as encryption password (automatic)
-3. PBKDF2 key derivation with user-specific salt
-4. Key stored in SecureStorage with logout callback
-5. User's email serves as master password for secure folder access
-6. Login type stored as `loginType_${userId}` = 'google'
-
-**Email/Password Login:**
-1. Firebase email/password authentication
-2. User's login password used as encryption password
-3. PBKDF2 key derivation with user-specific salt
-4. Key stored in SecureStorage with logout callback
-5. Same login password serves as master password for secure folder access
-6. Login type stored as `loginType_${userId}` = 'email'
-
-**Shared Security Features:**
-- SecureStorage manages encryption key lifecycle automatically
-- Activity-based session extension or automatic logout
-- PIN-protected secure folders with master password fallback
-- Password verification for data export operations
+Both store login type for master password verification: `localStorage.getItem('loginType_${userId}')`
 
 ### Data Structure
 
@@ -146,9 +73,9 @@ The application supports two distinct authentication patterns with centralized e
 {
   userId: string,
   encryptedTitle: string,    // Base64 encrypted title
-  encryptedContent: string,  // Base64 encrypted Lexical/TipTap content
+  encryptedContent: string,  // Base64 encrypted HTML content
   folderId: string | null,   // Reference to folder ('secure' for PIN-protected)
-  isFavorite: boolean,       // Favorite status for prioritized display
+  isFavorite: boolean,
   createdAt: Timestamp,
   updatedAt: Timestamp
 }
@@ -176,170 +103,15 @@ The application supports two distinct authentication patterns with centralized e
 }
 ```
 
-### Mobile-First UI Architecture
+### Tailwind CSS @apply Component System
 
-**Responsive Component System:**
-- Desktop: Sidebar navigation with three-column layout
-- Mobile: Bottom navigation with exclusive drawer system
-- Touch-optimized interactions with gesture support
+**Centralized Styling Architecture** (`src/style.css`):
+- Extensive use of @apply directives to create reusable component classes
+- Semantic class names replace long utility class strings
+- Organized patterns: buttons, inputs, modals, mobile UI, toggles, etc.
+- Massive token reduction: `"bg-gray-800/60 border rounded-lg p-3..."` becomes `"note-item"`
 
-**Mobile Drawer Coordination:**
-- Only one drawer can be open at a time
-- Bottom menu (`z-50`) always accessible
-- Drawers (`z-40`) with backdrop dismiss functionality
-- Automatic drawer closure when switching between functions
-
-**Mobile NoteViewer Optimizations:**
-- Compact action buttons in bottom area for thumb accessibility
-- Icon-only design: [Slet] [Favorit] [Edit] [Luk]
-- Removed header action buttons to prevent stretching for top screen areas
-- Optimized z-index hierarchy: NoteViewer (`z-60`), Dropdown (`z-[60]`), Dialogs (`z-[80]`)
-- Touch-optimized folder label interaction with mobile-centered dropdown
-
-**Key Mobile Components:**
-- `MobileBottomMenu.vue` - Primary navigation interface
-- `MobileDrawer.vue` - Generic drawer container
-- `MobileSearchDrawer.vue` - Dedicated search interface
-- `NoteViewer.vue` - Mobile-optimized with bottom action buttons and centered modals
-- `FolderDropdown.vue` - Responsive folder selection dropdown
-- `PinInput.vue` - PIN entry with login-type-aware master password hints
-
-### Rich Text Editor Integration
-
-**TinyMCE Configuration:**
-- Clean, simplified toolbar with essential formatting only
-- Heading support (H1, H2, H3) with proper styling
-- Bold, italic, underline, strikethrough text formatting
-- Bullet lists with proper styling
-- Link insertion support
-- Removed: alignment, numbered lists, indent/outdent, help, removeformat
-- Dark theme optimized for application UI
-
-**Content Storage:**
-- Pure HTML storage in database (no JSON conversion)
-- Direct HTML rendering in viewer with v-html
-- Simplified architecture eliminates conversion bugs
-- Better performance with no format transformation
-
-**Rich Content Styling:**
-- Comprehensive CSS styling for all HTML elements in `NoteViewer.vue`
-- Code block styling with `<pre><code>` support and monospace fonts
-- Inline code styling with background highlighting
-- Horizontal rule styling with proper spacing and dark theme integration
-- All formatting optimized for dark theme and mobile responsiveness
-
-### Folder Management System
-
-**Interactive Folder Labels:**
-- Clickable folder labels on all notes showing current folder assignment
-- Color-coded labels matching folder theme colors
-- Special handling for "Ukategoriseret" (uncategorized) and "Sikker" (secure) folders
-- Positioned next to action buttons for easy access
-
-**Folder Dropdown Interface:**
-- `FolderDropdown.vue` component for selecting target folders
-- Shows all available folders with names and colors
-- Filters out locked folders (secure folder when locked)
-- Excludes current folder from selection options
-- Mobile-optimized with centered modal presentation
-
-**Mobile Folder UX:**
-- Desktop: Dropdown positioned below folder label
-- Mobile: Centered modal with backdrop for better touch interaction
-- Touch-optimized button sizes (minimum 48px height)
-- Smooth animations and proper z-index layering
-
-**Folder Movement Workflow:**
-1. Click folder label on any note
-2. Select target folder from dropdown
-3. Note automatically moves with visual feedback
-4. Security validation for protected folders
-5. Real-time UI updates without page refresh
-
-### AI Integration System
-
-**Core AI Service** (`services/aiService.js`):
-- Google Generative AI integration with configurable models using `@google/genai` SDK
-- Direct HTML processing - preserves and enhances existing formatting
-- Instruction preset system for different note enhancement modes
-- Safety settings configured for minimal content blocking
-- Intelligent formatting addition (headings, bold text, lists, code blocks, horizontal rules) where appropriate
-- Dynamic thinking capabilities enabled (`thinkingBudget: -1`) for improved AI reasoning
-- Note title context provided to AI for better content understanding
-- Unified formatting instructions system covering both markdown and HTML formatting
-- Explicit border-avoidance instructions to prevent visual clutter
-
-**AI SDK Documentation:**
-- Gemini API Thinking: https://ai.google.dev/gemini-api/docs/thinking
-- Safety Settings: https://ai.google.dev/gemini-api/docs/safety-settings
-- JavaScript Quickstart: https://ai.google.dev/gemini-api/docs/quickstart#javascript
-
-**AI Features:**
-- Note organization and enhancement
-- Content summarization
-- Meeting notes structuring
-- Custom instruction support
-- Undo functionality for AI-processed content
-
-### Session Management and Security
-
-**Automatic Session Timeout (SecureStorage):**
-- Centralized session management through SecureStorage utility
-- Configurable timeout period (default 30 minutes)
-- Activity tracking with automatic session extension
-- Automatic logout callback when session expires
-- Graceful cleanup of encryption keys on timeout
-
-**Security Features:**
-- PIN-protected secure folder with master password fallback (fully implemented)
-- Login-type-aware password verification for all sensitive operations
-- Client-side encryption key never transmitted
-- Centralized key management prevents key leakage
-- Privacy-focused UI that doesn't display full email addresses
-- Secure data export with proper password verification
-
-### Master Password & Data Export Security
-
-**Master Password System:**
-The master password provides backup access to PIN-protected secure folders:
-
-- **Google Users**: Use their full email address as master password
-- **Email Users**: Use their login password as master password
-- **Verification**: Login type detection via `localStorage.getItem('loginType_${userId}')`
-- **Security**: Master password prompts don't display the actual email for privacy
-- **Implementation**: `verifyAndUnlockWithMasterPassword()` in `folders.js`
-
-**Data Export Security:**
-All data exports require password verification before decryption:
-
-- **Google Users**: Must enter their full email address to export
-- **Email Users**: Must enter their login password to export
-- **UI Privacy**: Export dialog shows only username (before @) not full email
-- **Verification**: Password verified against login type before export proceeds
-- **Implementation**: Enhanced `DataExport.vue` with login-type-aware verification
-
-**Code Example:**
-```javascript
-// Login type detection pattern used throughout
-const loginType = localStorage.getItem(`loginType_${user.uid}`)
-
-if (loginType === 'google') {
-  // Verify against user.email
-  if (enteredPassword === user.email) { /* proceed */ }
-} else if (loginType === 'email') {
-  // Verify against stored encrypted password
-  const storedPassword = atob(localStorage.getItem(`encryptedPassword_${user.uid}`))
-  if (enteredPassword === storedPassword) { /* proceed */ }
-}
-```
-
-### Data Architecture Simplification
-
-**HTML-First Approach:**
-- Direct HTML storage eliminates format conversion complexity
-- TinyMCE → HTML → Database → HTML → Display (no conversion layers)
-- Backward compatibility maintained for existing encrypted notes
-- Simplified debugging and maintenance with pure HTML content
+**Benefits**: Consistency, maintainability, readability, reduced CSS bundle size
 
 ### Environment Variables
 
@@ -355,7 +127,6 @@ if (loginType === 'google') {
 - `VITE_PBKDF2_ITERATIONS` (default: 210000)
 - `VITE_ENCRYPTION_VERSION` (default: 'securenotes_v1_')
 - `VITE_SESSION_TIMEOUT` (default: 1800000ms / 30 minutes)
-- `VITE_WARNING_TIME` (default: 120000ms / 2 minutes)
 
 ### Development Guidelines
 
@@ -365,49 +136,29 @@ if (loginType === 'google') {
 - Test grundigt før migration af encryption/database kode
 - Brug export funktionen til backup før refactoring
 - Verificer at data kan læses korrekt efter ændringer
-- Test page refresh behavior efter auth/encryption ændringer
-- Sørg for Vue reactivity virker korrekt med SecureStorage
 
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
 - Pinia stores for cross-component state management
 - Reactive refs and computed properties for local state
-- Watch for reactive side effects and data synchronization
 
 **SecureStorage Best Practices:**
 - Always use `SecureStorage.getEncryptionKey()` for encryption operations
 - Never pass encryption keys as function parameters
 - Let SecureStorage handle session timeout and cleanup
-- Use proper error handling for missing keys
-- Implement logout callbacks for automatic session management
 - Remember to trigger Vue reactivity when setting keys: `encryptionKeyTrigger.value++`
-
-**Race Condition Prevention:**
-- App.vue watches both `authStore.user` AND `authStore.encryptionKey` before loading data
-- Auth state change properly triggers Vue reactivity for encryption key availability
-- Prevents data loading attempts before encryption key is fully initialized
-- Ensures consistent behavior on page refresh and authentication flows
 
 **Security Considerations:**
 - Never log encryption keys or passwords
-- Use environment variables for sensitive configuration
-- Implement proper error boundaries for encryption failures
 - Use SecureStorage for all encryption key management
 - Always check login type before password verification: `localStorage.getItem('loginType_${userId}')`
-- For UI privacy, avoid displaying full email addresses (use username portion only)
-- Implement login-type-aware password prompts with appropriate hints
+- For UI privacy, avoid displaying full email addresses
 
 **Performance Optimization:**
 - Debounced search with 300ms delay
 - Efficient note filtering using computed properties
-- Lazy loading for mobile drawers and modals
-- Performance stats tracking for encryption operations
-- Centralized encryption key management reduces parameter passing overhead
 - @apply directive system reduces CSS bundle size and improves maintainability
 
 **Mobile Touch Optimization:**
 - `touch-action: manipulation` for responsive interactions
-- `-webkit-tap-highlight-color: transparent` to remove tap highlights
 - Minimum 44-48px touch targets for accessibility compliance
-- Proper event handling separation for touch vs click events
-- iOS zoom prevention with 16px minimum font sizes
