@@ -158,6 +158,29 @@ Both store login type for master password verification: `localStorage.getItem('l
 - Debounced search with 300ms delay
 - Efficient note filtering using computed properties
 - @apply directive system reduces CSS bundle size and improves maintainability
+- **Modulær NoteViewer arkitektur** - 809 linjer nedbragt til 317 linjer hovedkomponent
+- **Isoleret AI testing miljø** - `src/ai-testing/` komplet adskilt fra hovedapp
+
+**AI Performance Architecture:**
+- **Production Model**: Flash-Lite only (`gemini-2.5-flash-lite-preview-06-17`)
+- **Response Time**: Sub-second (~500ms) i production
+- **Testing Environment**: Isoleret AI testing lab via `/ai-test.html`
+- **Thinking Toggle**: Universal enableThinking control for begge modeller
+
+**Component Architecture:**
+- **Modulær NoteViewer**: Opdelt i shared komponenter for performance
+  - `NoteHeader.vue` - titel, folder, actions (121 linjer)
+  - `NoteContent.vue` - pure content display (97 linjer)
+  - `NoteEditor.vue` - TinyMCE editing isoleret (108 linjer)
+  - `AiPanel.vue` - AI processing UI isoleret (165 linjer)
+  - Layout wrappers for mobile/desktop (36+29 linjer)
+- **Performance Benefit**: Kun relevante komponenter re-renderes ved AI responses
+
+**AI Testing Environment:**
+- **Location**: `src/ai-testing/` - helt isoleret fra hovedapp
+- **Access**: Test Lab knap i header åbner `/ai-test.html` i nyt vindue
+- **Features**: Standalone aiTestService.js, begge AI modeller, performance metrics
+- **Independence**: Zero dependencies på hovedapp, dedicated Google AI imports
 
 **Mobile Touch Optimization:**
 - `touch-action: manipulation` for responsive interactions
