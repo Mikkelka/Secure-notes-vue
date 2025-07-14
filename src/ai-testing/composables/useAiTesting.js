@@ -5,13 +5,34 @@ export function useAiTesting() {
   // Minimal configuration - only essentials
   const apiKey = ref('')
   const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
-  const testInput = ref('')
+  const testMethod = ref('simple') // 'simple' or 'streaming'
   const testResults = ref([])
   const isRunning = ref(false)
 
+  // Fixed test content - raw unstructured text for consistent formatting testing
+  const FIXED_TEST_CONTENT = `møde om projekt status idag kl 14. deltagere: mig, sarah fra design, mikkel tech lead, anna fra product. 
+
+sarah viste nye mockups for dashboard meget flotte men vi mangler data integration. mikkel siger backend api klar næste uge. anna bekymret om deadline fredag kan vi nå det?
+
+vigtige punkter: frontend næsten færdig, sarah arbejder på responsive design, database migration skal testes før deploy, anna tager kontakt til kunde om potentiel utsættelse
+
+næste skridt: mikkel færdiggør api dokumentation, jeg laver integration tests, sarah tester på mobile devices, mødes igen torsdag for final review
+
+deadline stress men team confident. kunde har været tålmodig hidtil.
+
+tekniske detaljer diskuteret: database performance issues med user queries, sarah foreslog ny caching strategy med redis. mikkel bekymret om server kapacitet hvis vi får flere kunder samtidig. anna vil have load testing før launch.
+
+budget status: brugt 73% af allocated resources, 2 uger tilbage til deadline. extra udvikler måske nødvendig for mobile app hvis timeline skal holdes. client har været understanding omkring små delays.
+
+security review: peter fandt 3 vulnerabilities i auth system, ikke critical men skal fixes. password reset flow needs work. sarah siger frontend validation kan forbedres. alle issues logged i jira.
+
+next sprint planning: focus på critical bugs først, performance optimizations hvis tid tillader det. maria joins team næste uge som QA tester. demo til kunde er planlagt fredag hvis alt går som forventet.
+
+risici identificeret: third party payment api har været ustabil sidste uge, backup plan needed. christmas vacation period kan påvirke support. deployment pipeline skal testes mere grundigt før production release.`
+
   // Computed properties
   const canRunTest = computed(() => {
-    return testInput.value.trim().length > 0 && apiKey.value.trim().length > 0
+    return apiKey.value.trim().length > 0
   })
 
   const performanceSummary = computed(() => {
@@ -54,17 +75,24 @@ export function useAiTesting() {
     const startTime = performance.now()
     
     try {
-      // Import ultra-minimal AI service
-      const { processTextWithAi } = await import('../services/aiTestService.js')
+      // Import AI service methods
+      const { processTextWithAi, processTextWithAiStreaming } = await import('../services/aiTestService.js')
       
-      console.log(`🧪 Ultra-Minimal Test Started - ${selectedModel.value}`)
+      const method = testMethod.value === 'streaming' ? 'streaming' : 'simple'
+      console.log(`🧪 Google ${method} Test Started - ${selectedModel.value}`)
       
-      // Call minimal API - no complex configuration
-      const result = await processTextWithAi(
-        testInput.value,
-        apiKey.value.trim(),
-        selectedModel.value
-      )
+      // Choose method based on selection - using fixed test content
+      const result = testMethod.value === 'streaming' 
+        ? await processTextWithAiStreaming(
+            FIXED_TEST_CONTENT,
+            apiKey.value.trim(),
+            selectedModel.value
+          )
+        : await processTextWithAi(
+            FIXED_TEST_CONTENT,
+            apiKey.value.trim(),
+            selectedModel.value
+          )
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
@@ -76,16 +104,17 @@ export function useAiTesting() {
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
+        method: testMethod.value === 'streaming' ? 'google-official-streaming' : 'google-official-simple',
         success: true,
         totalTime,
         responseLength: result.length,
         response: result
       })
       
-      console.log(`✅ Ultra-Minimal Test Completed - ${totalTime}ms`)
+      console.log(`✅ Google ${method} Test Completed - ${totalTime}ms`)
       
     } catch (error) {
-      console.error('❌ Ultra-Minimal Test Error:', error)
+      console.error(`❌ Google ${testMethod.value} Test Error:`, error)
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
@@ -93,6 +122,7 @@ export function useAiTesting() {
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
+        method: testMethod.value === 'streaming' ? 'google-official-streaming' : 'google-official-simple',
         success: false,
         totalTime,
         responseLength: 0,
@@ -111,11 +141,14 @@ export function useAiTesting() {
     // Configuration
     apiKey,
     selectedModel,
+    testMethod,
     
-    // Test state
-    testInput,
+    // Test state  
     testResults,
     isRunning,
+    
+    // Test content
+    FIXED_TEST_CONTENT,
     
     // Computed
     canRunTest,

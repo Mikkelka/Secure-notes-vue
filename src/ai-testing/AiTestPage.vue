@@ -3,11 +3,11 @@
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-purple-300 mb-2">Ultra-Minimal AI Testing Lab</h1>
-        <p class="text-gray-400">Back to basics - Google's minimal example with scientific testing</p>
+        <h1 class="text-3xl font-bold text-purple-300 mb-2">Production-Realistic Performance Testing</h1>
+        <p class="text-gray-400">Testing actual Note Organizer formatting tasks with production instructions</p>
         <div class="mt-4 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
           <p class="text-blue-300 text-sm">
-            🧪 <strong>Clean Slate Testing</strong> - Zero optimizations, pure baseline performance
+            🧪 <strong>Production Testing</strong> - Raw text → structured HTML notes using actual app instructions
           </p>
         </div>
       </div>
@@ -56,27 +56,25 @@
               </select>
             </div>
 
-            <!-- Test Input -->
+            <!-- Test Method Selection -->
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Test Input</label>
-              <textarea
-                v-model="testInput"
-                rows="6"
-                placeholder="Enter text to test AI performance..."
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              />
+              <label class="block text-sm font-medium text-gray-300 mb-2">Google Method</label>
+              <select
+                v-model="testMethod"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="simple">Simple (response.text)</option>
+                <option value="streaming">Streaming (chunk.text)</option>
+              </select>
             </div>
 
-            <!-- Test Presets -->
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="preset in testPresets"
-                :key="preset.name"
-                @click="testInput = preset.content"
-                class="px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
-              >
-                {{ preset.name }}
-              </button>
+            <!-- Fixed Test Content -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Fixed Test Content</label>
+              <div class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-300 text-sm max-h-32 overflow-y-auto">
+                {{ FIXED_TEST_CONTENT }}
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Raw meeting notes that will be formatted to structured HTML</p>
             </div>
 
             <!-- Run Test Button -->
@@ -86,7 +84,7 @@
               class="w-full px-4 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg text-white font-medium flex items-center justify-center gap-2"
             >
               <span v-if="isRunning" class="animate-spin">⟳</span>
-              {{ isRunning ? 'Testing...' : 'Run Ultra-Minimal Test' }}
+              {{ isRunning ? 'Testing...' : `Run ${testMethod === 'streaming' ? 'Streaming' : 'Simple'} Test` }}
             </button>
           </div>
         </div>
@@ -164,8 +162,12 @@
                 <span class="ml-1">{{ result.responseLength }} chars</span>
               </div>
               <div>
-                <span class="text-gray-400">Type:</span>
-                <span class="ml-1 text-purple-400">Ultra-Minimal</span>
+                <span class="text-gray-400">Method:</span>
+                <span class="ml-1 text-purple-400">
+                  {{ result.method?.includes('optimized') ? 'Standard Flash (Optimized)' : 
+                     result.method?.includes('minimal') ? 'Flash-Lite (Minimal)' :
+                     result.method?.includes('streaming') ? 'Production Streaming' : 'Production Simple' }}
+                </span>
               </div>
             </div>
 
@@ -189,12 +191,14 @@
 
       <!-- Instructions -->
       <div class="p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Testing Instructions</h4>
+        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Fixed Content Performance Testing</h4>
         <div class="text-yellow-200 text-sm space-y-2">
-          <p>• This is Google's minimal example - zero optimizations or configuration</p>
-          <p>• Test both models with identical input to compare baseline performance</p>
-          <p>• Check browser console for detailed timing logs</p>
-          <p>• Results show pure AI model performance without interference</p>
+          <p>• <strong>Fixed Task:</strong> Same raw meeting notes → structured HTML every test</p>
+          <p>• <strong>Production Instructions:</strong> Uses actual Note Organizer + HTML formatting rules</p>
+          <p>• <strong>Standard Flash:</strong> Optimized config (thinkingBudget: 0, maxOutputTokens: 8192)</p>
+          <p>• <strong>Flash-Lite:</strong> Minimal config for speed</p>
+          <p>• <strong>Consistent Testing:</strong> No variables - pure model performance comparison</p>
+          <p>• Check console for detailed performance logging</p>
         </div>
       </div>
     </div>
@@ -203,18 +207,20 @@
 
 <script setup>
 import { useAiTesting } from './composables/useAiTesting.js'
-import { testPresets } from './data/testPresets.js'
 
 // Import ultra-minimal testing functionality
 const {
   // Configuration
   apiKey,
   selectedModel,
+  testMethod,
   
   // Test state
-  testInput,
   testResults,
   isRunning,
+  
+  // Test content
+  FIXED_TEST_CONTENT,
   
   // Computed
   canRunTest,
@@ -233,8 +239,5 @@ const getTimingColor = (time) => {
   return 'text-red-400'
 }
 
-// Load default test text
-if (!testInput.value) {
-  testInput.value = testPresets[1].content // Medium text as default
-}
+// No need to set default content - using fixed test content
 </script>
