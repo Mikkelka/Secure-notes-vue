@@ -80,18 +80,16 @@ export function useAiTesting() {
     const startTime = performance.now()
     
     try {
-      // Import AI service dynamically
-      const { processTextWithAi } = await import('../../services/aiService.js')
+      // Import standalone AI test service
+      const { processTextWithAi } = await import('../services/aiTestService.js')
       
-      // Create mock user settings
-      const mockUserSettings = {
-        aiSettings: {
-          apiKey: apiKey.value.trim(),
-          selectedModel: testConfig.value.model,
-          enableThinking: testConfig.value.enableThinking,
-          thinkingBudget: testConfig.value.thinkingBudget,
-          includeThoughts: testConfig.value.includeThoughts
-        }
+      // Create test configuration (no mock user settings needed)
+      const testConfiguration = {
+        apiKey: apiKey.value.trim(),
+        model: testConfig.value.model,
+        enableThinking: testConfig.value.enableThinking,
+        thinkingBudget: testConfig.value.thinkingBudget,
+        includeThoughts: testConfig.value.includeThoughts
       }
       
       console.log(`🧪 AI Test Started - ${testConfig.value.model}`)
@@ -106,11 +104,11 @@ export function useAiTesting() {
         window.aiPerformanceMetrics = []
       }
       
-      // Run the AI test
+      // Run the AI test with standalone service
       const result = await processTextWithAi(
         testInput.value,
         'AI Test',
-        mockUserSettings,
+        testConfiguration,
         true // Enable debug timing
       )
       
