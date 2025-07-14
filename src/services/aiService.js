@@ -205,11 +205,42 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       systemInstruction: instructionPrompt,
     };
     
-    // Add thinking config if thoughts are requested
-    if (userSettings?.aiSettings?.includeThoughts) {
-      config.thinkingConfig = {
-        includeThoughts: true
-      };
+    // UNIVERSAL THINKING IMPLEMENTATION: Simple enableThinking toggle for both models
+    const isFlashLite = model.includes('flash-lite');
+    const enableThinking = userSettings?.aiSettings?.enableThinking;
+    
+    // For debug tool: also check includeThoughts and thinkingBudget for advanced testing
+    const includeThoughts = userSettings?.aiSettings?.includeThoughts;
+    const thinkingBudget = userSettings?.aiSettings?.thinkingBudget ?? -1;
+    
+    if (enableThinking || includeThoughts) {
+      if (isFlashLite) {
+        // Flash-Lite: Requires includeThoughts to activate thinking
+        config.thinkingConfig = {
+          includeThoughts: true,
+          thinkingBudget: parseInt(thinkingBudget) // Dynamic thinking for Flash-Lite
+        };
+        
+        if (enableDebugTiming) {
+          console.log(`🧠 Flash-Lite: THINKING ENABLED (budget: ${thinkingBudget})`);
+          console.log('🔧 Config:', JSON.stringify(config.thinkingConfig));
+        }
+      } else {
+        // Standard Flash: Show thoughts when thinking enabled
+        config.thinkingConfig = {
+          includeThoughts: true
+        };
+        
+        if (enableDebugTiming) {
+          console.log('🧠 Standard Flash: THINKING + THOUGHTS ENABLED');
+        }
+      }
+    } else {
+      // Both models: Pure speed mode - no thinkingConfig
+      if (enableDebugTiming) {
+        const modelName = isFlashLite ? 'Flash-Lite' : 'Standard Flash';
+        console.log(`⚡ ${modelName}: PURE SPEED MODE (thinking disabled)`);
+      }
     }
     
     const streamResponse = await ai.models.generateContentStream({

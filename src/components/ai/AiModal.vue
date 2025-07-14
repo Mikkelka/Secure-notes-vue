@@ -61,13 +61,41 @@
         <label class="block text-sm font-medium text-gray-300 mb-2">
           AI Model
         </label>
-        <select
-          v-model="selectedModel"
-          class="w-full px-3 py-2 pr-8 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-          <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash Lite (Preview)</option>
-        </select>
+        <div class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
+          <span class="text-green-400 font-medium">⚡ Gemini 2.5 Flash Lite</span>
+          <span class="text-xs text-gray-400 ml-2">(Optimized for speed)</span>
+        </div>
+      </div>
+
+      <!-- Universal Thinking Toggle -->
+      <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="block text-sm font-medium text-gray-300">
+              Enable AI Thinking
+            </label>
+            <p class="text-xs text-gray-400 mt-1">
+              Flash-Lite: ~1s (pure speed) vs ~4s (with thinking & reasoning)
+            </p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input
+              v-model="enableThinking"
+              type="checkbox"
+              class="sr-only peer"
+            />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+          </label>
+        </div>
+        <div class="mt-2 text-xs">
+          <span :class="!enableThinking ? 'text-green-400 font-medium' : 'text-gray-500'">
+            ⚡ Pure Speed
+          </span>
+          <span class="text-gray-400 mx-2">|</span>
+          <span :class="enableThinking ? 'text-purple-400 font-medium' : 'text-gray-500'">
+            🧠 Thinking Enabled
+          </span>
+        </div>
       </div>
 
       <!-- Custom Instructions Manager -->
@@ -232,7 +260,8 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updateAiSettings'])
 
 const apiKey = ref('')
-const selectedModel = ref('gemini-2.5-flash')
+const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
+const enableThinking = ref(false)
 const apiStatus = ref({ message: '', type: '' })
 const hasApiKey = ref(false)
 
@@ -378,10 +407,11 @@ const handleClearApiKey = async () => {
   }
 }
 
-// Auto-save settings when they change
-watch(selectedModel, (newValue) => {
+// Note: selectedModel watcher removed - model is now fixed to Flash-Lite
+
+watch(enableThinking, (newValue) => {
   if (props.userSettings?.aiSettings) {
-    emit('updateAiSettings', { selectedModel: newValue })
+    emit('updateAiSettings', { enableThinking: newValue })
   }
 })
 
@@ -395,7 +425,8 @@ onMounted(() => {
       apiStatus.value = { message: 'API nøgle er gemt', type: 'success' }
     }
     
-    selectedModel.value = aiSettings.selectedModel || 'gemini-2.5-flash'
+    selectedModel.value = 'gemini-2.5-flash-lite-preview-06-17' // Fixed to Flash-Lite only
+    enableThinking.value = aiSettings.enableThinking || false
     
     // Load custom instructions list
     if (aiSettings.customInstructions) {

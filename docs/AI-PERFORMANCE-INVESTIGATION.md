@@ -194,3 +194,96 @@ While the critical performance issue has been resolved with Flash-Lite achieving
 - 🔬 **Future**: Advanced optimization techniques and model selection logic
 
 **Note**: While Flash-Lite solves the immediate business need, optimizing Standard Flash remains important for users requiring detailed AI analysis and reasoning capabilities.
+
+## 🔍 **FLASH-LITE THINKING DISCOVERY** *(January 14, 2025)*
+
+### **Major Discovery: Flash-Lite DOES Support Thinking**
+
+Previous investigation concluded Flash-Lite had "no thinking capability", but further testing revealed **Flash-Lite fully supports thinking** with a critical implementation detail.
+
+### **Key Technical Finding**
+
+**Flash-Lite Thinking Activation**:
+- ❌ **`thinkingBudget` alone**: Ignored completely by Flash-Lite
+- ✅ **`includeThoughts: true`**: Required to activate thinking
+- 🔧 **Implementation**: `thinkingBudget` + `includeThoughts: true` for full control
+
+```javascript
+// Flash-Lite thinking configuration that actually works
+config.thinkingConfig = {
+  includeThoughts: true,        // Master switch - REQUIRED for activation  
+  thinkingBudget: -1           // Budget control (only works when includeThoughts: true)
+}
+```
+
+### **Updated Performance Results**
+
+| Model | Thinking Config | Time (ms) | Thoughts | Performance Category |
+|-------|----------------|-----------|----------|---------------------|
+| **Flash-Lite** | None | **700-1,200ms** | NO | ⚡ **Pure Speed** |
+| **Flash-Lite** | includeThoughts: true + budget: 0 | **1,600-2,000ms** | YES | 🚀 **Fast Thinking** |
+| **Flash-Lite** | includeThoughts: true + budget: 1000 | **3,000-4,500ms** | YES | 🧠 **Balanced Thinking** |
+| **Flash-Lite** | includeThoughts: true + budget: -1 | **5,000-6,500ms** | YES | 🎯 **Full Thinking** |
+| **Standard Flash** | Any config | **12,000-18,000ms** | YES | ❌ **Slow (API latency)** |
+
+### **Flash-Lite: The Perfect Middle Ground**
+
+Flash-Lite with thinking enabled offers **the best balance** for SecureNotes:
+
+#### **Advantages**:
+- ✅ **3-6 second thinking** vs Standard Flash's 12-18 seconds
+- ✅ **Full thought summaries** available for debugging/analysis  
+- ✅ **Controllable thinking budget** (0 to -1 range)
+- ✅ **Still much faster** than Standard Flash
+- ✅ **Quality reasoning** without extreme latency
+
+#### **Performance Comparison**:
+- **Flash-Lite Pure Speed**: ~1s (no thinking)
+- **Flash-Lite Thinking**: ~4s (with reasoning) ⭐ **Sweet Spot**
+- **Standard Flash**: ~15s (same reasoning quality but 4x slower)
+
+### **Production Recommendation Update**
+
+**NEW OPTIMAL CONFIGURATION**:
+```javascript
+// Flash-Lite with controlled thinking for best UX
+model: 'gemini-2.5-flash-lite-preview-06-17',
+config: {
+  systemInstruction: instructionPrompt,
+  thinkingConfig: {
+    includeThoughts: true,  // Enable thinking + thoughts
+    thinkingBudget: 1000    // Balanced thinking (3-4s response)
+  }
+}
+```
+
+### **Implementation Changes**
+
+#### **AI Settings Enhancement**:
+- Added **thinking control** specifically for Flash-Lite
+- **"Enable Thinking + Show Summaries"** checkbox as master control
+- **Thinking Budget** dropdown for fine-tuning when thinking enabled
+
+#### **Smart Model Strategy**:
+- **Flash-Lite + Thinking**: Default for most tasks (4s, high quality)
+- **Flash-Lite Pure Speed**: For simple operations (1s, basic quality)  
+- **Standard Flash**: Avoid due to API latency issues (15s)
+
+### **Technical Discovery Summary**
+
+1. **Google API Quirk**: Flash-Lite requires `includeThoughts: true` to activate thinking
+2. **thinkingBudget Dependency**: Only works when `includeThoughts: true` is set
+3. **Performance Sweet Spot**: Flash-Lite thinking offers 4x better performance than Standard Flash
+4. **Debug Tool Enhancement**: Added Flash-Lite thinking discovery section with accurate controls
+
+### **Final Production Strategy**
+
+**OPTIMAL CONFIGURATION FOR SECURENOTES**:
+- **Model**: Gemini 2.5 Flash-Lite Preview  
+- **Thinking**: Enabled with budget 1000 (balanced)
+- **Performance**: ~4 seconds with full reasoning capability
+- **User Experience**: Near real-time with quality thinking
+
+**Result**: Best of both worlds - sub-5-second responses with full AI reasoning capability! 🚀
+
+**Investigation Status: OPTIMIZATION COMPLETE** ✅

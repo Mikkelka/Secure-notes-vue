@@ -33,12 +33,12 @@
           </button>
           
           <button
-            @click="$emit('ai-debug')"
+            @click="openTestLab"
             class="header-btn-base header-btn-orange"
-            title="AI Performance Debug"
+            title="AI Testing Lab (Isolated)"
           >
             <Zap class="w-4 h-4" />
-            <span>Debug</span>
+            <span>Test Lab</span>
           </button>
           
           <button
@@ -88,11 +88,11 @@
               AI Indstillinger
             </button>
             <button
-              @click="$emit('ai-debug'); showMobileMenu = false"
+              @click="openTestLab(); showMobileMenu = false"
               class="dropdown-btn-mobile text-orange-300"
             >
               <Zap class="w-4 h-4" />
-              AI Debug
+              AI Test Lab
             </button>
             <button
               @click="$emit('settings'); showMobileMenu = false"
@@ -135,5 +135,10 @@ defineProps({
   }
 })
 
-defineEmits(['logout', 'export', 'ai', 'ai-debug', 'settings'])
+defineEmits(['logout', 'export', 'ai', 'settings'])
+
+// Open AI Testing Lab in new tab/window
+const openTestLab = () => {
+  window.open('/ai-test.html', '_blank', 'width=1400,height=900')
+}
 </script>

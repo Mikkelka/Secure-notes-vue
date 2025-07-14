@@ -13,7 +13,6 @@ export const useUIStore = defineStore('ui', () => {
   const showDataExport = ref(false)
   const showImportData = ref(false)
   const showAiModal = ref(false)
-  const showAiDebug = ref(false)
   const showAppSettings = ref(false)
   const showMobileSidebar = ref(false)
   const activeMobileButton = ref(null)
@@ -54,13 +53,6 @@ export const useUIStore = defineStore('ui', () => {
     showAiModal.value = false
   }
 
-  const openAiDebug = () => {
-    showAiDebug.value = true
-  }
-
-  const closeAiDebug = () => {
-    showAiDebug.value = false
-  }
 
   const openAppSettings = () => {
     showAppSettings.value = true
@@ -158,7 +150,6 @@ export const useUIStore = defineStore('ui', () => {
     showDataExport.value = false
     showImportData.value = false
     showAiModal.value = false
-    showAiDebug.value = false
     showAppSettings.value = false
     showMobileSidebar.value = false
     activeMobileButton.value = null
@@ -174,7 +165,6 @@ export const useUIStore = defineStore('ui', () => {
     showDataExport,
     showImportData,
     showAiModal,
-    showAiDebug,
     showAppSettings,
     showMobileSidebar,
     activeMobileButton,
@@ -190,8 +180,6 @@ export const useUIStore = defineStore('ui', () => {
     closeImportData,
     openAiModal,
     closeAiModal,
-    openAiDebug,
-    closeAiDebug,
     openAppSettings,
     closeAppSettings,
     toggleMobileSidebar,
