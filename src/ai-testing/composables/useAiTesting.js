@@ -1,23 +1,13 @@
+// Ultra-Minimal AI Testing Composable - Back to Basics
 import { ref, computed } from 'vue'
 
 export function useAiTesting() {
-  // Test configuration
-  const testConfig = ref({
-    model: 'gemini-2.5-flash-lite-preview-06-17',
-    enableThinking: false,
-    thinkingBudget: -1,
-    includeThoughts: false
-  })
-
-  // API Key management
+  // Minimal configuration - only essentials
   const apiKey = ref('')
-  const apiStatus = ref({ message: '', type: '' })
-
-  // Test state
+  const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
   const testInput = ref('')
   const testResults = ref([])
   const isRunning = ref(false)
-  const showAdvanced = ref(false)
 
   // Computed properties
   const canRunTest = computed(() => {
@@ -27,24 +17,20 @@ export function useAiTesting() {
   const performanceSummary = computed(() => {
     if (testResults.value.length === 0) return null
     
-    const successfulResults = testResults.value.filter(r => r.success)
-    if (successfulResults.length === 0) return null
-    
-    const totalTimes = successfulResults.map(r => r.totalTime)
+    const totalTimes = testResults.value.map(r => r.totalTime)
     
     return {
       avgTotal: Math.round(totalTimes.reduce((a, b) => a + b, 0) / totalTimes.length),
       fastest: Math.min(...totalTimes),
       slowest: Math.max(...totalTimes),
-      totalTests: successfulResults.length
+      totalTests: testResults.value.length
     }
   })
 
-  // API Key management methods
+  // API Key management
   const saveApiKey = () => {
     if (apiKey.value.trim()) {
       localStorage.setItem('ai-test-api-key', apiKey.value.trim())
-      apiStatus.value = { message: 'API key saved!', type: 'success' }
     }
   }
 
@@ -52,27 +38,15 @@ export function useAiTesting() {
     const savedApiKey = localStorage.getItem('ai-test-api-key')
     if (savedApiKey) {
       apiKey.value = savedApiKey
-      apiStatus.value = { message: 'API key loaded from storage', type: 'success' }
     }
   }
 
-  // Test preset methods
-  const loadPreset = (preset) => {
-    testInput.value = preset.content
-  }
-
-  // Utility methods
-  const getTimingColor = (time) => {
-    if (time < 2000) return 'text-green-400'
-    if (time < 5000) return 'text-yellow-400'
-    return 'text-red-400'
-  }
-
+  // Clear results
   const clearResults = () => {
     testResults.value = []
   }
 
-  // Main test execution
+  // Main test execution - ultra minimal
   const runTest = async () => {
     if (!canRunTest.value || isRunning.value) return
     
@@ -80,102 +54,68 @@ export function useAiTesting() {
     const startTime = performance.now()
     
     try {
-      // Import standalone AI test service
+      // Import ultra-minimal AI service
       const { processTextWithAi } = await import('../services/aiTestService.js')
       
-      // Create test configuration (no mock user settings needed)
-      const testConfiguration = {
-        apiKey: apiKey.value.trim(),
-        model: testConfig.value.model,
-        enableThinking: testConfig.value.enableThinking,
-        thinkingBudget: testConfig.value.thinkingBudget,
-        includeThoughts: testConfig.value.includeThoughts
-      }
+      console.log(`🧪 Ultra-Minimal Test Started - ${selectedModel.value}`)
       
-      console.log(`🧪 AI Test Started - ${testConfig.value.model}`)
-      console.log('🔧 Config:', {
-        enableThinking: testConfig.value.enableThinking,
-        thinkingBudget: testConfig.value.thinkingBudget,
-        includeThoughts: testConfig.value.includeThoughts
-      })
-      
-      // Initialize performance tracking
-      if (!window.aiPerformanceMetrics) {
-        window.aiPerformanceMetrics = []
-      }
-      
-      // Run the AI test with standalone service
+      // Call minimal API - no complex configuration
       const result = await processTextWithAi(
         testInput.value,
-        'AI Test',
-        testConfiguration,
-        true // Enable debug timing
+        apiKey.value.trim(),
+        selectedModel.value
       )
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
       
-      // Get the latest performance metrics
-      const latestMetrics = window.aiPerformanceMetrics[window.aiPerformanceMetrics.length - 1]
+      // Get latest performance metrics from service
+      const latestMetrics = window.aiPerformanceMetrics?.[window.aiPerformanceMetrics.length - 1]
       
       // Add result to list
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
-        model: testConfig.value.model,
-        thinkingEnabled: testConfig.value.enableThinking,
+        model: selectedModel.value,
         success: true,
         totalTime,
-        apiTime: latestMetrics?.apiTime || Math.round(totalTime * 0.9),
-        firstChunkTime: latestMetrics?.firstChunkTime || 0,
         responseLength: result.length,
-        response: result,
-        hasThoughts: latestMetrics?.hasThoughts || false,
-        thoughtSummaries: latestMetrics?.thoughtSummaries || null,
-        thoughtLength: latestMetrics?.thoughtLength || 0
+        response: result
       })
       
-      console.log(`✅ AI Test Completed - ${totalTime}ms`)
+      console.log(`✅ Ultra-Minimal Test Completed - ${totalTime}ms`)
       
     } catch (error) {
-      console.error('❌ AI Test Error:', error)
+      console.error('❌ Ultra-Minimal Test Error:', error)
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
       
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
-        model: testConfig.value.model,
-        thinkingEnabled: testConfig.value.enableThinking,
+        model: selectedModel.value,
         success: false,
         totalTime,
-        apiTime: 0,
-        firstChunkTime: 0,
         responseLength: 0,
         response: '',
-        error: error.message,
-        hasThoughts: false,
-        thoughtSummaries: null,
-        thoughtLength: 0
+        error: error.message
       })
     } finally {
       isRunning.value = false
     }
   }
 
-  // Initialize on creation
+  // Initialize
   loadSavedApiKey()
 
   return {
     // Configuration
-    testConfig,
     apiKey,
-    apiStatus,
+    selectedModel,
     
     // Test state
     testInput,
     testResults,
     isRunning,
-    showAdvanced,
     
     // Computed
     canRunTest,
@@ -183,8 +123,6 @@ export function useAiTesting() {
     
     // Methods
     saveApiKey,
-    loadPreset,
-    getTimingColor,
     clearResults,
     runTest
   }
