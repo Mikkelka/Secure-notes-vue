@@ -3,16 +3,21 @@
     <!-- Separate Buttons -->
     <div ref="buttonContainerRef" class="flex gap-2">
       <!-- Main AI Process Button -->
-      <BaseButton
+      <button
         @click="$emit('process')"
         :disabled="disabled"
-        variant="primary"
-        class="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="[
+          'inline-flex items-center justify-center gap-2 font-medium transition-all flex-1 disabled:opacity-50 disabled:cursor-not-allowed text-white focus:outline-none focus:ring-2 focus:ring-opacity-50',
+          getButtonClass()
+        ]"
       >
-        <div v-if="isProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div v-if="isProcessing && !isStreamingStarted && !streamingText && !thoughtText && !isCompleted" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div v-else-if="isCompleted" class="w-4 h-4 text-emerald-200">✓</div>
+        <div v-else-if="thoughtText" class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+        <div v-else-if="isStreamingStarted || streamingText" class="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
         <Brain v-else class="w-4 h-4" />
-        AI Process ({{ getShortLabel(selectedInstruction) }})
-      </BaseButton>
+        {{ getButtonText() }}
+      </button>
       
       <!-- Dropdown Toggle Button -->
       <BaseButton
@@ -132,10 +137,26 @@ const props = defineProps({
   content: {
     type: String,
     default: ''
+  },
+  streamingText: {
+    type: String,
+    default: ''
+  },
+  thoughtText: {
+    type: String,
+    default: ''
+  },
+  isCompleted: {
+    type: Boolean,
+    default: false
+  },
+  isStreamingStarted: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['process', 'instructionChanged'])
+const emit = defineEmits(['process', 'instructionChanged', 'dropdownOpened'])
 
 const isOpen = ref(false)
 const selectedInstruction = ref('std-note-organizer')
@@ -246,6 +267,36 @@ const isSuggested = (instructionKey) => {
   return suggested === instructionKey && suggested !== selectedInstruction.value
 }
 
+// Get button class based on streaming state
+const getButtonClass = () => {
+  const baseClasses = 'px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-purple-500'
+  
+  if (props.isCompleted) {
+    return `${baseClasses} bg-emerald-600 hover:bg-emerald-500 focus:ring-emerald-500`
+  } else if (props.thoughtText) {
+    return `${baseClasses} bg-blue-600 hover:bg-blue-500 focus:ring-blue-500`
+  } else if (props.isStreamingStarted || props.streamingText) {
+    return `${baseClasses} bg-green-600 hover:bg-green-500 focus:ring-green-500`
+  } else {
+    return `${baseClasses} bg-purple-600 hover:bg-purple-500 focus:ring-purple-500`
+  }
+}
+
+// Get button text based on streaming state
+const getButtonText = () => {
+  if (props.isCompleted) {
+    return `AI Complete`
+  } else if (props.thoughtText) {
+    return `AI Reasoning ${props.thoughtText.length} tegn`
+  } else if (props.streamingText) {
+    return `AI Streaming ${props.streamingText.length} tegn`
+  } else if (props.isStreamingStarted) {
+    return `AI Streaming...`
+  } else {
+    return `AI Process (${getShortLabel(selectedInstruction.value)})`
+  }
+}
+
 // Group instructions for display
 const groupedInstructions = computed(() => {
   const options = instructionOptions.value
@@ -290,6 +341,8 @@ const calculateDropdownDirection = () => {
 const toggleDropdown = () => {
   if (!isOpen.value) {
     isOpen.value = true
+    // Emit dropdown opened event to clear completed state
+    emit('dropdownOpened')
     // Calculate direction on next tick when dropdown is rendered
     nextTick(() => {
       calculateDropdownDirection()

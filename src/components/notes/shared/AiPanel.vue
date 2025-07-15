@@ -7,10 +7,15 @@
           <AiInstructionDropdown
             @process="handleAiProcess"
             @instruction-changed="handleInstructionChanged"
+            @dropdown-opened="handleDropdownOpened"
             :is-processing="isAiProcessing"
             :disabled="!content.trim()"
             :user-settings="userSettings"
             :content="content"
+            :streaming-text="streamingText"
+            :thought-text="thoughtStreamingText"
+            :is-completed="isCompleted"
+            :is-streaming-started="isStreamingStarted"
           />
         </div>
         <BaseButton
@@ -23,43 +28,6 @@
           <Undo class="w-4 h-4" />
           Undo
         </BaseButton>
-      </div>
-      
-      <!-- Real-time AI Streaming Display -->
-      <div v-if="isStreaming || streamingText.length > 0" class="mb-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div v-if="isStreaming" class="flex items-center gap-2">
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="text-green-400 text-sm">AI Streaming...</span>
-          </div>
-          <span class="text-gray-400 text-xs">{{ streamingText.length }} tegn</span>
-        </div>
-        
-        <!-- Streaming Content Display -->
-        <div class="p-3 bg-gray-800/50 border border-green-600/30 rounded-lg max-h-32 overflow-y-auto">
-          <div v-if="streamingText.length === 0 && !isStreaming" class="text-gray-500 text-center py-4">
-            AI streaming starter...
-          </div>
-          <div v-else class="text-gray-200 text-sm leading-relaxed">
-            <span class="text-green-400 opacity-80">{{ streamingText }}</span>
-            <span v-if="isStreaming" class="animate-pulse text-green-400">▍</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Thought Summaries Display -->
-      <div v-if="thoughtStreamingText.length > 0" class="mb-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-          <span class="text-blue-400 text-sm">🧠 AI Reasoning</span>
-          <span class="text-gray-400 text-xs">{{ thoughtStreamingText.length }} tegn</span>
-        </div>
-        
-        <div class="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg max-h-32 overflow-y-auto">
-          <div class="text-blue-200 text-sm leading-relaxed">
-            {{ thoughtStreamingText }}
-          </div>
-        </div>
       </div>
       
       <!-- Save and Cancel buttons -->
@@ -135,12 +103,16 @@ const currentInstruction = ref('note-organizer')
 const streamingText = ref('')
 const thoughtStreamingText = ref('')
 const isStreaming = ref(false)
+const isCompleted = ref(false)
+const isStreamingStarted = ref(false)
 
 // Streaming display methods
 const clearStreamingDisplay = () => {
   streamingText.value = ''
   thoughtStreamingText.value = ''
   isStreaming.value = false
+  isCompleted.value = false
+  isStreamingStarted.value = false
 }
 
 const addStreamingChunk = (chunk) => {
@@ -156,6 +128,7 @@ const addThoughtStreamingChunk = (chunk) => {
 const startStreaming = () => {
   clearStreamingDisplay()
   isStreaming.value = true
+  isStreamingStarted.value = true
 }
 
 // AI Processing functionality
@@ -191,6 +164,10 @@ const handleAiProcess = async () => {
     emit('contentUpdate', processedHtml)
     
     canUndo.value = true
+    
+    // Show completed state until user interaction
+    isCompleted.value = true
+    
   } catch (error) {
     console.error('AI processing error:', error)
     alert(error.message || 'AI processing fejlede')
@@ -203,6 +180,15 @@ const handleAiProcess = async () => {
 // Handle instruction changes from dropdown
 const handleInstructionChanged = (instruction) => {
   currentInstruction.value = instruction
+  // Clear completed state when user changes instruction
+  isCompleted.value = false
+}
+
+// Handle dropdown opened (clear completed state when user opens dropdown)
+const handleDropdownOpened = () => {
+  isCompleted.value = false
+  // Also clear streaming state that might still be showing
+  clearStreamingDisplay()
 }
 
 // Handle undo functionality
@@ -213,6 +199,8 @@ const handleUndo = () => {
   emit('contentUpdate', originalContent.value)
   
   canUndo.value = false
+  // Clear streaming state when undoing
+  clearStreamingDisplay()
 }
 
 // Handle save
