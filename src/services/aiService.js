@@ -135,8 +135,11 @@ const getAiSettings = (userSettings) => {
                        sessionStorage.getItem("ai-instructions") || 
                        "std-note-organizer";
 
+  // Always check sessionStorage for model selection first (AI modal saves here)
+  const selectedModel = sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite-preview-06-17";
+
   if (userSettings?.aiSettings) {
-    const { apiKey, selectedModel, selectedInstruction } = userSettings.aiSettings;
+    const { apiKey, selectedInstruction } = userSettings.aiSettings;
     
     // Use selectedInstruction override if provided
     if (selectedInstruction) {
@@ -145,7 +148,7 @@ const getAiSettings = (userSettings) => {
     
     return {
       apiKey: apiKey || "",
-      model: selectedModel || "gemini-2.5-flash-lite-preview-06-17", // Fastest model
+      model: selectedModel, // Always use sessionStorage model
       instructionType,
     };
   }
@@ -153,7 +156,7 @@ const getAiSettings = (userSettings) => {
   // Legacy fallback til sessionStorage
   return {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
-    model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite-preview-06-17", // Fastest model
+    model: selectedModel, // Always use sessionStorage model
     instructionType,
   };
 };

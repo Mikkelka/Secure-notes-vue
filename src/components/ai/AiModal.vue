@@ -61,10 +61,18 @@
         <label class="block text-sm font-medium text-gray-300 mb-2">
           AI Model
         </label>
-        <div class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
-          <span class="text-green-400 font-medium">⚡ Gemini 2.5 Flash Lite</span>
-          <span class="text-xs text-gray-400 ml-2">(Optimized for speed)</span>
-        </div>
+        <select
+          v-model="selectedModel"
+          @change="handleModelChange"
+          class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="gemini-2.5-flash-lite-preview-06-17">
+            ⚡ Flash Lite - Hurtigste model (~1s)
+          </option>
+          <option value="gemini-2.5-flash">
+            🧠 Flash Standard - Bedre reasoning (~4s)
+          </option>
+        </select>
       </div>
 
       <!-- Universal Thinking Toggle -->
@@ -265,6 +273,11 @@ const enableThinking = ref(false)
 const apiStatus = ref({ message: '', type: '' })
 const hasApiKey = ref(false)
 
+// Handle model change
+const handleModelChange = () => {
+  sessionStorage.setItem('ai-model', selectedModel.value)
+}
+
 // Custom Instructions Management
 const newInstructionName = ref('')
 const newInstructionText = ref('')
@@ -407,7 +420,7 @@ const handleClearApiKey = async () => {
   }
 }
 
-// Note: selectedModel watcher removed - model is now fixed to Flash-Lite
+// Model selection now supports both Flash Lite and Flash Standard
 
 watch(enableThinking, (newValue) => {
   if (props.userSettings?.aiSettings) {
@@ -425,7 +438,13 @@ onMounted(() => {
       apiStatus.value = { message: 'API nøgle er gemt', type: 'success' }
     }
     
-    selectedModel.value = 'gemini-2.5-flash-lite-preview-06-17' // Fixed to Flash-Lite only
+    // Load selected model from sessionStorage
+    const savedModel = sessionStorage.getItem('ai-model')
+    if (savedModel) {
+      selectedModel.value = savedModel
+    } else {
+      selectedModel.value = 'gemini-2.5-flash-lite-preview-06-17' // Default to Flash-Lite
+    }
     enableThinking.value = aiSettings.enableThinking || false
     
     // Load custom instructions list
