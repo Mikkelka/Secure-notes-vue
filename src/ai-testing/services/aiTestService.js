@@ -14,121 +14,31 @@ VIGTIGT: Brug ALDRIG borders, rammer, border-stil, eller CSS borders i outputtet
 
 const PRODUCTION_SYSTEM_INSTRUCTION = `${NOTE_ORGANIZER_INSTRUCTION} ${FORMATTING_INSTRUCTIONS}`;
 
-/**
- * Model-specific optimized AI processing
- * @param {string} content - Input text to process
- * @param {string} apiKey - Google AI API key
- * @param {string} model - Model to use
- * @returns {Promise<string>} - AI response
- */
-export const processTextWithAi = async (content, apiKey, model) => {
-  const startTime = performance.now();
-  
-  const ai = new GoogleGenAI({ apiKey });
-  
-  // Model-specific configuration - Standard Flash gets optimization, Flash-Lite stays minimal
-  const isStandardFlash = model.includes('flash') && !model.includes('lite');
-  
-  if (isStandardFlash) {
-    // Optimized configuration for Standard Flash using new SDK approach
-    console.log(`🧪 Standard Flash Optimized: ${model} - starting...`);
-    
-    const response = await ai.models.generateContent({
-      model,
-      contents: content,
-      config: {
-        // Explicit thinking disabling + output control
-        thinkingConfig: {
-          thinkingBudget: 0  // Explicitly disable thinking for speed
-        },
-        generationConfig: {
-          maxOutputTokens: 8192, // Ensure longer responses
-          temperature: 0.7,
-          topP: 0.8,
-          topK: 40
-        },
-        systemInstruction: {
-          parts: [{ text: PRODUCTION_SYSTEM_INSTRUCTION }],
-        }
-      }
-    });
-    
-    const endTime = performance.now();
-    const totalTime = Math.round(endTime - startTime);
-    
-    console.log(`🧪 Standard Flash Optimized: ${model} - ${totalTime}ms`);
-    
-    const responseText = response.text || '';
-    
-    // Store metrics
-    if (typeof window !== 'undefined') {
-      if (!window.aiPerformanceMetrics) {
-        window.aiPerformanceMetrics = [];
-      }
-      
-      window.aiPerformanceMetrics.push({
-        timestamp: new Date().toISOString(),
-        model,
-        totalTime,
-        responseLength: responseText.length,
-        method: 'optimized-standard-flash',
-        optimized: true,
-        thinkingDisabled: true,
-        instructions: 'note-organizer'
-      });
-    }
-    
-    return responseText;
-    
-  } else {
-    // Minimal configuration for Flash-Lite - keep it simple and fast
-    console.log(`🧪 Flash-Lite Minimal: ${model} - starting...`);
-    
-    const response = await ai.models.generateContent({
-      model,
-      contents: content,
-    });
-    
-    const endTime = performance.now();
-    const totalTime = Math.round(endTime - startTime);
-    
-    console.log(`🧪 Flash-Lite Minimal: ${model} - ${totalTime}ms`);
-    
-    const responseText = response.text || '';
-    
-    // Store metrics
-    if (typeof window !== 'undefined') {
-      if (!window.aiPerformanceMetrics) {
-        window.aiPerformanceMetrics = [];
-      }
-      
-      window.aiPerformanceMetrics.push({
-        timestamp: new Date().toISOString(),
-        model,
-        totalTime,
-        responseLength: responseText.length,
-        method: 'minimal-flash-lite',
-        minimal: true,
-        instructions: 'note-organizer'
-      });
-    }
-    
-    return responseText;
-  }
-}
 
 /**
- * Google's official streaming approach - exactly like their examples
+ * Google's official streaming approach - production AI processing
  * @param {string} content - Input text to process
  * @param {string} apiKey - Google AI API key  
  * @param {string} model - Model to use
+ * @param {function} onChunk - Optional callback for real-time chunk updates
  * @returns {Promise<string>} - AI response
  */
-export const processTextWithAiStreaming = async (content, apiKey, model) => {
+export const processTextWithAi = async (content, apiKey, model, onChunk = null) => {
   const startTime = performance.now();
   
   // Basic Google AI setup
   const ai = new GoogleGenAI({ apiKey });
+  
+  // Token counting for performance analysis (Google cookbook best practice)
+  const tokenCountStart = performance.now();
+  const tokenResponse = await ai.models.countTokens({
+    model,
+    contents: content,
+  });
+  const tokenCountTime = performance.now() - tokenCountStart;
+  const inputTokens = tokenResponse.totalTokens;
+  
+  console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
   
   // Google's official streaming approach with production formatting instructions
   const response = await ai.models.generateContentStream({
@@ -145,6 +55,11 @@ export const processTextWithAiStreaming = async (content, apiKey, model) => {
   for await (const chunk of response) {
     console.log(chunk.text); // Google's debug output
     text += chunk.text;
+    
+    // Call onChunk callback for real-time UI updates
+    if (onChunk && chunk.text) {
+      onChunk(chunk.text);
+    }
   }
   
   const endTime = performance.now();
@@ -152,7 +67,10 @@ export const processTextWithAiStreaming = async (content, apiKey, model) => {
   
   console.log(`🧪 Google Streaming Test: ${model} - ${totalTime}ms`);
   
-  // Store streaming metrics
+  // Calculate tokens per second
+  const tokensPerSecond = Math.round((inputTokens / totalTime) * 1000);
+  
+  // Store streaming metrics with token information
   if (typeof window !== 'undefined') {
     if (!window.aiPerformanceMetrics) {
       window.aiPerformanceMetrics = [];
@@ -165,7 +83,11 @@ export const processTextWithAiStreaming = async (content, apiKey, model) => {
       responseLength: text.length,
       method: 'production-streaming',
       streaming: true,
-      instructions: 'note-organizer'
+      instructions: 'note-organizer',
+      // Token metrics from Google cookbook
+      inputTokens,
+      tokenCountTime,
+      tokensPerSecond
     });
   }
   
@@ -188,6 +110,5 @@ export const AVAILABLE_MODELS = [
 
 export default {
   processTextWithAi,
-  processTextWithAiStreaming,
   AVAILABLE_MODELS
 };

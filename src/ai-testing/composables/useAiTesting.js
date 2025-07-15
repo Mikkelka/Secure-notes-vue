@@ -5,9 +5,13 @@ export function useAiTesting() {
   // Minimal configuration - only essentials
   const apiKey = ref('')
   const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
-  const testMethod = ref('simple') // 'simple' or 'streaming'
   const testResults = ref([])
   const isRunning = ref(false)
+
+  // Real-time streaming display
+  const streamingChunks = ref([])
+  const isStreaming = ref(false)
+  const streamingText = ref('')
 
   // Fixed test content - raw unstructured text for consistent formatting testing
   const FIXED_TEST_CONTENT = `møde om projekt status idag kl 14. deltagere: mig, sarah fra design, mikkel tech lead, anna fra product. 
@@ -48,7 +52,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     }
   })
 
-  // API Key management
+  // API Key management with environment variable support (Google cookbook best practice)
   const saveApiKey = () => {
     if (apiKey.value.trim()) {
       localStorage.setItem('ai-test-api-key', apiKey.value.trim())
@@ -56,9 +60,20 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
   }
 
   const loadSavedApiKey = () => {
+    // Check for environment variable first (Google cookbook recommendation)
+    // In Vite, environment variables are accessed via import.meta.env
+    const envApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY
+    if (envApiKey) {
+      apiKey.value = envApiKey
+      console.log('🧪 Using API key from environment variable')
+      return
+    }
+    
+    // Fallback to localStorage
     const savedApiKey = localStorage.getItem('ai-test-api-key')
     if (savedApiKey) {
       apiKey.value = savedApiKey
+      console.log('🧪 Using API key from localStorage')
     }
   }
 
@@ -67,32 +82,58 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     testResults.value = []
   }
 
-  // Main test execution - ultra minimal
+  // Streaming display methods
+  const clearStreamingDisplay = () => {
+    streamingChunks.value = []
+    streamingText.value = ''
+    isStreaming.value = false
+  }
+
+  const addStreamingChunk = (chunk) => {
+    const timestamp = new Date().toLocaleTimeString()
+    streamingChunks.value.push({
+      text: chunk,
+      timestamp,
+      id: Date.now() + Math.random()
+    })
+    streamingText.value += chunk
+  }
+
+  const startStreaming = () => {
+    clearStreamingDisplay()
+    isStreaming.value = true
+  }
+
+  const stopStreaming = () => {
+    isStreaming.value = false
+  }
+
+  // Main test execution - streaming only
   const runTest = async () => {
     if (!canRunTest.value || isRunning.value) return
     
     isRunning.value = true
     const startTime = performance.now()
     
+    // Clear streaming display for new test
+    clearStreamingDisplay()
+    
     try {
-      // Import AI service methods
-      const { processTextWithAi, processTextWithAiStreaming } = await import('../services/aiTestService.js')
+      // Import AI service method
+      const { processTextWithAi } = await import('../services/aiTestService.js')
       
-      const method = testMethod.value === 'streaming' ? 'streaming' : 'simple'
-      console.log(`🧪 Google ${method} Test Started - ${selectedModel.value}`)
+      console.log(`🧪 Streaming Test Started - ${selectedModel.value}`)
       
-      // Choose method based on selection - using fixed test content
-      const result = testMethod.value === 'streaming' 
-        ? await processTextWithAiStreaming(
-            FIXED_TEST_CONTENT,
-            apiKey.value.trim(),
-            selectedModel.value
-          )
-        : await processTextWithAi(
-            FIXED_TEST_CONTENT,
-            apiKey.value.trim(),
-            selectedModel.value
-          )
+      // Start streaming display
+      startStreaming()
+      
+      // Run streaming test with fixed content
+      const result = await processTextWithAi(
+        FIXED_TEST_CONTENT,
+        apiKey.value.trim(),
+        selectedModel.value,
+        addStreamingChunk // Pass chunk handler for real-time display
+      )
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
@@ -100,21 +141,31 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       // Get latest performance metrics from service
       const latestMetrics = window.aiPerformanceMetrics?.[window.aiPerformanceMetrics.length - 1]
       
-      // Add result to list
+      // Add result to list with token metrics
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: testMethod.value === 'streaming' ? 'google-official-streaming' : 'google-official-simple',
+        method: 'production-streaming',
         success: true,
         totalTime,
         responseLength: result.length,
-        response: result
+        response: result,
+        // Include token metrics from service
+        inputTokens: latestMetrics?.inputTokens,
+        tokenCountTime: latestMetrics?.tokenCountTime,
+        tokensPerSecond: latestMetrics?.tokensPerSecond
       })
       
-      console.log(`✅ Google ${method} Test Completed - ${totalTime}ms`)
+      console.log(`✅ Streaming Test Completed - ${totalTime}ms`)
+      
+      // Stop streaming display
+      stopStreaming()
       
     } catch (error) {
-      console.error(`❌ Google ${testMethod.value} Test Error:`, error)
+      console.error(`❌ Google Streaming Test Error:`, error)
+      
+      // Stop streaming on error
+      stopStreaming()
       
       const endTime = performance.now()
       const totalTime = Math.round(endTime - startTime)
@@ -122,7 +173,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: testMethod.value === 'streaming' ? 'google-official-streaming' : 'google-official-simple',
+        method: 'production-streaming',
         success: false,
         totalTime,
         responseLength: 0,
@@ -141,7 +192,6 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     // Configuration
     apiKey,
     selectedModel,
-    testMethod,
     
     // Test state  
     testResults,
@@ -150,6 +200,11 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     // Test content
     FIXED_TEST_CONTENT,
     
+    // Streaming display
+    streamingChunks,
+    isStreaming,
+    streamingText,
+    
     // Computed
     canRunTest,
     performanceSummary,
@@ -157,6 +212,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     // Methods
     saveApiKey,
     clearResults,
-    runTest
+    runTest,
+    clearStreamingDisplay
   }
 }

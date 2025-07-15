@@ -3,11 +3,11 @@
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-purple-300 mb-2">Production-Realistic Performance Testing</h1>
-        <p class="text-gray-400">Testing actual Note Organizer formatting tasks with production instructions</p>
+        <h1 class="text-3xl font-bold text-purple-300 mb-2">Real-Time Streaming AI Testing</h1>
+        <p class="text-gray-400">Watch AI transform raw meeting notes into structured HTML in real-time</p>
         <div class="mt-4 p-4 bg-blue-900/20 border border-blue-600/30 rounded-lg">
           <p class="text-blue-300 text-sm">
-            🧪 <strong>Production Testing</strong> - Raw text → structured HTML notes using actual app instructions
+            🧪 <strong>Live Streaming</strong> - Experience AI response chunks as they arrive with token metrics
           </p>
         </div>
       </div>
@@ -28,6 +28,9 @@
                 placeholder="Enter your API key..."
                 class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              <p class="text-xs text-gray-400 mt-1">
+                Supports VITE_GEMINI_API_KEY or VITE_GOOGLE_API_KEY environment variables
+              </p>
             </div>
             <button
               @click="saveApiKey"
@@ -56,17 +59,6 @@
               </select>
             </div>
 
-            <!-- Test Method Selection -->
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Google Method</label>
-              <select
-                v-model="testMethod"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="simple">Simple (response.text)</option>
-                <option value="streaming">Streaming (chunk.text)</option>
-              </select>
-            </div>
 
             <!-- Fixed Test Content -->
             <div>
@@ -84,8 +76,48 @@
               class="w-full px-4 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg text-white font-medium flex items-center justify-center gap-2"
             >
               <span v-if="isRunning" class="animate-spin">⟳</span>
-              {{ isRunning ? 'Testing...' : `Run ${testMethod === 'streaming' ? 'Streaming' : 'Simple'} Test` }}
+              {{ isRunning ? 'Streaming...' : 'Run Streaming Test' }}
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Streaming Display -->
+      <div v-if="isStreaming || streamingChunks.length > 0" class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold text-green-400">Live Streaming Output</h3>
+          <div class="flex items-center gap-3">
+            <div v-if="isStreaming" class="flex items-center gap-2">
+              <span class="animate-pulse w-2 h-2 bg-green-400 rounded-full"></span>
+              <span class="text-sm text-green-400">Streaming...</span>
+            </div>
+            <button
+              @click="clearStreamingDisplay"
+              class="px-3 py-1 text-sm bg-gray-600 hover:bg-gray-500 rounded text-white"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Streaming Content -->
+        <div class="p-4 bg-gray-800/50 border border-green-600/30 rounded-lg">
+          <div class="mb-3 text-sm text-gray-400">
+            <span>Chunks: {{ streamingChunks.length }}</span>
+            <span class="ml-4">Characters: {{ streamingText.length }}</span>
+          </div>
+          
+          <!-- Live streaming text display -->
+          <div class="bg-gray-900 p-4 rounded-lg max-h-96 overflow-y-auto">
+            <div v-if="streamingText.length === 0 && !isStreaming" class="text-gray-500 text-center py-8">
+              Start a streaming test to see real-time output
+            </div>
+            <div v-else class="text-gray-200 text-sm leading-relaxed">
+              <span v-for="chunk in streamingChunks" :key="chunk.id" class="inline">
+                <span class="text-green-400 opacity-50">{{ chunk.text }}</span>
+              </span>
+              <span v-if="isStreaming" class="animate-pulse">▍</span>
+            </div>
           </div>
         </div>
       </div>
@@ -163,11 +195,23 @@
               </div>
               <div>
                 <span class="text-gray-400">Method:</span>
-                <span class="ml-1 text-purple-400">
-                  {{ result.method?.includes('optimized') ? 'Standard Flash (Optimized)' : 
-                     result.method?.includes('minimal') ? 'Flash-Lite (Minimal)' :
-                     result.method?.includes('streaming') ? 'Production Streaming' : 'Production Simple' }}
-                </span>
+                <span class="ml-1 text-purple-400">Production Streaming</span>
+              </div>
+            </div>
+
+            <!-- Token Metrics -->
+            <div v-if="result.inputTokens" class="grid grid-cols-3 gap-4 text-sm mb-3 p-2 bg-blue-900/20 border border-blue-600/30 rounded">
+              <div>
+                <span class="text-blue-400">Input Tokens:</span>
+                <span class="ml-1 font-mono text-white">{{ result.inputTokens }}</span>
+              </div>
+              <div>
+                <span class="text-blue-400">Token Count:</span>
+                <span class="ml-1 font-mono text-white">{{ result.tokenCountTime }}ms</span>
+              </div>
+              <div>
+                <span class="text-blue-400">Tokens/sec:</span>
+                <span class="ml-1 font-mono text-green-400">{{ result.tokensPerSecond }}</span>
               </div>
             </div>
 
@@ -191,14 +235,15 @@
 
       <!-- Instructions -->
       <div class="p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Fixed Content Performance Testing</h4>
+        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Real-Time Streaming AI Testing</h4>
         <div class="text-yellow-200 text-sm space-y-2">
-          <p>• <strong>Fixed Task:</strong> Same raw meeting notes → structured HTML every test</p>
-          <p>• <strong>Production Instructions:</strong> Uses actual Note Organizer + HTML formatting rules</p>
-          <p>• <strong>Standard Flash:</strong> Optimized config (thinkingBudget: 0, maxOutputTokens: 8192)</p>
-          <p>• <strong>Flash-Lite:</strong> Minimal config for speed</p>
-          <p>• <strong>Consistent Testing:</strong> No variables - pure model performance comparison</p>
-          <p>• Check console for detailed performance logging</p>
+          <p>• <strong>Streaming Experience:</strong> Watch AI generate structured HTML in real-time</p>
+          <p>• <strong>Production Task:</strong> Raw meeting notes → structured HTML with live formatting</p>
+          <p>• <strong>Token Metrics:</strong> Shows input tokens, processing time, and tokens/second</p>
+          <p>• <strong>Standard Flash:</strong> Optimized config (thinkingBudget: 0, seed: 42, maxOutputTokens: 8192)</p>
+          <p>• <strong>Flash-Lite:</strong> Minimal config for maximum speed</p>
+          <p>• <strong>Live Display:</strong> Green streaming panel shows chunks as they arrive</p>
+          <p>• Experience the difference streaming makes for perceived performance!</p>
         </div>
       </div>
     </div>
@@ -213,7 +258,6 @@ const {
   // Configuration
   apiKey,
   selectedModel,
-  testMethod,
   
   // Test state
   testResults,
@@ -222,6 +266,11 @@ const {
   // Test content
   FIXED_TEST_CONTENT,
   
+  // Streaming display
+  streamingChunks,
+  isStreaming,
+  streamingText,
+  
   // Computed
   canRunTest,
   performanceSummary,
@@ -229,7 +278,8 @@ const {
   // Methods
   saveApiKey,
   clearResults,
-  runTest
+  runTest,
+  clearStreamingDisplay
 } = useAiTesting()
 
 // Utility methods
