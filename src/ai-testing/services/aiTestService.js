@@ -16,14 +16,15 @@ const PRODUCTION_SYSTEM_INSTRUCTION = `${NOTE_ORGANIZER_INSTRUCTION} ${FORMATTIN
 
 
 /**
- * Google's official streaming approach - production AI processing
+ * Google's official streaming approach - production AI processing with thought summaries
  * @param {string} content - Input text to process
  * @param {string} apiKey - Google AI API key  
  * @param {string} model - Model to use
  * @param {function} onChunk - Optional callback for real-time chunk updates
- * @returns {Promise<string>} - AI response
+ * @param {function} onThoughtChunk - Optional callback for thought summary chunks
+ * @returns {Promise<{answer: string, thoughtSummaries: string}>} - AI response with thought summaries
  */
-export const processTextWithAi = async (content, apiKey, model, onChunk = null) => {
+export const processTextWithAi = async (content, apiKey, model, onChunk = null, onThoughtChunk = null) => {
   const startTime = performance.now();
   
   // Basic Google AI setup
@@ -40,25 +41,59 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null) 
   
   console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
   
-  // Google's official streaming approach with production formatting instructions
+  // Google's official streaming approach with production formatting instructions + thinking
   const response = await ai.models.generateContentStream({
     model,
     contents: content,
     config: {
       systemInstruction: {
         parts: [{ text: PRODUCTION_SYSTEM_INSTRUCTION }],
+      },
+      // Enable thought summaries (Google GenAI best practice)
+      thinkingConfig: {
+        includeThoughts: true
       }
     }
   });
   
   let text = "";
+  let thoughtSummaries = "";
+  
   for await (const chunk of response) {
-    console.log(chunk.text); // Google's debug output
-    text += chunk.text;
-    
-    // Call onChunk callback for real-time UI updates
-    if (onChunk && chunk.text) {
-      onChunk(chunk.text);
+    // Check if chunk has parts (more detailed structure)
+    if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
+      for (const part of chunk.candidates[0].content.parts) {
+        if (!part.text) continue;
+        
+        if (part.thought) {
+          // This is a thought summary
+          console.log(`🧠 Thought Summary: ${part.text}`);
+          thoughtSummaries += part.text;
+          
+          // Call onThoughtChunk callback for real-time thought UI updates
+          if (onThoughtChunk && part.text) {
+            onThoughtChunk(part.text);
+          }
+        } else {
+          // This is regular answer content
+          console.log(`💬 Answer: ${part.text}`);
+          text += part.text;
+          
+          // Call onChunk callback for real-time UI updates
+          if (onChunk && part.text) {
+            onChunk(part.text);
+          }
+        }
+      }
+    } else {
+      // Fallback for simple chunk structure
+      console.log(chunk.text); // Google's debug output
+      text += chunk.text;
+      
+      // Call onChunk callback for real-time UI updates
+      if (onChunk && chunk.text) {
+        onChunk(chunk.text);
+      }
     }
   }
   
@@ -66,6 +101,8 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null) 
   const totalTime = Math.round(endTime - startTime);
   
   console.log(`🧪 Google Streaming Test: ${model} - ${totalTime}ms`);
+  console.log(`🧠 Thought Summaries Length: ${thoughtSummaries.length} chars`);
+  console.log(`💬 Answer Length: ${text.length} chars`);
   
   // Calculate tokens per second
   const tokensPerSecond = Math.round((inputTokens / totalTime) * 1000);
@@ -81,7 +118,8 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null) 
       model,
       totalTime,
       responseLength: text.length,
-      method: 'production-streaming',
+      thoughtSummariesLength: thoughtSummaries.length,
+      method: 'production-streaming-with-thoughts',
       streaming: true,
       instructions: 'note-organizer',
       // Token metrics from Google cookbook
@@ -91,7 +129,10 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null) 
     });
   }
   
-  return text;
+  return {
+    answer: text,
+    thoughtSummaries: thoughtSummaries
+  };
 }
 
 // Available models for testing

@@ -13,6 +13,10 @@ export function useAiTesting() {
   const isStreaming = ref(false)
   const streamingText = ref('')
 
+  // Thought summaries streaming display
+  const thoughtStreamingChunks = ref([])
+  const thoughtStreamingText = ref('')
+
   // Fixed test content - raw unstructured text for consistent formatting testing
   const FIXED_TEST_CONTENT = `møde om projekt status idag kl 14. deltagere: mig, sarah fra design, mikkel tech lead, anna fra product. 
 
@@ -86,6 +90,8 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
   const clearStreamingDisplay = () => {
     streamingChunks.value = []
     streamingText.value = ''
+    thoughtStreamingChunks.value = []
+    thoughtStreamingText.value = ''
     isStreaming.value = false
   }
 
@@ -97,6 +103,16 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       id: Date.now() + Math.random()
     })
     streamingText.value += chunk
+  }
+
+  const addThoughtStreamingChunk = (chunk) => {
+    const timestamp = new Date().toLocaleTimeString()
+    thoughtStreamingChunks.value.push({
+      text: chunk,
+      timestamp,
+      id: Date.now() + Math.random()
+    })
+    thoughtStreamingText.value += chunk
   }
 
   const startStreaming = () => {
@@ -127,12 +143,13 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       // Start streaming display
       startStreaming()
       
-      // Run streaming test with fixed content
+      // Run streaming test with fixed content (now with thought summaries)
       const result = await processTextWithAi(
         FIXED_TEST_CONTENT,
         apiKey.value.trim(),
         selectedModel.value,
-        addStreamingChunk // Pass chunk handler for real-time display
+        addStreamingChunk, // Pass chunk handler for real-time display
+        addThoughtStreamingChunk // Pass thought chunk handler for real-time thought display
       )
       
       const endTime = performance.now()
@@ -141,15 +158,17 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       // Get latest performance metrics from service
       const latestMetrics = window.aiPerformanceMetrics?.[window.aiPerformanceMetrics.length - 1]
       
-      // Add result to list with token metrics
+      // Add result to list with token metrics and thought summaries
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: 'production-streaming',
+        method: 'production-streaming-with-thoughts',
         success: true,
         totalTime,
-        responseLength: result.length,
-        response: result,
+        responseLength: result.answer.length,
+        response: result.answer,
+        thoughtSummaries: result.thoughtSummaries,
+        thoughtSummariesLength: result.thoughtSummaries.length,
         // Include token metrics from service
         inputTokens: latestMetrics?.inputTokens,
         tokenCountTime: latestMetrics?.tokenCountTime,
@@ -173,11 +192,13 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: 'production-streaming',
+        method: 'production-streaming-with-thoughts',
         success: false,
         totalTime,
         responseLength: 0,
         response: '',
+        thoughtSummaries: '',
+        thoughtSummariesLength: 0,
         error: error.message
       })
     } finally {
@@ -204,6 +225,10 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     streamingChunks,
     isStreaming,
     streamingText,
+    
+    // Thought summaries streaming display
+    thoughtStreamingChunks,
+    thoughtStreamingText,
     
     // Computed
     canRunTest,

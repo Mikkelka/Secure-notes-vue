@@ -122,6 +122,48 @@
         </div>
       </div>
 
+      <!-- Thought Summaries Display -->
+      <div v-if="isStreaming || thoughtStreamingChunks.length > 0" class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold text-blue-400">🧠 AI Thought Summaries</h3>
+          <div class="flex items-center gap-3">
+            <div v-if="isStreaming && thoughtStreamingText.length === 0" class="flex items-center gap-2">
+              <span class="animate-pulse w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span class="text-sm text-blue-400">Waiting for thoughts...</span>
+            </div>
+            <div v-else-if="thoughtStreamingText.length > 0" class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span class="text-sm text-blue-400">{{ thoughtStreamingChunks.length }} thought chunks</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thought Summaries Content -->
+        <div class="p-4 bg-gray-800/50 border border-blue-600/30 rounded-lg">
+          <div class="mb-3 text-sm text-gray-400">
+            <span>Thought Chunks: {{ thoughtStreamingChunks.length }}</span>
+            <span class="ml-4">Thought Characters: {{ thoughtStreamingText.length }}</span>
+            <span class="ml-4 text-blue-400">AI's internal reasoning process</span>
+          </div>
+          
+          <!-- Live thought summaries display -->
+          <div class="bg-gray-900 p-4 rounded-lg max-h-96 overflow-y-auto">
+            <div v-if="thoughtStreamingText.length === 0" class="text-gray-500 text-center py-8">
+              <div class="text-blue-400 text-lg mb-2">🧠</div>
+              <div>AI thought summaries will appear here when thinking is enabled</div>
+              <div class="text-xs text-gray-400 mt-2">Thoughts show the AI's internal reasoning before providing the final answer</div>
+            </div>
+            <div v-else class="text-gray-200 text-sm leading-relaxed">
+              <div class="mb-2 text-blue-400 text-xs font-medium">AI REASONING PROCESS:</div>
+              <span v-for="chunk in thoughtStreamingChunks" :key="chunk.id" class="inline">
+                <span class="text-blue-300 opacity-80">{{ chunk.text }}</span>
+              </span>
+              <span v-if="isStreaming && thoughtStreamingText.length > 0" class="animate-pulse text-blue-400">▍</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Test Results -->
       <div v-if="testResults.length > 0" class="mb-8">
         <div class="flex items-center justify-between mb-4">
@@ -199,6 +241,18 @@
               </div>
             </div>
 
+            <!-- Thought Summaries Info -->
+            <div v-if="result.thoughtSummaries || result.thoughtSummariesLength !== undefined" class="grid grid-cols-2 gap-4 text-sm mb-3 p-2 bg-blue-900/20 border border-blue-600/30 rounded">
+              <div>
+                <span class="text-blue-400">🧠 Thought Summaries:</span>
+                <span class="ml-1 font-mono text-white">{{ result.thoughtSummariesLength || 0 }} chars</span>
+              </div>
+              <div>
+                <span class="text-blue-400">Reasoning:</span>
+                <span class="ml-1 text-blue-300">{{ result.thoughtSummaries && result.thoughtSummaries.length > 0 ? 'Available' : 'None' }}</span>
+              </div>
+            </div>
+
             <!-- Token Metrics -->
             <div v-if="result.inputTokens" class="grid grid-cols-3 gap-4 text-sm mb-3 p-2 bg-blue-900/20 border border-blue-600/30 rounded">
               <div>
@@ -229,21 +283,34 @@
                 {{ result.response?.substring(0, 500) }}{{ result.response?.length > 500 ? '...' : '' }}
               </div>
             </details>
+
+            <!-- Thought Summaries Preview -->
+            <details v-if="result.thoughtSummaries && result.thoughtSummaries.length > 0" class="text-sm mt-2">
+              <summary class="cursor-pointer text-blue-400 hover:text-blue-300">
+                🧠 Thought Summaries Preview ({{ result.thoughtSummariesLength }} chars)
+              </summary>
+              <div class="mt-2 p-3 bg-blue-900/20 border border-blue-600/30 rounded text-blue-200 max-h-40 overflow-y-auto">
+                <div class="text-blue-400 text-xs font-medium mb-2">AI REASONING PROCESS:</div>
+                {{ result.thoughtSummaries.substring(0, 500) }}{{ result.thoughtSummaries.length > 500 ? '...' : '' }}
+              </div>
+            </details>
           </div>
         </div>
       </div>
 
       <!-- Instructions -->
       <div class="p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Real-Time Streaming AI Testing</h4>
+        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Real-Time Streaming AI Testing with Thought Summaries</h4>
         <div class="text-yellow-200 text-sm space-y-2">
           <p>• <strong>Streaming Experience:</strong> Watch AI generate structured HTML in real-time</p>
+          <p>• <strong>🧠 Thought Summaries:</strong> See AI's internal reasoning process before the final answer</p>
           <p>• <strong>Production Task:</strong> Raw meeting notes → structured HTML with live formatting</p>
           <p>• <strong>Token Metrics:</strong> Shows input tokens, processing time, and tokens/second</p>
-          <p>• <strong>Standard Flash:</strong> Optimized config (thinkingBudget: 0, seed: 42, maxOutputTokens: 8192)</p>
-          <p>• <strong>Flash-Lite:</strong> Minimal config for maximum speed</p>
-          <p>• <strong>Live Display:</strong> Green streaming panel shows chunks as they arrive</p>
-          <p>• Experience the difference streaming makes for perceived performance!</p>
+          <p>• <strong>Standard Flash:</strong> Supports thinking with thought summaries enabled</p>
+          <p>• <strong>Flash-Lite:</strong> Minimal config for maximum speed + thinking support</p>
+          <p>• <strong>Live Display:</strong> Green panel for answers, blue panel for AI reasoning</p>
+          <p>• <strong>Thought Process:</strong> Understand how AI arrives at its final structured output</p>
+          <p>• Experience both the final result AND the reasoning behind it!</p>
         </div>
       </div>
     </div>
@@ -270,6 +337,10 @@ const {
   streamingChunks,
   isStreaming,
   streamingText,
+  
+  // Thought summaries streaming display
+  thoughtStreamingChunks,
+  thoughtStreamingText,
   
   // Computed
   canRunTest,
