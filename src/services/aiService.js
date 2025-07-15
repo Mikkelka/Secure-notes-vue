@@ -160,7 +160,7 @@ const getAiSettings = (userSettings) => {
 
 
 // AI Processing with streaming and systemInstruction optimization
-export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false) => {
+export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false, onChunk = null, onThoughtChunk = null) => {
   const totalStartTime = performance.now();
   
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
@@ -196,7 +196,28 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       console.log('Prompt Prep Time:', Math.round(promptTime), 'ms');
     }
 
-    // Phase 3: AI API Call with streaming optimization
+    // Phase 3: Token counting for performance analysis (Google cookbook best practice)
+    const tokenCountStart = performance.now();
+    let inputTokens = 0;
+    let tokenCountTime = 0;
+    
+    try {
+      const tokenResponse = await ai.models.countTokens({
+        model,
+        contents: simplePrompt,
+      });
+      tokenCountTime = performance.now() - tokenCountStart;
+      inputTokens = tokenResponse.totalTokens;
+      
+      if (enableDebugTiming) {
+        console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
+      }
+    } catch (error) {
+      console.warn('Token counting failed:', error);
+      tokenCountTime = performance.now() - tokenCountStart;
+    }
+    
+    // Phase 4: AI API Call with streaming optimization
     const apiStartTime = performance.now();
     console.time(`AI_API_Call_Streaming_${model}`);
     
@@ -205,41 +226,26 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       systemInstruction: instructionPrompt,
     };
     
-    // UNIVERSAL THINKING IMPLEMENTATION: Simple enableThinking toggle for both models
-    const isFlashLite = model.includes('flash-lite');
+    // OPTIMIZED THINKING IMPLEMENTATION: Based on test environment learnings
     const enableThinking = userSettings?.aiSettings?.enableThinking;
     
-    // For debug tool: also check includeThoughts and thinkingBudget for advanced testing
-    const includeThoughts = userSettings?.aiSettings?.includeThoughts;
-    const thinkingBudget = userSettings?.aiSettings?.thinkingBudget ?? -1;
-    
-    if (enableThinking || includeThoughts) {
-      if (isFlashLite) {
-        // Flash-Lite: Requires includeThoughts to activate thinking
-        config.thinkingConfig = {
-          includeThoughts: true,
-          thinkingBudget: parseInt(thinkingBudget) // Dynamic thinking for Flash-Lite
-        };
-        
-        if (enableDebugTiming) {
-          console.log(`🧠 Flash-Lite: THINKING ENABLED (budget: ${thinkingBudget})`);
-          console.log('🔧 Config:', JSON.stringify(config.thinkingConfig));
-        }
-      } else {
-        // Standard Flash: Show thoughts when thinking enabled
-        config.thinkingConfig = {
-          includeThoughts: true
-        };
-        
-        if (enableDebugTiming) {
-          console.log('🧠 Standard Flash: THINKING + THOUGHTS ENABLED');
-        }
+    // Configure thinking with proper thinkingBudget (critical for Flash Lite!)
+    if (enableThinking) {
+      config.thinkingConfig = {
+        includeThoughts: true,
+        thinkingBudget: -1  // Dynamic thinking - model decides complexity
+      };
+      
+      if (enableDebugTiming) {
+        console.log('🧠 Thinking enabled with dynamic budget (-1)');
       }
     } else {
-      // Both models: Pure speed mode - no thinkingConfig
+      config.thinkingConfig = {
+        thinkingBudget: 0  // Explicit disable - critical for Flash Lite
+      };
+      
       if (enableDebugTiming) {
-        const modelName = isFlashLite ? 'Flash-Lite' : 'Standard Flash';
-        console.log(`⚡ ${modelName}: PURE SPEED MODE (thinking disabled)`);
+        console.log('⚡ Thinking explicitly disabled (thinkingBudget: 0)');
       }
     }
     
@@ -253,6 +259,8 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     let fullResponse = '';
     let thoughtSummaries = '';
     let firstChunkTime = null;
+    let firstAnswerChunkTime = null;
+    let firstThoughtChunkTime = null;
     let hasThoughts = false;
     
     for await (const chunk of streamResponse) {
@@ -263,30 +271,87 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
         }
       }
       
-      // Handle response parts (for thought summaries)
+      // Handle response parts (for thought summaries) - Enhanced with test environment learnings
       if (chunk.candidates && chunk.candidates[0]?.content?.parts) {
         for (const part of chunk.candidates[0].content.parts) {
           if (!part.text) continue;
           
           if (part.thought) {
+            // This is a thought summary
             thoughtSummaries += part.text;
             hasThoughts = true;
+            
+            // Measure first thought chunk time
+            if (firstThoughtChunkTime === null) {
+              firstThoughtChunkTime = performance.now() - apiStartTime;
+              if (enableDebugTiming) {
+                console.log(`🧠 First thought chunk at: ${Math.round(firstThoughtChunkTime)}ms`);
+              }
+            }
+            
             if (enableDebugTiming) {
-              console.log('🧠 Thought chunk received:', part.text.substring(0, 100) + '...');
+              console.log('🧠 Thought Summary:', part.text.substring(0, 100) + '...');
+            }
+            
+            // Call onThoughtChunk callback for real-time thought UI updates
+            if (onThoughtChunk && part.text) {
+              onThoughtChunk(part.text);
             }
           } else {
+            // This is regular answer content
             fullResponse += part.text;
+            
+            // Measure first answer chunk time
+            if (firstAnswerChunkTime === null) {
+              firstAnswerChunkTime = performance.now() - apiStartTime;
+              if (enableDebugTiming) {
+                console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
+              }
+            }
+            
+            if (enableDebugTiming) {
+              console.log('💬 Answer:', part.text.substring(0, 100) + '...');
+            }
+            
+            // Call onChunk callback for real-time UI updates
+            if (onChunk && part.text) {
+              onChunk(part.text);
+            }
           }
         }
       }
       // Fallback for simple text chunks (no thoughts)
       else if (chunk.text) {
         fullResponse += chunk.text;
+        
+        // Measure first answer chunk time (for fallback)
+        if (firstAnswerChunkTime === null) {
+          firstAnswerChunkTime = performance.now() - apiStartTime;
+          if (enableDebugTiming) {
+            console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
+          }
+        }
+        
+        // Call onChunk callback for real-time UI updates (fallback)
+        if (onChunk && chunk.text) {
+          onChunk(chunk.text);
+        }
       }
     }
     
     console.timeEnd(`AI_API_Call_Streaming_${model}`);
     const apiTime = performance.now() - apiStartTime;
+    
+    // Enhanced debug logging from test environment
+    if (enableDebugTiming) {
+      console.log(`🧪 Google Streaming Test: ${model} - ${Math.round(apiTime)}ms`);
+      console.log(`🧠 Thinking: ${enableThinking ? 'ENABLED' : 'DISABLED'}`);
+      console.log(`⚡ First chunk: ${firstChunkTime}ms (perceived performance)`);
+      console.log(`💬 First answer: ${firstAnswerChunkTime || 'N/A'}ms`);
+      console.log(`🧠 First thought: ${firstThoughtChunkTime || 'N/A'}ms`);
+      console.log(`🧠 Thought Summaries Length: ${thoughtSummaries.length} chars`);
+      console.log(`💬 Answer Length: ${fullResponse.length} chars`);
+    }
     
     // Phase 4: Response Processing
     const processStartTime = performance.now();
@@ -342,11 +407,60 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
         hasThoughts,
         thoughtSummaries: hasThoughts ? thoughtSummaries : null,
         thoughtLength: hasThoughts ? thoughtSummaries.length : 0,
-        includeThoughtsEnabled: userSettings?.aiSettings?.includeThoughts || false
+        includeThoughtsEnabled: userSettings?.aiSettings?.includeThoughts || false,
+        // Token metrics from test environment
+        tokenMetrics: {
+          inputTokens,
+          tokenCountTime: Math.round(tokenCountTime),
+          tokensPerSecond: inputTokens > 0 ? Math.round((inputTokens / apiTime) * 1000) : 0
+        },
+        // First chunk timing metrics from test environment  
+        firstChunkTime: Math.round(firstChunkTime || 0),
+        firstAnswerChunkTime: Math.round(firstAnswerChunkTime || 0),
+        firstThoughtChunkTime: Math.round(firstThoughtChunkTime || 0),
+        // Thinking configuration
+        thinkingEnabled: enableThinking
       });
     }
 
-    return processedHtml;
+    // Enhanced return object with thought summaries and performance metrics
+    const performanceMetrics = {
+      timestamp: new Date().toISOString(),
+      model,
+      instructionType,
+      optimized: true,
+      systemInstruction: true,
+      streaming: true,
+      firstChunkTime: Math.round(firstChunkTime || 0),
+      inputLength: content.length,
+      outputLength: processedHtml.length,
+      setupTime: Math.round(setupTime),
+      promptTime: Math.round(promptTime),
+      apiTime: Math.round(apiTime),
+      processTime: Math.round(processTime),
+      totalTime: Math.round(totalTime),
+      // Thought summaries information
+      hasThoughts,
+      thoughtSummaries: hasThoughts ? thoughtSummaries : null,
+      thoughtLength: hasThoughts ? thoughtSummaries.length : 0,
+      // Token metrics from test environment
+      tokenMetrics: {
+        inputTokens,
+        tokenCountTime: Math.round(tokenCountTime),
+        tokensPerSecond: inputTokens > 0 ? Math.round((inputTokens / apiTime) * 1000) : 0
+      },
+      // First chunk timing metrics from test environment  
+      firstAnswerChunkTime: Math.round(firstAnswerChunkTime || 0),
+      firstThoughtChunkTime: Math.round(firstThoughtChunkTime || 0),
+      // Thinking configuration
+      thinkingEnabled: enableThinking
+    };
+    
+    return {
+      processedHtml,
+      thoughtSummaries,
+      performanceMetrics
+    };
   } catch (error) {
     const totalTime = performance.now() - totalStartTime;
     

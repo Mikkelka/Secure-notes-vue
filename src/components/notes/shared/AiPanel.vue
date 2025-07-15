@@ -25,6 +25,43 @@
         </BaseButton>
       </div>
       
+      <!-- Real-time AI Streaming Display -->
+      <div v-if="isStreaming || streamingText.length > 0" class="mb-4">
+        <div class="flex items-center gap-2 mb-2">
+          <div v-if="isStreaming" class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-green-400 text-sm">AI Streaming...</span>
+          </div>
+          <span class="text-gray-400 text-xs">{{ streamingText.length }} tegn</span>
+        </div>
+        
+        <!-- Streaming Content Display -->
+        <div class="p-3 bg-gray-800/50 border border-green-600/30 rounded-lg max-h-32 overflow-y-auto">
+          <div v-if="streamingText.length === 0 && !isStreaming" class="text-gray-500 text-center py-4">
+            AI streaming starter...
+          </div>
+          <div v-else class="text-gray-200 text-sm leading-relaxed">
+            <span class="text-green-400 opacity-80">{{ streamingText }}</span>
+            <span v-if="isStreaming" class="animate-pulse text-green-400">▍</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Thought Summaries Display -->
+      <div v-if="thoughtStreamingText.length > 0" class="mb-4">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+          <span class="text-blue-400 text-sm">🧠 AI Reasoning</span>
+          <span class="text-gray-400 text-xs">{{ thoughtStreamingText.length }} tegn</span>
+        </div>
+        
+        <div class="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg max-h-32 overflow-y-auto">
+          <div class="text-blue-200 text-sm leading-relaxed">
+            {{ thoughtStreamingText }}
+          </div>
+        </div>
+      </div>
+      
       <!-- Save and Cancel buttons -->
       <div :class="isMobile ? 'flex gap-3' : 'flex gap-2'">
         <BaseButton
@@ -94,12 +131,42 @@ const canUndo = ref(false)
 const originalContent = ref('')
 const currentInstruction = ref('note-organizer')
 
+// Real-time streaming state
+const streamingText = ref('')
+const thoughtStreamingText = ref('')
+const isStreaming = ref(false)
+
+// Streaming display methods
+const clearStreamingDisplay = () => {
+  streamingText.value = ''
+  thoughtStreamingText.value = ''
+  isStreaming.value = false
+}
+
+const addStreamingChunk = (chunk) => {
+  streamingText.value += chunk
+  // Emit streaming updates to parent for real-time display
+  emit('contentUpdate', streamingText.value)
+}
+
+const addThoughtStreamingChunk = (chunk) => {
+  thoughtStreamingText.value += chunk
+}
+
+const startStreaming = () => {
+  clearStreamingDisplay()
+  isStreaming.value = true
+}
+
 // AI Processing functionality
 const handleAiProcess = async () => {
   if (!props.content.trim()) return
   
   isAiProcessing.value = true
   originalContent.value = props.content
+  
+  // Start streaming display
+  startStreaming()
   
   try {
     // Create userSettings with current instruction override
@@ -111,10 +178,17 @@ const handleAiProcess = async () => {
       }
     }
     
-    const processedContent = await processTextWithAi(props.content, props.title, settingsWithInstruction)
+    const { processedHtml, thoughtSummaries, performanceMetrics } = await processTextWithAi(
+      props.content, 
+      props.title, 
+      settingsWithInstruction,
+      false, // enableDebugTiming
+      addStreamingChunk, // onChunk callback for real-time streaming
+      addThoughtStreamingChunk // onThoughtChunk callback for thoughts
+    )
     
-    // Emit processed content to parent
-    emit('contentUpdate', processedContent)
+    // Final emit with complete processed content
+    emit('contentUpdate', processedHtml)
     
     canUndo.value = true
   } catch (error) {
@@ -122,6 +196,7 @@ const handleAiProcess = async () => {
     alert(error.message || 'AI processing fejlede')
   } finally {
     isAiProcessing.value = false
+    isStreaming.value = false
   }
 }
 
