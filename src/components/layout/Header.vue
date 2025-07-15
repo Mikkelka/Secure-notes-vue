@@ -33,6 +33,7 @@
           </button>
           
           <button
+            v-if="settings.showTestLab"
             @click="openTestLab"
             class="header-btn-base header-btn-orange"
             title="AI Testing Lab (Isolated)"
@@ -88,6 +89,7 @@
               AI Indstillinger
             </button>
             <button
+              v-if="settings.showTestLab"
               @click="openTestLab(); showMobileMenu = false"
               class="dropdown-btn-mobile text-orange-300"
             >
@@ -124,9 +126,13 @@
 
 <script setup>
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { Shield, Brain, Download, Settings, LogOut, Menu, Zap } from 'lucide-vue-next'
+import { useSettingsStore } from '../../stores/settings'
 
 const showMobileMenu = ref(false)
+const settingsStore = useSettingsStore()
+const { settings } = storeToRefs(settingsStore)
 
 defineProps({
   user: {
