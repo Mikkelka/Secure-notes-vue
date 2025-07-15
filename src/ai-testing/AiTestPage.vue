@@ -59,6 +59,42 @@
               </select>
             </div>
 
+            <!-- Thinking Toggle -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-medium text-gray-300">🧠 AI Thinking Mode</label>
+                <button
+                  @click="toggleThinking"
+                  :class="[
+                    'px-3 py-1 rounded-full text-xs font-medium transition-colors',
+                    enableThinking 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-600 text-gray-300'
+                  ]"
+                >
+                  {{ enableThinking ? 'ON' : 'OFF' }}
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="toggleThinking"
+                  :class="[
+                    'w-12 h-6 rounded-full p-1 transition-colors duration-200',
+                    enableThinking ? 'bg-blue-600' : 'bg-gray-600'
+                  ]"
+                >
+                  <div
+                    :class="[
+                      'w-4 h-4 rounded-full bg-white transition-transform duration-200',
+                      enableThinking ? 'translate-x-6' : 'translate-x-0'
+                    ]"
+                  />
+                </button>
+                <span class="text-sm text-gray-400">
+                  {{ enableThinking ? 'Show AI reasoning process' : 'Max speed mode' }}
+                </span>
+              </div>
+            </div>
 
             <!-- Fixed Test Content -->
             <div>
@@ -239,10 +275,32 @@
                 <span class="text-gray-400">Method:</span>
                 <span class="ml-1 text-purple-400">Production Streaming</span>
               </div>
+              <div>
+                <span class="text-gray-400">Thinking:</span>
+                <span class="ml-1" :class="result.thinkingEnabled ? 'text-blue-400' : 'text-gray-400'">
+                  {{ result.thinkingEnabled ? '🧠 ON' : '⚡ OFF' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- First Chunk Timing (Perceived Performance) -->
+            <div v-if="result.firstChunkTime" class="grid grid-cols-2 gap-4 text-sm mb-3 p-2 bg-green-900/20 border border-green-600/30 rounded">
+              <div>
+                <span class="text-green-400">⚡ First Chunk:</span>
+                <span class="ml-1 font-mono text-white">{{ result.firstChunkTime }}ms</span>
+              </div>
+              <div>
+                <span class="text-green-400">💬 First Answer:</span>
+                <span class="ml-1 font-mono text-white">{{ result.firstAnswerChunkTime || 'N/A' }}ms</span>
+              </div>
+              <div v-if="result.thinkingEnabled && result.firstThoughtChunkTime" class="col-span-2">
+                <span class="text-blue-400">🧠 First Thought:</span>
+                <span class="ml-1 font-mono text-white">{{ result.firstThoughtChunkTime }}ms</span>
+              </div>
             </div>
 
             <!-- Thought Summaries Info -->
-            <div v-if="result.thoughtSummaries || result.thoughtSummariesLength !== undefined" class="grid grid-cols-2 gap-4 text-sm mb-3 p-2 bg-blue-900/20 border border-blue-600/30 rounded">
+            <div v-if="result.thinkingEnabled && (result.thoughtSummaries || result.thoughtSummariesLength !== undefined)" class="grid grid-cols-2 gap-4 text-sm mb-3 p-2 bg-blue-900/20 border border-blue-600/30 rounded">
               <div>
                 <span class="text-blue-400">🧠 Thought Summaries:</span>
                 <span class="ml-1 font-mono text-white">{{ result.thoughtSummariesLength || 0 }} chars</span>
@@ -285,7 +343,7 @@
             </details>
 
             <!-- Thought Summaries Preview -->
-            <details v-if="result.thoughtSummaries && result.thoughtSummaries.length > 0" class="text-sm mt-2">
+            <details v-if="result.thinkingEnabled && result.thoughtSummaries && result.thoughtSummaries.length > 0" class="text-sm mt-2">
               <summary class="cursor-pointer text-blue-400 hover:text-blue-300">
                 🧠 Thought Summaries Preview ({{ result.thoughtSummariesLength }} chars)
               </summary>
@@ -300,17 +358,21 @@
 
       <!-- Instructions -->
       <div class="p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Real-Time Streaming AI Testing with Thought Summaries</h4>
+        <h4 class="text-lg font-semibold text-yellow-300 mb-3">Real-Time Streaming AI Testing with Configurable Thinking</h4>
         <div class="text-yellow-200 text-sm space-y-2">
           <p>• <strong>Streaming Experience:</strong> Watch AI generate structured HTML in real-time</p>
-          <p>• <strong>🧠 Thought Summaries:</strong> See AI's internal reasoning process before the final answer</p>
+          <p>• <strong>🧠 Thinking Toggle:</strong> Enable/disable AI reasoning process - compare performance!</p>
+          <p>• <strong>⚡ Default Mode:</strong> Thinking OFF for maximum speed (both Flash and Flash-Lite)</p>
+          <p>• <strong>🧠 Thinking Mode:</strong> Toggle ON to see AI's internal reasoning process</p>
           <p>• <strong>Production Task:</strong> Raw meeting notes → structured HTML with live formatting</p>
+          <p>• <strong>⚡ First Chunk Timing:</strong> Shows when first response starts (perceived performance)</p>
+          <p>• <strong>💬 First Answer:</strong> Time to first actual answer content</p>
+          <p>• <strong>🧠 First Thought:</strong> Time to first reasoning chunk (when thinking enabled)</p>
           <p>• <strong>Token Metrics:</strong> Shows input tokens, processing time, and tokens/second</p>
-          <p>• <strong>Standard Flash:</strong> Supports thinking with thought summaries enabled</p>
-          <p>• <strong>Flash-Lite:</strong> Minimal config for maximum speed + thinking support</p>
-          <p>• <strong>Live Display:</strong> Green panel for answers, blue panel for AI reasoning</p>
-          <p>• <strong>Thought Process:</strong> Understand how AI arrives at its final structured output</p>
-          <p>• Experience both the final result AND the reasoning behind it!</p>
+          <p>• <strong>Performance Comparison:</strong> Test same model with/without thinking enabled</p>
+          <p>• <strong>Live Display:</strong> Green panel for answers, blue panel for AI reasoning (when enabled)</p>
+          <p>• <strong>Speed vs Insight:</strong> Choose between max speed or understanding the reasoning process</p>
+          <p>• Toggle thinking to see how it affects both performance and insight!</p>
         </div>
       </div>
     </div>
@@ -325,6 +387,7 @@ const {
   // Configuration
   apiKey,
   selectedModel,
+  enableThinking,
   
   // Test state
   testResults,
@@ -350,7 +413,8 @@ const {
   saveApiKey,
   clearResults,
   runTest,
-  clearStreamingDisplay
+  clearStreamingDisplay,
+  toggleThinking
 } = useAiTesting()
 
 // Utility methods

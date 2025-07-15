@@ -8,6 +8,9 @@ export function useAiTesting() {
   const testResults = ref([])
   const isRunning = ref(false)
 
+  // Thinking configuration (default: disabled for max speed)
+  const enableThinking = ref(false)
+
   // Real-time streaming display
   const streamingChunks = ref([])
   const isStreaming = ref(false)
@@ -86,6 +89,11 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     testResults.value = []
   }
 
+  // Toggle thinking mode
+  const toggleThinking = () => {
+    enableThinking.value = !enableThinking.value
+  }
+
   // Streaming display methods
   const clearStreamingDisplay = () => {
     streamingChunks.value = []
@@ -143,13 +151,14 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       // Start streaming display
       startStreaming()
       
-      // Run streaming test with fixed content (now with thought summaries)
+      // Run streaming test with fixed content (now with configurable thinking)
       const result = await processTextWithAi(
         FIXED_TEST_CONTENT,
         apiKey.value.trim(),
         selectedModel.value,
         addStreamingChunk, // Pass chunk handler for real-time display
-        addThoughtStreamingChunk // Pass thought chunk handler for real-time thought display
+        addThoughtStreamingChunk, // Pass thought chunk handler for real-time thought display
+        enableThinking.value // Pass thinking toggle state
       )
       
       const endTime = performance.now()
@@ -162,13 +171,18 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: 'production-streaming-with-thoughts',
+        method: enableThinking.value ? 'production-streaming-with-thoughts' : 'production-streaming',
         success: true,
         totalTime,
         responseLength: result.answer.length,
         response: result.answer,
         thoughtSummaries: result.thoughtSummaries,
         thoughtSummariesLength: result.thoughtSummaries.length,
+        thinkingEnabled: enableThinking.value,
+        // First chunk timing metrics (perceived performance)
+        firstChunkTime: result.firstChunkTime,
+        firstAnswerChunkTime: result.firstAnswerChunkTime,
+        firstThoughtChunkTime: result.firstThoughtChunkTime,
         // Include token metrics from service
         inputTokens: latestMetrics?.inputTokens,
         tokenCountTime: latestMetrics?.tokenCountTime,
@@ -192,13 +206,18 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       testResults.value.unshift({
         timestamp: new Date().toLocaleTimeString(),
         model: selectedModel.value,
-        method: 'production-streaming-with-thoughts',
+        method: enableThinking.value ? 'production-streaming-with-thoughts' : 'production-streaming',
         success: false,
         totalTime,
         responseLength: 0,
         response: '',
         thoughtSummaries: '',
         thoughtSummariesLength: 0,
+        thinkingEnabled: enableThinking.value,
+        // First chunk timing metrics (will be null on error)
+        firstChunkTime: null,
+        firstAnswerChunkTime: null,
+        firstThoughtChunkTime: null,
         error: error.message
       })
     } finally {
@@ -213,6 +232,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     // Configuration
     apiKey,
     selectedModel,
+    enableThinking,
     
     // Test state  
     testResults,
@@ -238,6 +258,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     saveApiKey,
     clearResults,
     runTest,
-    clearStreamingDisplay
+    clearStreamingDisplay,
+    toggleThinking
   }
 }
