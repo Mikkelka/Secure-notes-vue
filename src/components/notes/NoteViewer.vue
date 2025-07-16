@@ -50,22 +50,22 @@
         />
         
         <!-- View Actions -->
-        <div v-else class="p-4 border-t border-gray-700/50">
-          <div class="flex justify-center gap-4">
+        <div v-else class="note-actions-container">
+          <div class="note-actions-mobile">
             <BaseButton
-              @click="handleDelete"
+              @click="startEdit"
               variant="ghost"
               size="sm"
-              class="p-2 rounded-full text-red-400 hover:bg-red-500/20"
+              class="note-action-btn-mobile note-action-edit-mobile"
             >
-              <Trash2 class="w-5 h-5" />
+              <Edit3 class="w-5 h-5" />
             </BaseButton>
             <BaseButton
               @click="$emit('toggleFavorite', note.id)"
               variant="ghost"
               size="sm"
-              class="p-2 rounded-full"
-              :class="note.isFavorite ? 'text-yellow-400 hover:bg-yellow-400/20' : 'text-gray-400 hover:bg-gray-700'"
+              class="note-action-btn-mobile"
+              :class="note.isFavorite ? 'note-action-favorite-mobile-active' : 'note-action-favorite-mobile'"
             >
               <Star 
                 :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
@@ -73,18 +73,18 @@
               />
             </BaseButton>
             <BaseButton
-              @click="startEdit"
+              @click="handleDelete"
               variant="ghost"
               size="sm"
-              class="p-2 rounded-full text-blue-400 hover:bg-blue-500/20"
+              class="note-action-btn-mobile note-action-delete-mobile"
             >
-              <Edit3 class="w-5 h-5" />
+              <Trash2 class="w-5 h-5" />
             </BaseButton>
             <BaseButton
               @click="$emit('close')"
               variant="ghost"
               size="sm"
-              class="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+              class="note-action-btn-mobile note-action-close-mobile"
             >
               <X class="w-5 h-5" />
             </BaseButton>
@@ -143,16 +143,49 @@
         />
         
         <!-- View Actions -->
-        <div v-else class="p-4 border-t border-gray-700/50">
-          <BaseButton
-            @click="startEdit"
-            variant="primary"
-            size="sm"
-            class="w-full bg-blue-600 hover:bg-blue-500"
-          >
-            <Edit3 class="w-4 h-4" />
-            Rediger Note
-          </BaseButton>
+        <div v-else class="note-actions-container">
+          <div class="note-actions-desktop">
+            <BaseButton
+              @click="startEdit"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-desktop note-action-edit"
+            >
+              <Edit3 class="w-4 h-4" />
+              Rediger
+            </BaseButton>
+            <BaseButton
+              @click="$emit('toggleFavorite', note.id)"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-desktop"
+              :class="note.isFavorite ? 'note-action-favorite-active' : 'note-action-favorite'"
+            >
+              <Star 
+                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
+                class="w-4 h-4" 
+              />
+              {{ note.isFavorite ? 'Fjern favorit' : 'Favorit' }}
+            </BaseButton>
+            <BaseButton
+              @click="handleDelete"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-desktop note-action-delete"
+            >
+              <Trash2 class="w-4 h-4" />
+              Slet
+            </BaseButton>
+            <BaseButton
+              @click="$emit('close')"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-desktop note-action-close"
+            >
+              <X class="w-4 h-4" />
+              Luk
+            </BaseButton>
+          </div>
         </div>
       </template>
     </DesktopNoteLayout>

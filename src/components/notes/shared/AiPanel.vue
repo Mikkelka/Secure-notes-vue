@@ -1,8 +1,8 @@
 <template>
-  <div class="border-t border-gray-700/50" :class="isMobile ? 'p-4' : 'p-4'">
-    <div :class="isMobile ? 'space-y-3' : 'space-y-2'">
+  <div :class="isMobile ? 'note-editing-container' : 'note-editing-container-desktop'">
+    <div>
       <!-- AI and Undo buttons -->
-      <div class="flex gap-2">
+      <div class="note-editing-actions-row">
         <div class="flex-1">
           <AiInstructionDropdown
             @process="handleAiProcess"
@@ -21,9 +21,9 @@
         <BaseButton
           v-if="canUndo"
           @click="handleUndo"
-          variant="secondary"
+          variant="ghost"
           :size="isMobile ? 'md' : 'sm'"
-          class="bg-orange-600 hover:bg-orange-500"
+          class="note-editing-btn-base note-editing-undo"
         >
           <Undo class="w-4 h-4" />
           Undo
@@ -31,15 +31,14 @@
       </div>
       
       <!-- Save and Cancel buttons -->
-      <div :class="isMobile ? 'flex gap-3' : 'flex gap-2'">
+      <div :class="isMobile ? 'note-editing-actions-row-mobile' : 'note-editing-actions-row'">
         <BaseButton
           @click="handleSave"
           :disabled="!isValid"
-          variant="primary"
+          variant="ghost"
           :size="isMobile ? 'md' : 'sm'"
           :class="[
-            'bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed',
-            isMobile ? 'flex-1' : ''
+            isMobile ? 'note-editing-btn-mobile note-editing-save' : 'note-editing-btn-desktop note-editing-save'
           ]"
         >
           <Save class="w-4 h-4" />
@@ -47,11 +46,10 @@
         </BaseButton>
         <BaseButton
           @click="handleCancel"
-          variant="secondary"
+          variant="ghost"
           :size="isMobile ? 'md' : 'sm'"
           :class="[
-            'bg-gray-600 hover:bg-gray-500',
-            isMobile ? 'flex-1' : ''
+            isMobile ? 'note-editing-btn-mobile note-editing-cancel' : 'note-editing-btn-desktop note-editing-cancel'
           ]"
         >
           Cancel
