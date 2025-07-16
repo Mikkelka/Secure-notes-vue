@@ -10,6 +10,7 @@ export const useSettingsStore = defineStore('settings', () => {
     sessionTimeout: parseInt(import.meta.env.VITE_SESSION_TIMEOUT) || 1800000, // 30 minutes
     warningTime: parseInt(import.meta.env.VITE_WARNING_TIME) || 120000, // 2 minutes  
     showPerformanceStats: true,
+    showTestLab: false, // Test Lab button hidden by default
     theme: 'dark'
   }
 

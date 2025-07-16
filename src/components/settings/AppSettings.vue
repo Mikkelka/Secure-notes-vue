@@ -76,6 +76,32 @@
               />
             </button>
           </div>
+
+          <!-- Test Lab Toggle -->
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm text-gray-300">
+                🧪 Test Lab
+              </label>
+              <p class="text-xs text-gray-500">
+                Vis Test Lab knap i header (for udviklere)
+              </p>
+            </div>
+            <button
+              @click="handleSettingChange('showTestLab', !showTestLab)"
+              :class="[
+                'toggle-base toggle-focus',
+                showTestLab ? 'bg-purple-600' : 'bg-gray-600'
+              ]"
+            >
+              <span
+                :class="[
+                  'toggle-thumb toggle-thumb-transition h-4 w-4',
+                  showTestLab ? 'translate-x-6' : 'translate-x-1'
+                ]"
+              />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -91,6 +117,12 @@
             <span>Performance stats:</span>
             <span class="text-white">
               {{ showPerformanceStats ? 'Aktiveret' : 'Deaktiveret' }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span>Test Lab:</span>
+            <span class="text-white">
+              {{ showTestLab ? 'Aktiveret' : 'Deaktiveret' }}
             </span>
           </div>
         </div>
@@ -130,6 +162,7 @@ const settingsStore = useSettingsStore()
 
 const loading = ref(false)
 const showPerformanceStats = ref(true)
+const showTestLab = ref(false)
 const sessionTimeout = ref('1800000')
 
 const timeoutOptions = [
@@ -150,6 +183,9 @@ const handleSettingChange = async (key, value) => {
   if (key === 'showPerformanceStats') {
     showPerformanceStats.value = value
     settingsStore.updateSettings({ showPerformanceStats: value })
+  } else if (key === 'showTestLab') {
+    showTestLab.value = value
+    settingsStore.updateSettings({ showTestLab: value })
   } else if (key === 'sessionTimeout') {
     sessionTimeout.value = value.toString()
     settingsStore.updateSettings({ sessionTimeout: value })
@@ -160,6 +196,7 @@ const handleSettingChange = async (key, value) => {
 // Initialize settings on mount
 onMounted(() => {
   showPerformanceStats.value = settingsStore.settings.showPerformanceStats || true
+  showTestLab.value = settingsStore.settings.showTestLab || false
   sessionTimeout.value = (settingsStore.settings.sessionTimeout || 1800000).toString()
 })
 </script>

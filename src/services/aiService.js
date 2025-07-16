@@ -3,10 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 
 // --- Konstanter og Konfiguration ---
 
-// Cache for at undgå at genskabe instruktioner og parse tekst unødigt
-const instructionCache = new Map();
-const textExtractionCache = new Map();
-
 // Sikkerhedsindstillinger - tillad alt indhold for at undgå blokering af legitim tekst
 const SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -28,18 +24,12 @@ export const isHtmlContent = (content) => {
 
 export const extractPlainText = (htmlContent) => {
   if (!htmlContent) return "";
-  if (textExtractionCache.has(htmlContent)) {
-    return textExtractionCache.get(htmlContent);
-  }
 
   // Simpel HTML → plain text konvertering
-  const result = htmlContent
+  return htmlContent
     .replace(/<[^>]*>/g, ' ') // Fjern HTML tags
     .replace(/\s+/g, ' ') // Sammenfold whitespace
     .trim();
-
-  textExtractionCache.set(htmlContent, result);
-  return result;
 };
 
 export const convertHtmlToPlainText = (htmlContent) => {
@@ -110,14 +100,6 @@ export const DEFAULT_INSTRUCTIONS = [
 ]
 
 const getInstructionPrompt = (instructionType, userSettings = null) => {
-  
-  // Check cache first
-  if (instructionCache.has(instructionType)) {
-    return instructionCache.get(instructionType);
-  }
-  
-  let prompt;
-  
   // Check if it's a custom or standard instruction ID (starts with 'custom-' or 'std-')
   if (instructionType && (instructionType.startsWith('custom-') || instructionType.startsWith('std-')) && userSettings?.aiSettings?.customInstructions) {
     const customInstructionsArray = userSettings.aiSettings.customInstructions;
@@ -130,9 +112,7 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
       
       if (instruction) {
         // Build prompt with formatting instructions
-        prompt = `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
-        instructionCache.set(instructionType, prompt);
-        return prompt;
+        return `${instruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
       }
     }
   }
@@ -141,9 +121,7 @@ const getInstructionPrompt = (instructionType, userSettings = null) => {
   if (instructionType && instructionType.startsWith('std-')) {
     const defaultInstruction = DEFAULT_INSTRUCTIONS.find(instr => instr.id === instructionType);
     if (defaultInstruction) {
-      prompt = `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
-      instructionCache.set(instructionType, prompt);
-      return prompt;
+      return `${defaultInstruction.instruction} ${FORMATTING_INSTRUCTIONS}`;
     }
   }
   
@@ -157,8 +135,11 @@ const getAiSettings = (userSettings) => {
                        sessionStorage.getItem("ai-instructions") || 
                        "std-note-organizer";
 
+  // Always check sessionStorage for model selection first (AI modal saves here)
+  const selectedModel = sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite-preview-06-17";
+
   if (userSettings?.aiSettings) {
-    const { apiKey, selectedModel, selectedInstruction } = userSettings.aiSettings;
+    const { apiKey, selectedInstruction } = userSettings.aiSettings;
     
     // Use selectedInstruction override if provided
     if (selectedInstruction) {
@@ -167,7 +148,7 @@ const getAiSettings = (userSettings) => {
     
     return {
       apiKey: apiKey || "",
-      model: selectedModel || "gemini-2.5-flash",
+      model: selectedModel, // Always use sessionStorage model
       instructionType,
     };
   }
@@ -175,12 +156,16 @@ const getAiSettings = (userSettings) => {
   // Legacy fallback til sessionStorage
   return {
     apiKey: sessionStorage.getItem("gemini-api-key") || "",
-    model: sessionStorage.getItem("ai-model") || "gemini-2.5-flash",
+    model: selectedModel, // Always use sessionStorage model
     instructionType,
   };
 };
 
-export const processTextWithAi = async (content, title, userSettings = null) => {
+
+// AI Processing with streaming and systemInstruction optimization
+export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false, onChunk = null, onThoughtChunk = null) => {
+  const totalStartTime = performance.now();
+  
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
 
   if (!apiKey) {
@@ -194,52 +179,302 @@ export const processTextWithAi = async (content, title, userSettings = null) => 
   }
 
   try {
+    // Phase 1: Setup and Initialization
+    const setupStartTime = performance.now();
     const ai = new GoogleGenAI({ apiKey });
     const instructionPrompt = getInstructionPrompt(instructionType, userSettings);
+    const setupTime = performance.now() - setupStartTime;
 
-    // HTML-direkte prompt der tilføjer intelligent formatering
-    const prompt = `${instructionPrompt}
-
-Note titel (kun til kontekst - inkluder IKKE i output): "${title}"
-
-Input HTML:
-${content}`;
-
-    // Debug: Log the complete prompt being sent to Gemini
-    // console.log('=== GEMINI PROMPT DEBUG ===');
-    // console.log('Instruction Type:', instructionType);
-    // console.log('Instruction Prompt:', instructionPrompt);
-    // console.log('Input Content:', content);
-    // console.log('=== END PROMPT DEBUG ===');
-
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        safetySettings: SAFETY_SETTINGS,
-        thinkingConfig: {
-          thinkingBudget: -1, // Enable dynamic thinking - model decides when to think
-        },
-      },
-    });
+    // Phase 2: Prompt Preparation + Performance optimization
+    const promptStartTime = performance.now();
+    const simplePrompt = `Note titel (kun til kontekst): "${title}"\n\nInput HTML:\n${content}`;
+    const promptTime = performance.now() - promptStartTime;
     
-    let processedHtml = response.text;
-
-    // Minimal cleanup - fjern kun evt. wrapping af AI der ikke er HTML
-    processedHtml = processedHtml
-      .replace(/^```html\s*/, '') // Fjern evt. code block start
-      .replace(/\s*```$/, '') // Fjern evt. code block end  
-      .trim();
-
-    // Valider at vi har noget HTML-lignende content
-    if (!processedHtml.includes('<') || !processedHtml.includes('>')) {
-      // Hvis AI returnerede plain text, wrap i paragraph
-      processedHtml = `<p>${processedHtml}</p>`;
+    if (enableDebugTiming) {
+      console.log('=== STREAMING AI PERFORMANCE DEBUG ===');
+      console.log('Model:', model);
+      console.log('Using systemInstruction + Streaming: YES');
+      console.log('Content Length:', content.length);
+      console.log('Setup Time:', Math.round(setupTime), 'ms');
+      console.log('Prompt Prep Time:', Math.round(promptTime), 'ms');
     }
 
-    return processedHtml;
+    // Phase 3: Token counting for performance analysis (Google cookbook best practice)
+    const tokenCountStart = performance.now();
+    let inputTokens = 0;
+    let tokenCountTime = 0;
+    
+    try {
+      const tokenResponse = await ai.models.countTokens({
+        model,
+        contents: simplePrompt,
+      });
+      tokenCountTime = performance.now() - tokenCountStart;
+      inputTokens = tokenResponse.totalTokens;
+      
+      if (enableDebugTiming) {
+        console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
+      }
+    } catch (error) {
+      console.warn('Token counting failed:', error);
+      tokenCountTime = performance.now() - tokenCountStart;
+    }
+    
+    // Phase 4: AI API Call with streaming optimization
+    const apiStartTime = performance.now();
+    console.time(`AI_API_Call_Streaming_${model}`);
+    
+    // Build config object conditionally
+    const config = {
+      systemInstruction: instructionPrompt,
+    };
+    
+    // OPTIMIZED THINKING IMPLEMENTATION: Based on test environment learnings
+    const enableThinking = userSettings?.aiSettings?.enableThinking;
+    
+    // Configure thinking with proper thinkingBudget (critical for Flash Lite!)
+    if (enableThinking) {
+      config.thinkingConfig = {
+        includeThoughts: true,
+        thinkingBudget: -1  // Dynamic thinking - model decides complexity
+      };
+      
+      if (enableDebugTiming) {
+        console.log('🧠 Thinking enabled with dynamic budget (-1)');
+      }
+    } else {
+      config.thinkingConfig = {
+        thinkingBudget: 0  // Explicit disable - critical for Flash Lite
+      };
+      
+      if (enableDebugTiming) {
+        console.log('⚡ Thinking explicitly disabled (thinkingBudget: 0)');
+      }
+    }
+    
+    const streamResponse = await ai.models.generateContentStream({
+      model,
+      contents: simplePrompt,
+      config,
+    });
+    
+    // Collect all chunks from stream - separate thoughts from answers
+    let fullResponse = '';
+    let thoughtSummaries = '';
+    let firstChunkTime = null;
+    let firstAnswerChunkTime = null;
+    let firstThoughtChunkTime = null;
+    let hasThoughts = false;
+    
+    for await (const chunk of streamResponse) {
+      if (firstChunkTime === null) {
+        firstChunkTime = performance.now() - apiStartTime;
+        if (enableDebugTiming) {
+          console.log('First chunk received in:', Math.round(firstChunkTime), 'ms');
+        }
+      }
+      
+      // Handle response parts (for thought summaries) - Enhanced with test environment learnings
+      if (chunk.candidates && chunk.candidates[0]?.content?.parts) {
+        for (const part of chunk.candidates[0].content.parts) {
+          if (!part.text) continue;
+          
+          if (part.thought) {
+            // This is a thought summary
+            thoughtSummaries += part.text;
+            hasThoughts = true;
+            
+            // Measure first thought chunk time
+            if (firstThoughtChunkTime === null) {
+              firstThoughtChunkTime = performance.now() - apiStartTime;
+              if (enableDebugTiming) {
+                console.log(`🧠 First thought chunk at: ${Math.round(firstThoughtChunkTime)}ms`);
+              }
+            }
+            
+            if (enableDebugTiming) {
+              console.log('🧠 Thought Summary:', part.text.substring(0, 100) + '...');
+            }
+            
+            // Call onThoughtChunk callback for real-time thought UI updates
+            if (onThoughtChunk && part.text) {
+              onThoughtChunk(part.text);
+            }
+          } else {
+            // This is regular answer content
+            fullResponse += part.text;
+            
+            // Measure first answer chunk time
+            if (firstAnswerChunkTime === null) {
+              firstAnswerChunkTime = performance.now() - apiStartTime;
+              if (enableDebugTiming) {
+                console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
+              }
+            }
+            
+            if (enableDebugTiming) {
+              console.log('💬 Answer:', part.text.substring(0, 100) + '...');
+            }
+            
+            // Call onChunk callback for real-time UI updates
+            if (onChunk && part.text) {
+              onChunk(part.text);
+            }
+          }
+        }
+      }
+      // Fallback for simple text chunks (no thoughts)
+      else if (chunk.text) {
+        fullResponse += chunk.text;
+        
+        // Measure first answer chunk time (for fallback)
+        if (firstAnswerChunkTime === null) {
+          firstAnswerChunkTime = performance.now() - apiStartTime;
+          if (enableDebugTiming) {
+            console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
+          }
+        }
+        
+        // Call onChunk callback for real-time UI updates (fallback)
+        if (onChunk && chunk.text) {
+          onChunk(chunk.text);
+        }
+      }
+    }
+    
+    console.timeEnd(`AI_API_Call_Streaming_${model}`);
+    const apiTime = performance.now() - apiStartTime;
+    
+    // Enhanced debug logging from test environment
+    if (enableDebugTiming) {
+      console.log(`🧪 Google Streaming Test: ${model} - ${Math.round(apiTime)}ms`);
+      console.log(`🧠 Thinking: ${enableThinking ? 'ENABLED' : 'DISABLED'}`);
+      console.log(`⚡ First chunk: ${firstChunkTime}ms (perceived performance)`);
+      console.log(`💬 First answer: ${firstAnswerChunkTime || 'N/A'}ms`);
+      console.log(`🧠 First thought: ${firstThoughtChunkTime || 'N/A'}ms`);
+      console.log(`🧠 Thought Summaries Length: ${thoughtSummaries.length} chars`);
+      console.log(`💬 Answer Length: ${fullResponse.length} chars`);
+    }
+    
+    // Phase 4: Response Processing
+    const processStartTime = performance.now();
+    let processedHtml = fullResponse;
+
+    // Minimal cleanup
+    processedHtml = processedHtml
+      .replace(/^```html\s*/, '')
+      .replace(/\s*```$/, '')  
+      .trim();
+
+    if (!processedHtml.includes('<') || !processedHtml.includes('>')) {
+      processedHtml = `<p>${processedHtml}</p>`;
+    }
+    
+    const processTime = performance.now() - processStartTime;
+    const totalTime = performance.now() - totalStartTime;
+
+    if (enableDebugTiming) {
+      console.log('First Chunk Time:', Math.round(firstChunkTime || 0), 'ms');
+      console.log('Total API Time:', Math.round(apiTime), 'ms');
+      console.log('Response Processing Time:', Math.round(processTime), 'ms');
+      console.log('Total Time:', Math.round(totalTime), 'ms');
+      console.log('Response Length:', processedHtml.length);
+      if (hasThoughts) {
+        console.log('🧠 Thoughts Detected: YES');
+        console.log('🧠 Thought Summary Length:', thoughtSummaries.length);
+        console.log('🧠 Thought Preview:', thoughtSummaries.substring(0, 200) + '...');
+      } else {
+        console.log('🧠 Thoughts Detected: NO');
+      }
+      console.log('=== END STREAMING AI PERFORMANCE DEBUG ===');
+    }
+
+    // Store performance metrics
+    if (typeof window !== 'undefined' && window.aiPerformanceMetrics) {
+      window.aiPerformanceMetrics.push({
+        timestamp: new Date().toISOString(),
+        model,
+        instructionType,
+        optimized: true,
+        systemInstruction: true,
+        streaming: true,
+        firstChunkTime: Math.round(firstChunkTime || 0),
+        inputLength: content.length,
+        outputLength: processedHtml.length,
+        setupTime: Math.round(setupTime),
+        promptTime: Math.round(promptTime),
+        apiTime: Math.round(apiTime),
+        processTime: Math.round(processTime),
+        totalTime: Math.round(totalTime),
+        // Thought summaries information
+        hasThoughts,
+        thoughtSummaries: hasThoughts ? thoughtSummaries : null,
+        thoughtLength: hasThoughts ? thoughtSummaries.length : 0,
+        includeThoughtsEnabled: userSettings?.aiSettings?.includeThoughts || false,
+        // Token metrics from test environment
+        tokenMetrics: {
+          inputTokens,
+          tokenCountTime: Math.round(tokenCountTime),
+          tokensPerSecond: inputTokens > 0 ? Math.round((inputTokens / apiTime) * 1000) : 0
+        },
+        // First chunk timing metrics from test environment  
+        firstChunkTime: Math.round(firstChunkTime || 0),
+        firstAnswerChunkTime: Math.round(firstAnswerChunkTime || 0),
+        firstThoughtChunkTime: Math.round(firstThoughtChunkTime || 0),
+        // Thinking configuration
+        thinkingEnabled: enableThinking
+      });
+    }
+
+    // Enhanced return object with thought summaries and performance metrics
+    const performanceMetrics = {
+      timestamp: new Date().toISOString(),
+      model,
+      instructionType,
+      optimized: true,
+      systemInstruction: true,
+      streaming: true,
+      firstChunkTime: Math.round(firstChunkTime || 0),
+      inputLength: content.length,
+      outputLength: processedHtml.length,
+      setupTime: Math.round(setupTime),
+      promptTime: Math.round(promptTime),
+      apiTime: Math.round(apiTime),
+      processTime: Math.round(processTime),
+      totalTime: Math.round(totalTime),
+      // Thought summaries information
+      hasThoughts,
+      thoughtSummaries: hasThoughts ? thoughtSummaries : null,
+      thoughtLength: hasThoughts ? thoughtSummaries.length : 0,
+      // Token metrics from test environment
+      tokenMetrics: {
+        inputTokens,
+        tokenCountTime: Math.round(tokenCountTime),
+        tokensPerSecond: inputTokens > 0 ? Math.round((inputTokens / apiTime) * 1000) : 0
+      },
+      // First chunk timing metrics from test environment  
+      firstAnswerChunkTime: Math.round(firstAnswerChunkTime || 0),
+      firstThoughtChunkTime: Math.round(firstThoughtChunkTime || 0),
+      // Thinking configuration
+      thinkingEnabled: enableThinking
+    };
+    
+    return {
+      processedHtml,
+      thoughtSummaries,
+      performanceMetrics
+    };
   } catch (error) {
-    console.error("AI Processing Error:", error);
+    const totalTime = performance.now() - totalStartTime;
+    
+    if (enableDebugTiming) {
+      console.log('=== STREAMING AI ERROR DEBUG ===');
+      console.log('Error occurred after:', Math.round(totalTime), 'ms');
+      console.log('Error:', error.message);
+      console.log('=== END STREAMING AI ERROR DEBUG ===');
+    }
+    
+    console.error("Streaming AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";
     const errorText = error.message.toLowerCase();
 
@@ -256,3 +491,4 @@ ${content}`;
     throw new Error(errorMessage);
   }
 };
+

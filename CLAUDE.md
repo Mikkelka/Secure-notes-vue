@@ -137,6 +137,13 @@ Both store login type for master password verification: `localStorage.getItem('l
 - Brug export funktionen til backup før refactoring
 - Verificer at data kan læses korrekt efter ændringer
 
+**AI Integration Guidelines:**
+- **Model Selection**: Altid tjek sessionStorage for bruger-valgt model: `sessionStorage.getItem('ai-model')`
+- **Streaming Callbacks**: Brug `onChunk` og `onThoughtChunk` for real-time UI opdateringer
+- **Performance Logging**: Inkluder console.log for timing og performance metrics
+- **Button States**: Implement purple → blue → green → emerald progression for AI processing
+- **Character Counting**: Vis live character counts under streaming og thinking
+
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
 - Pinia stores for cross-component state management
@@ -158,7 +165,46 @@ Both store login type for master password verification: `localStorage.getItem('l
 - Debounced search with 300ms delay
 - Efficient note filtering using computed properties
 - @apply directive system reduces CSS bundle size and improves maintainability
+- **Modulær NoteViewer arkitektur** - Opdelt i shared komponenter for bedre maintainability
+- **Isoleret AI testing miljø** - `src/ai-testing/` komplet adskilt fra hovedapp
+
+**AI Performance Architecture:**
+- **Production Models**: Flash-Lite (`gemini-2.5-flash-lite-preview-06-17`) og Flash Standard (`gemini-2.5-flash`)
+- **Model Selection**: User-valgt via AI Indstillinger modal, gemt i sessionStorage
+- **Response Time**: Flash-Lite ~1s, Flash Standard ~4s med thinking
+- **Real-time Streaming**: onChunk callbacks med tekst streaming og character counts
+- **Testing Environment**: Isoleret AI testing lab via `/ai-test.html`
+- **Thinking Toggle**: Universal enableThinking control for begge modeller
+
+**Component Architecture:**
+- **Modulær NoteViewer**: Opdelt i shared komponenter for performance (~311 linjer total)
+  - `NoteHeader.vue` - titel, folder, actions 
+  - `NoteContent.vue` - pure content display
+  - `NoteEditor.vue` - TinyMCE editing isoleret
+  - `AiPanel.vue` - AI processing UI med real-time streaming
+  - Layout wrappers for mobile/desktop
+- **Performance Benefit**: Kun relevante komponenter re-renderes ved AI responses
+
+**Real-time AI Streaming Architecture:**
+- **Streaming Implementation**: `onChunk` og `onThoughtChunk` callbacks for real-time text display
+- **Button State Management**: Purple → Blue (thinking) → Green (streaming) → Emerald (complete)
+- **Character Counting**: Live character counts during streaming og thinking
+- **UI Responsiveness**: Tekst vises i real-time som AI genererer content
+- **Performance Metrics**: Console logging af timing og token counts
+- **Session Integration**: Model valg og settings gemt i sessionStorage
+
+**AI Testing Environment:**
+- **Location**: `src/ai-testing/` - helt isoleret fra hovedapp
+- **Access**: Test Lab knap i header åbner `/ai-test.html` i nyt vindue
+- **Features**: Standalone aiTestService.js, begge AI modeller, performance metrics
+- **Independence**: Zero dependencies på hovedapp, dedicated Google AI imports
 
 **Mobile Touch Optimization:**
 - `touch-action: manipulation` for responsive interactions
 - Minimum 44-48px touch targets for accessibility compliance
+
+**Important Implementation Notes:**
+- **Note Saving**: Uses correct parameter passing - `emit('update', noteId, title, content)` (3 separate parameters)
+- **AI Model Persistence**: Model selection persisted via `sessionStorage.getItem('ai-model')`
+- **Error Handling**: Comprehensive error handling for AI processing failures
+- **Performance**: Real-time streaming with immediate visual feedback

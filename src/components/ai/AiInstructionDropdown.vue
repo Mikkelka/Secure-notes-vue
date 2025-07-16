@@ -3,23 +3,28 @@
     <!-- Separate Buttons -->
     <div ref="buttonContainerRef" class="flex gap-2">
       <!-- Main AI Process Button -->
-      <BaseButton
+      <button
         @click="$emit('process')"
         :disabled="disabled"
-        variant="primary"
-        class="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="[
+          'note-editing-btn-base flex-1',
+          getButtonClass()
+        ]"
       >
-        <div v-if="isProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div v-if="isProcessing && !isStreamingStarted && !streamingText && !thoughtText && !isCompleted" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div v-else-if="isCompleted" class="w-4 h-4 text-emerald-200">✓</div>
+        <div v-else-if="thoughtText" class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+        <div v-else-if="isStreamingStarted || streamingText" class="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
         <Brain v-else class="w-4 h-4" />
-        AI Process ({{ getShortLabel(selectedInstruction) }})
-      </BaseButton>
+        {{ getButtonText() }}
+      </button>
       
       <!-- Dropdown Toggle Button -->
       <BaseButton
         @click.stop="toggleDropdown"
         :disabled="disabled"
-        variant="primary"
-        class="px-3 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="ghost"
+        class="note-editing-btn-base note-editing-ai-toggle"
       >
         <ChevronDown :class="['w-4 h-4 transition-transform', isOpen ? 'rotate-180' : '']" />
         Skift
@@ -132,10 +137,26 @@ const props = defineProps({
   content: {
     type: String,
     default: ''
+  },
+  streamingText: {
+    type: String,
+    default: ''
+  },
+  thoughtText: {
+    type: String,
+    default: ''
+  },
+  isCompleted: {
+    type: Boolean,
+    default: false
+  },
+  isStreamingStarted: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['process', 'instructionChanged'])
+const emit = defineEmits(['process', 'instructionChanged', 'dropdownOpened'])
 
 const isOpen = ref(false)
 const selectedInstruction = ref('std-note-organizer')
@@ -246,6 +267,34 @@ const isSuggested = (instructionKey) => {
   return suggested === instructionKey && suggested !== selectedInstruction.value
 }
 
+// Get button class based on streaming state
+const getButtonClass = () => {
+  if (props.isCompleted) {
+    return 'note-editing-ai-completed'
+  } else if (props.thoughtText) {
+    return 'note-editing-ai-processing'
+  } else if (props.isStreamingStarted || props.streamingText) {
+    return 'note-editing-ai-streaming'
+  } else {
+    return 'note-editing-ai'
+  }
+}
+
+// Get button text based on streaming state
+const getButtonText = () => {
+  if (props.isCompleted) {
+    return `AI Complete`
+  } else if (props.thoughtText) {
+    return `AI Reasoning ${props.thoughtText.length} tegn`
+  } else if (props.streamingText) {
+    return `AI Streaming ${props.streamingText.length} tegn`
+  } else if (props.isStreamingStarted) {
+    return `AI Streaming...`
+  } else {
+    return `AI Process (${getShortLabel(selectedInstruction.value)})`
+  }
+}
+
 // Group instructions for display
 const groupedInstructions = computed(() => {
   const options = instructionOptions.value
@@ -290,6 +339,8 @@ const calculateDropdownDirection = () => {
 const toggleDropdown = () => {
   if (!isOpen.value) {
     isOpen.value = true
+    // Emit dropdown opened event to clear completed state
+    emit('dropdownOpened')
     // Calculate direction on next tick when dropdown is rendered
     nextTick(() => {
       calculateDropdownDirection()

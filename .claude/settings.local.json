@@ -29,7 +29,8 @@
       "Bash(./tokei:*)",
       "Bash(eslint . --fix)",
       "Bash(npm run lint:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(wc:*)"
     ],
     "deny": []
   }

@@ -53,6 +53,7 @@ export const useUIStore = defineStore('ui', () => {
     showAiModal.value = false
   }
 
+
   const openAppSettings = () => {
     showAppSettings.value = true
   }

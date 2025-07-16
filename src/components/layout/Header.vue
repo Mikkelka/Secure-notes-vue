@@ -33,6 +33,16 @@
           </button>
           
           <button
+            v-if="settings.showTestLab"
+            @click="openTestLab"
+            class="header-btn-base header-btn-orange"
+            title="AI Testing Lab (Isolated)"
+          >
+            <Zap class="w-4 h-4" />
+            <span>Test Lab</span>
+          </button>
+          
+          <button
             @click="$emit('settings')"
             class="header-btn-base header-btn-gray"
             title="Indstillinger"
@@ -79,6 +89,14 @@
               AI Indstillinger
             </button>
             <button
+              v-if="settings.showTestLab"
+              @click="openTestLab(); showMobileMenu = false"
+              class="dropdown-btn-mobile text-orange-300"
+            >
+              <Zap class="w-4 h-4" />
+              AI Test Lab
+            </button>
+            <button
               @click="$emit('settings'); showMobileMenu = false"
               class="dropdown-btn-mobile text-gray-300"
             >
@@ -108,9 +126,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Shield, Brain, Download, Settings, LogOut, Menu } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
+import { Shield, Brain, Download, Settings, LogOut, Menu, Zap } from 'lucide-vue-next'
+import { useSettingsStore } from '../../stores/settings'
 
 const showMobileMenu = ref(false)
+const settingsStore = useSettingsStore()
+const { settings } = storeToRefs(settingsStore)
 
 defineProps({
   user: {
@@ -120,4 +142,9 @@ defineProps({
 })
 
 defineEmits(['logout', 'export', 'ai', 'settings'])
+
+// Open AI Testing Lab in new tab/window
+const openTestLab = () => {
+  window.open('/ai-test.html', '_blank', 'width=1400,height=900')
+}
 </script>

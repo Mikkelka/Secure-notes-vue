@@ -393,6 +393,58 @@ div[contenteditable="false"] .ProseMirror {
   @apply w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all;
 }
 
+/* Code Block Styling */
+pre {
+  @apply bg-gray-800 border border-gray-600 rounded-lg p-4 overflow-x-auto text-sm my-4;
+  color: #e5e7eb !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Inline code styling - maximum specificity */
+div.text-gray-300.prose-content code,
+div.prose-content code {
+  background-color: rgba(55, 65, 81, 0.9) !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 4px !important;
+  padding: 2px 8px !important;
+  font-size: 0.875rem !important;
+  color: #fbbf24 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+  margin: 0 6px !important;
+  display: inline-block !important;
+  vertical-align: baseline !important;
+  font-weight: 500 !important;
+}
+
+/* Inline code within pre blocks */
+div.text-gray-300.prose-content pre code,
+div.prose-content pre code {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  font-weight: normal !important;
+}
+
+/* Horizontal rule styling */
+hr {
+  @apply border-gray-600 my-6;
+  border-width: 1px 0 0 0;
+}
+
+/* Prose content styling */
+.prose-content {
+  color: #d1d5db;
+}
+
+.prose-content p {
+  color: #d1d5db;
+}
+
 .input-small {
   @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500;
 }
@@ -498,6 +550,10 @@ div[contenteditable="false"] .ProseMirror {
   @apply bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20;
 }
 
+.header-btn-orange {
+  @apply bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20;
+}
+
 /* Dropdown Button Patterns */
 .dropdown-btn-base {
   @apply w-full text-left hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm touch-manipulation;
@@ -589,4 +645,135 @@ div[contenteditable="false"] .ProseMirror {
 /* PIN Input Variant */
 .pin-input {
   @apply w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Note Action Button Patterns */
+.note-action-btn-base {
+  @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800;
+}
+
+.note-action-btn-mobile {
+  @apply p-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800;
+}
+
+.note-action-btn-desktop {
+  @apply flex-1 px-4 py-2 rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800;
+}
+
+/* Note Action Button Variants */
+.note-action-edit {
+  @apply bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 focus:ring-blue-500;
+}
+
+.note-action-delete {
+  @apply bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20 focus:ring-red-500;
+}
+
+.note-action-favorite {
+  @apply bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 hover:bg-yellow-500/20 focus:ring-yellow-500;
+}
+
+.note-action-favorite-active {
+  @apply bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/30 focus:ring-yellow-500;
+}
+
+.note-action-close {
+  @apply bg-gray-500/10 border border-gray-500/20 text-gray-300 hover:bg-gray-500/20 focus:ring-gray-500;
+}
+
+/* Note Action Button Mobile Variants */
+.note-action-edit-mobile {
+  @apply text-blue-400 hover:bg-blue-500/20 focus:ring-blue-500;
+}
+
+.note-action-delete-mobile {
+  @apply text-red-400 hover:bg-red-500/20 focus:ring-red-500;
+}
+
+.note-action-favorite-mobile {
+  @apply text-gray-400 hover:bg-gray-700 focus:ring-gray-500;
+}
+
+.note-action-favorite-mobile-active {
+  @apply text-yellow-400 hover:bg-yellow-400/20 focus:ring-yellow-500;
+}
+
+.note-action-close-mobile {
+  @apply text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-gray-500;
+}
+
+/* Note Action Container Patterns */
+.note-actions-container {
+  @apply p-4 border-t border-gray-700/50;
+}
+
+.note-actions-mobile {
+  @apply flex justify-center gap-4;
+}
+
+.note-actions-desktop {
+  @apply flex gap-3;
+}
+
+/* Note Editing Button Patterns - Following header-btn structure */
+.note-editing-btn-base {
+  @apply inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.note-editing-btn-mobile {
+  @apply flex-1 px-3 py-1.5 rounded transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.note-editing-btn-desktop {
+  @apply px-3 py-1.5 rounded transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Note Editing Button Variants - Following header-btn pattern */
+.note-editing-save {
+  @apply bg-green-500/10 border border-green-500/20 text-green-300 hover:bg-green-500/20 focus:ring-green-500 disabled:opacity-50;
+}
+
+.note-editing-cancel {
+  @apply bg-gray-500/10 border border-gray-500/20 text-gray-300 hover:bg-gray-500/20 focus:ring-gray-500;
+}
+
+.note-editing-undo {
+  @apply bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20 focus:ring-orange-500;
+}
+
+.note-editing-ai {
+  @apply bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 focus:ring-purple-500 disabled:opacity-50;
+}
+
+.note-editing-ai-processing {
+  @apply bg-blue-500/10 border border-blue-500/20 text-blue-300 hover:bg-blue-500/20 focus:ring-blue-500 disabled:opacity-50;
+}
+
+.note-editing-ai-streaming {
+  @apply bg-green-500/10 border border-green-500/20 text-green-300 hover:bg-green-500/20 focus:ring-green-500 disabled:opacity-50;
+}
+
+.note-editing-ai-completed {
+  @apply bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 focus:ring-emerald-500 disabled:opacity-50;
+}
+
+.note-editing-ai-toggle {
+  @apply bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Note Editing Container Patterns */
+.note-editing-container {
+  @apply border-t border-gray-700/50 p-4;
+}
+
+.note-editing-container-desktop {
+  @apply border-t border-gray-700/50 p-4;
+}
+
+.note-editing-actions-row {
+  @apply flex items-center gap-3;
+}
+
+.note-editing-actions-row-mobile {
+  @apply flex items-center gap-3;
 }
