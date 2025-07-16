@@ -12,7 +12,6 @@
         class="text-gray-300 leading-relaxed prose-content"
         :class="isMobile ? 'text-base' : 'text-sm'"
         v-html="content"
-        style="color: #d1d5db !important;"
       ></div>
     </div>
   </div>

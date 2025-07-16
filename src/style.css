@@ -393,6 +393,58 @@ div[contenteditable="false"] .ProseMirror {
   @apply w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-all;
 }
 
+/* Code Block Styling */
+pre {
+  @apply bg-gray-800 border border-gray-600 rounded-lg p-4 overflow-x-auto text-sm my-4;
+  color: #e5e7eb !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Inline code styling - maximum specificity */
+div.text-gray-300.prose-content code,
+div.prose-content code {
+  background-color: rgba(55, 65, 81, 0.9) !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 4px !important;
+  padding: 2px 8px !important;
+  font-size: 0.875rem !important;
+  color: #fbbf24 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+  margin: 0 6px !important;
+  display: inline-block !important;
+  vertical-align: baseline !important;
+  font-weight: 500 !important;
+}
+
+/* Inline code within pre blocks */
+div.text-gray-300.prose-content pre code,
+div.prose-content pre code {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  font-weight: normal !important;
+}
+
+/* Horizontal rule styling */
+hr {
+  @apply border-gray-600 my-6;
+  border-width: 1px 0 0 0;
+}
+
+/* Prose content styling */
+.prose-content {
+  color: #d1d5db;
+}
+
+.prose-content p {
+  color: #d1d5db;
+}
+
 .input-small {
   @apply w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500;
 }
