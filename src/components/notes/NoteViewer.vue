@@ -258,13 +258,7 @@ const cancelEdit = () => {
 }
 
 const handleSave = async () => {
-  const updatedNote = {
-    ...props.note,
-    title: editTitle.value,
-    content: editContent.value
-  }
-  
-  emit('update', updatedNote)
+  emit('update', props.note.id, editTitle.value, editContent.value)
   isEditing.value = false
 }
 
