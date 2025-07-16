@@ -763,11 +763,11 @@ hr {
 
 /* Note Editing Container Patterns */
 .note-editing-container {
-  @apply border-t border-gray-700/50 p-4 space-y-3;
+  @apply border-t border-gray-700/50 p-4;
 }
 
 .note-editing-container-desktop {
-  @apply border-t border-gray-700/50 p-4 space-y-2;
+  @apply border-t border-gray-700/50 p-4;
 }
 
 .note-editing-actions-row {

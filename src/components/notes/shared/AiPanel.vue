@@ -1,60 +1,50 @@
 <template>
   <div :class="isMobile ? 'note-editing-container' : 'note-editing-container-desktop'">
-    <div>
-      <!-- AI and Undo buttons -->
-      <div class="note-editing-actions-row">
-        <div class="flex-1">
-          <AiInstructionDropdown
-            @process="handleAiProcess"
-            @instruction-changed="handleInstructionChanged"
-            @dropdown-opened="handleDropdownOpened"
-            :is-processing="isAiProcessing"
-            :disabled="!content.trim()"
-            :user-settings="userSettings"
-            :content="content"
-            :streaming-text="streamingText"
-            :thought-text="thoughtStreamingText"
-            :is-completed="isCompleted"
-            :is-streaming-started="isStreamingStarted"
-          />
-        </div>
-        <BaseButton
-          v-if="canUndo"
-          @click="handleUndo"
-          variant="ghost"
-          :size="isMobile ? 'md' : 'sm'"
-          class="note-editing-btn-base note-editing-undo"
-        >
-          <Undo class="w-4 h-4" />
-          Undo
-        </BaseButton>
+    <!-- All buttons on single line -->
+    <div class="note-editing-actions-row">
+      <div class="flex-1">
+        <AiInstructionDropdown
+          @process="handleAiProcess"
+          @instruction-changed="handleInstructionChanged"
+          @dropdown-opened="handleDropdownOpened"
+          :is-processing="isAiProcessing"
+          :disabled="!content.trim()"
+          :user-settings="userSettings"
+          :content="content"
+          :streaming-text="streamingText"
+          :thought-text="thoughtStreamingText"
+          :is-completed="isCompleted"
+          :is-streaming-started="isStreamingStarted"
+        />
       </div>
-      
-      <!-- Save and Cancel buttons -->
-      <div :class="isMobile ? 'note-editing-actions-row-mobile' : 'note-editing-actions-row'">
-        <BaseButton
-          @click="handleSave"
-          :disabled="!isValid"
-          variant="ghost"
-          :size="isMobile ? 'md' : 'sm'"
-          :class="[
-            isMobile ? 'note-editing-btn-mobile note-editing-save' : 'note-editing-btn-desktop note-editing-save'
-          ]"
-        >
-          <Save class="w-4 h-4" />
-          Save
-        </BaseButton>
-        <BaseButton
-          @click="handleCancel"
-          variant="ghost"
-          :size="isMobile ? 'md' : 'sm'"
-          :class="[
-            isMobile ? 'note-editing-btn-mobile note-editing-cancel' : 'note-editing-btn-desktop note-editing-cancel'
-          ]"
-        >
-          Cancel
-        </BaseButton>
-      </div>
+      <BaseButton
+        v-if="canUndo"
+        @click="handleUndo"
+        variant="ghost"
+        :size="isMobile ? 'md' : 'sm'"
+        class="note-editing-btn-base note-editing-undo"
+      >
+        <Undo class="w-4 h-4" />
+        Undo
+      </BaseButton>
+      <BaseButton
+        @click="handleSave"
+        :disabled="!isValid"
+        variant="ghost"
+        :size="isMobile ? 'md' : 'sm'"
+        class="note-editing-btn-base note-editing-save"
+      >
+        <Save class="w-4 h-4" />
+        Save
+      </BaseButton>
+      <BaseButton
+        @click="handleCancel"
+        variant="ghost"
+        :size="isMobile ? 'md' : 'sm'"
+        class="note-editing-btn-base note-editing-cancel"
+      >
+        Cancel
+      </BaseButton>
     </div>
   </div>
 </template>
