@@ -232,6 +232,11 @@ const defaultFolders = computed(() => [
     name: "Sikker mappe",
     icon: Shield,
   },
+  {
+    id: "trash",
+    name: "Papirkurv",
+    icon: Trash2,
+  },
 ]);
 
 const getColorClass = (color) => {

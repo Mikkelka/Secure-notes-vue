@@ -73,23 +73,41 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <button
-                  @click="handleToggleFavorite(note.id)"
-                  :class="[
-                    'action-btn-icon',
-                    note.isFavorite
-                      ? 'text-yellow-400 hover:text-yellow-300'
-                      : 'text-gray-400 hover:text-yellow-400'
-                  ]"
-                >
-                  <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
-                </button>
-                <button
-                  @click="handleDeleteNote(note.id)"
-                  class="delete-btn"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
+                <template v-if="isTrashMode">
+                  <button
+                    @click="handleRestoreNote(note.id)"
+                    class="action-btn-icon text-green-400 hover:text-green-300"
+                    title="Gendan note"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handlePermanentDelete(note.id)"
+                    class="delete-btn"
+                    title="Slet permanent"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </template>
+                <template v-else>
+                  <button
+                    @click="handleToggleFavorite(note.id)"
+                    :class="[
+                      'action-btn-icon',
+                      note.isFavorite
+                        ? 'text-yellow-400 hover:text-yellow-300'
+                        : 'text-gray-400 hover:text-yellow-400'
+                    ]"
+                  >
+                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handleDeleteNote(note.id)"
+                    class="delete-btn"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </template>
               </div>
             </div>
 
@@ -110,9 +128,18 @@
 
         <!-- Regular Notes Section -->
         <div v-if="regularNotes.length > 0">
-          <div v-if="!debouncedSearchTerm" class="flex items-center gap-2 text-sm font-medium mb-2">
-            <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
-            <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
+          <div v-if="!debouncedSearchTerm" class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
+              <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
+            </div>
+            <button
+              v-if="isTrashMode && notes.length > 0"
+              @click="handleEmptyTrash"
+              class="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-1 rounded border border-red-400/30 hover:border-red-300/50 transition-colors"
+            >
+              Tøm papirkurv
+            </button>
           </div>
           <div class="space-y-2">
             <div
@@ -146,23 +173,41 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <button
-                  @click="handleToggleFavorite(note.id)"
-                  :class="[
-                    'action-btn-icon',
-                    note.isFavorite
-                      ? 'text-yellow-400 hover:text-yellow-300'
-                      : 'text-gray-400 hover:text-yellow-400'
-                  ]"
-                >
-                  <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
-                </button>
-                <button
-                  @click="handleDeleteNote(note.id)"
-                  class="delete-btn"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
+                <template v-if="isTrashMode">
+                  <button
+                    @click="handleRestoreNote(note.id)"
+                    class="action-btn-icon text-green-400 hover:text-green-300"
+                    title="Gendan note"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handlePermanentDelete(note.id)"
+                    class="delete-btn"
+                    title="Slet permanent"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </template>
+                <template v-else>
+                  <button
+                    @click="handleToggleFavorite(note.id)"
+                    :class="[
+                      'action-btn-icon',
+                      note.isFavorite
+                        ? 'text-yellow-400 hover:text-yellow-300'
+                        : 'text-gray-400 hover:text-yellow-400'
+                    ]"
+                  >
+                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handleDeleteNote(note.id)"
+                    class="delete-btn"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </template>
               </div>
             </div>
 
@@ -196,21 +241,21 @@
   <!-- Confirm Dialog -->
   <BaseDialog
     :is-open="confirmDialog.isOpen"
-    title="Slet note"
+    :title="dialogTitle"
     show-default-actions
-    confirm-text="Slet"
+    :confirm-text="dialogConfirmText"
     cancel-text="Annuller"
     @confirm="handleConfirmDelete"
     @cancel="handleCancelDelete"
     @close="handleCancelDelete"
   >
-    Er du sikker på at du vil slette denne note? Denne handling kan ikke fortrydes.
+    {{ dialogText }}
   </BaseDialog>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield } from 'lucide-vue-next'
+import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
@@ -235,10 +280,10 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite', 'moveNoteToFolder'])
+const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite', 'moveNoteToFolder', 'restoreNote', 'permanentDeleteNote', 'emptyTrash'])
 
 const localSearchTerm = ref('')
-const confirmDialog = ref({ isOpen: false, noteId: null })
+const confirmDialog = ref({ isOpen: false, noteId: null, isPermanent: false, isEmptyTrash: false })
 const debouncedSearchTerm = ref('')
 
 // Folders store for folder information
@@ -271,13 +316,40 @@ watch(() => props.searchTerm, (newValue) => {
 const favoriteNotes = computed(() => props.notes.filter(note => note.isFavorite))
 const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite))
 
+// Check if we're in trash mode
+const isTrashMode = computed(() => props.selectedFolderId === 'trash')
+
+// Dialog text based on action type
+const dialogTitle = computed(() => {
+  if (confirmDialog.value.isEmptyTrash) return 'Tøm papirkurv'
+  if (confirmDialog.value.isPermanent) return 'Slet note permanent'
+  return 'Flyt note til papirkurv'
+})
+
+const dialogText = computed(() => {
+  if (confirmDialog.value.isEmptyTrash) {
+    return 'Er du sikker på at du vil slette alle noter i papirkurven permanent? Denne handling kan ikke fortrydes.'
+  }
+  if (confirmDialog.value.isPermanent) {
+    return 'Er du sikker på at du vil slette denne note permanent? Denne handling kan ikke fortrydes.'
+  }
+  return 'Er du sikker på at du vil flytte denne note til papirkurven?'
+})
+
+const dialogConfirmText = computed(() => {
+  if (confirmDialog.value.isEmptyTrash) return 'Tøm papirkurv'
+  if (confirmDialog.value.isPermanent) return 'Slet permanent'
+  return 'Flyt til papirkurv'
+})
+
 // Icon mapping
 const iconMap = {
   FolderOpen,
   Clock,
   Archive,
   Shield,
-  Folder
+  Folder,
+  Trash2
 }
 
 // Category descriptions with icons and colors
@@ -306,6 +378,12 @@ const categoryDescription = computed(() => {
         icon: iconMap.Shield,
         color: 'text-red-400',
         text: 'Sikrede noter beskyttet med PIN'
+      }
+    case 'trash':
+      return {
+        icon: iconMap.Trash2,
+        color: 'text-red-400',
+        text: 'Slettede noter (automatisk slettet efter 30 dage)'
       }
     default: {
       // For custom folders, get folder name
@@ -376,15 +454,33 @@ const handleDeleteNote = (noteId) => {
   confirmDialog.value = { isOpen: true, noteId }
 }
 
+const handleRestoreNote = (noteId) => {
+  emit('restoreNote', noteId)
+}
+
+const handlePermanentDelete = (noteId) => {
+  confirmDialog.value = { isOpen: true, noteId, isPermanent: true }
+}
+
+const handleEmptyTrash = () => {
+  confirmDialog.value = { isOpen: true, noteId: null, isEmptyTrash: true }
+}
+
 const handleConfirmDelete = () => {
-  if (confirmDialog.value.noteId) {
-    emit('deleteNote', confirmDialog.value.noteId)
+  if (confirmDialog.value.isEmptyTrash) {
+    emit('emptyTrash')
+  } else if (confirmDialog.value.noteId) {
+    if (confirmDialog.value.isPermanent) {
+      emit('permanentDeleteNote', confirmDialog.value.noteId)
+    } else {
+      emit('deleteNote', confirmDialog.value.noteId)
+    }
   }
-  confirmDialog.value = { isOpen: false, noteId: null }
+  confirmDialog.value = { isOpen: false, noteId: null, isPermanent: false, isEmptyTrash: false }
 }
 
 const handleCancelDelete = () => {
-  confirmDialog.value = { isOpen: false, noteId: null }
+  confirmDialog.value = { isOpen: false, noteId: null, isPermanent: false, isEmptyTrash: false }
 }
 
 // Store refs to folder label elements for positioning

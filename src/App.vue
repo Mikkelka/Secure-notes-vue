@@ -129,7 +129,10 @@
                 :selected-note-id="uiStore.selectedNote?.id"
                 :selected-folder-id="foldersStore.selectedFolderId"
                 @search-change="notesStore.setSearchTerm"
-                @delete-note="notesStore.deleteNote"
+                @delete-note="notesStore.moveToTrash"
+                @restore-note="notesStore.restoreNote"
+                @permanent-delete-note="notesStore.permanentDeleteNote"
+                @empty-trash="notesStore.emptyTrash"
                 @note-click="handleNoteClick"
                 @toggle-favorite="handleToggleFavorite"
                 @move-note-to-folder="handleMoveNoteToFolder"
@@ -323,6 +326,9 @@ const filteredNotes = computed(() => {
   if (selectedFolderId === 'uncategorized') {
     return baseNotes.filter(note => !note.folderId);
   }
+  if (selectedFolderId === 'trash') {
+    return notesStore.trashedNotes;
+  }
   
   // Denne linje håndterer både 'secure' og alle specifikke mappe-ID'er
   return baseNotes.filter(note => note.folderId === selectedFolderId);
@@ -410,7 +416,7 @@ const handleViewerUpdate = async (noteId, title, content) => {
 };
 
 const handleViewerDelete = async (noteId) => {
-  const success = await notesStore.deleteNote(noteId);
+  const success = await notesStore.moveToTrash(noteId);
   if (success) uiStore.closeNoteViewer();
   return success;
 };

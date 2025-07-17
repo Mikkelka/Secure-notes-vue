@@ -80,6 +80,8 @@ const decryptSingleNote = async (noteData, encryptionKey, userId) => {
     content: decryptedContent,
     folderId: noteData.folderId || null,
     isFavorite: noteData.isFavorite || false,
+    isDeleted: noteData.isDeleted || false,
+    deletedAt: noteData.deletedAt ? noteData.deletedAt.toDate() : null,
     createdAt: noteData.createdAt.toDate(),
     updatedAt: noteData.updatedAt.toDate()
   }
@@ -132,7 +134,7 @@ export const useNotesStore = defineStore('notes', () => {
   // Computed property der håndterer søgning og sortering.
   // Filtrering efter mappe skal ske i den komponent, der viser noterne.
   const searchedAndSortedNotes = computed(() => {
-    let notesToProcess = allNotes.value
+    let notesToProcess = allNotes.value.filter(note => !note.isDeleted) // Ekskluder slettede noter
 
     // 1. Filtrer baseret på søgeterm
     if (searchTerm.value) {
@@ -153,13 +155,29 @@ export const useNotesStore = defineStore('notes', () => {
     })
   })
 
+  // Computed property til at hente noter i papirkurv
+  const trashedNotes = computed(() => {
+    return allNotes.value
+      .filter(note => note.isDeleted)
+      .sort((a, b) => {
+        // Sorter efter deletedAt (senest slettede først)
+        if (a.deletedAt && b.deletedAt) {
+          return b.deletedAt.getTime() - a.deletedAt.getTime()
+        }
+        // Fallback til updatedAt hvis deletedAt mangler
+        return b.updatedAt.getTime() - a.updatedAt.getTime()
+      })
+  })
+
   // Optimeret funktion til at tælle noter i mapper med én gennemgang.
   const getNoteCounts = (folders) => {
-    const initialCounts = { all: 0, uncategorized: 0, secure: 0, recent: 0 }
+    const initialCounts = { all: 0, uncategorized: 0, secure: 0, recent: 0, trash: 0 }
     folders.forEach(folder => { initialCounts[folder.id] = 0 })
 
     const counts = allNotes.value.reduce((counts, note) => {
-      if (note.folderId === 'secure') {
+      if (note.isDeleted) {
+        counts.trash++
+      } else if (note.folderId === 'secure') {
         counts.secure++
       } else {
         counts.all++
@@ -172,7 +190,7 @@ export const useNotesStore = defineStore('notes', () => {
     }, initialCounts)
     
     // Tilføj count for recent notes (altid 5 eller mindre)
-    counts.recent = Math.min(5, allNotes.value.filter(note => note.folderId !== 'secure').length)
+    counts.recent = Math.min(5, allNotes.value.filter(note => note.folderId !== 'secure' && !note.isDeleted).length)
     
     return counts
   }
@@ -182,7 +200,7 @@ export const useNotesStore = defineStore('notes', () => {
   // Computed property til at få recent notes baseret på createdAt
   const recentNotes = computed(() => {
     return allNotes.value
-      .filter(note => note.folderId !== 'secure') // Ekskluder secure notes
+      .filter(note => note.folderId !== 'secure' && !note.isDeleted) // Ekskluder secure og slettede noter
       .sort((a, b) => {
         const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
         const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
@@ -211,6 +229,9 @@ export const useNotesStore = defineStore('notes', () => {
       allNotes.value = decryptedNotes
       performanceStats.value = updatePerformanceStats(startTime, decryptedNotes)
       
+      // Kør automatisk cleanup af gamle slettede noter
+      await cleanupOldTrashedNotes()
+      
     } catch (error) {
       console.error('Fejl under indlæsning af noter:', error)
     } finally {
@@ -235,6 +256,8 @@ export const useNotesStore = defineStore('notes', () => {
         encryptedContent,
         folderId: folderId || null,
         isFavorite: false,
+        isDeleted: false,
+        deletedAt: null,
         createdAt: now,
         updatedAt: now
       }
@@ -247,6 +270,8 @@ export const useNotesStore = defineStore('notes', () => {
         content,
         folderId: folderId || null,
         isFavorite: false,
+        isDeleted: false,
+        deletedAt: null,
         createdAt: now,
         updatedAt: now
       }
@@ -292,13 +317,111 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
-  const deleteNote = async (noteId) => {
+  const moveToTrash = async (noteId) => {
+    const note = allNotes.value.find(n => n.id === noteId)
+    if (!note) return false
+    
+    try {
+      const now = new Date()
+      await updateDoc(doc(db, 'notes', noteId), {
+        isDeleted: true,
+        deletedAt: now,
+        updatedAt: now
+      })
+      
+      // Opdater lokalt
+      note.isDeleted = true
+      note.deletedAt = now
+      note.updatedAt = now
+      return true
+    } catch (error) {
+      console.error('Fejl ved flytning af note til papirkurv:', error)
+      return false
+    }
+  }
+
+  const restoreNote = async (noteId) => {
+    const note = allNotes.value.find(n => n.id === noteId)
+    if (!note) return false
+    
+    try {
+      const now = new Date()
+      await updateDoc(doc(db, 'notes', noteId), {
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: now
+      })
+      
+      // Opdater lokalt
+      note.isDeleted = false
+      note.deletedAt = null
+      note.updatedAt = now
+      return true
+    } catch (error) {
+      console.error('Fejl ved gendannelse af note:', error)
+      return false
+    }
+  }
+
+  const permanentDeleteNote = async (noteId) => {
     try {
       await deleteDoc(doc(db, 'notes', noteId))
       allNotes.value = allNotes.value.filter(note => note.id !== noteId)
       return true
     } catch (error) {
-      console.error('Fejl ved sletning af note:', error)
+      console.error('Fejl ved permanent sletning af note:', error)
+      return false
+    }
+  }
+
+  const emptyTrash = async () => {
+    const trashedNotes = allNotes.value.filter(note => note.isDeleted)
+    if (trashedNotes.length === 0) return true
+    
+    try {
+      // Slet alle noter i papirkurv fra Firebase
+      const deletePromises = trashedNotes.map(note => 
+        deleteDoc(doc(db, 'notes', note.id))
+      )
+      await Promise.all(deletePromises)
+      
+      // Fjern fra lokal state
+      allNotes.value = allNotes.value.filter(note => !note.isDeleted)
+      return true
+    } catch (error) {
+      console.error('Fejl ved tømning af papirkurv:', error)
+      return false
+    }
+  }
+
+  const cleanupOldTrashedNotes = async () => {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const oldTrashedNotes = allNotes.value.filter(note => 
+      note.isDeleted && 
+      note.deletedAt && 
+      new Date(note.deletedAt) < thirtyDaysAgo
+    )
+    
+    if (oldTrashedNotes.length === 0) return true
+    
+    try {
+      // Slet gamle noter permanent
+      const deletePromises = oldTrashedNotes.map(note => 
+        deleteDoc(doc(db, 'notes', note.id))
+      )
+      await Promise.all(deletePromises)
+      
+      // Fjern fra lokal state
+      allNotes.value = allNotes.value.filter(note => 
+        !oldTrashedNotes.find(oldNote => oldNote.id === note.id)
+      )
+      
+      console.log(`Automatisk slettet ${oldTrashedNotes.length} gamle noter fra papirkurv`)
+      return true
+    } catch (error) {
+      console.error('Fejl ved cleanup af gamle noter:', error)
       return false
     }
   }
@@ -362,6 +485,7 @@ export const useNotesStore = defineStore('notes', () => {
     // State & Getters
     allNotes,
     searchedAndSortedNotes, // Omdøbt for klarhed
+    trashedNotes,
     performanceStats,
     searchTerm,
     editingNote,
@@ -373,7 +497,11 @@ export const useNotesStore = defineStore('notes', () => {
     loadNotes,
     saveNote,
     updateNote,
-    deleteNote,
+    moveToTrash,
+    restoreNote,
+    permanentDeleteNote,
+    emptyTrash,
+    cleanupOldTrashedNotes,
     toggleFavorite,
     moveNoteToFolder,
     resetNotes,
