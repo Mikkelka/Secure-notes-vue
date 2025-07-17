@@ -56,7 +56,7 @@
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
-                {{ formatDate(note.createdAt, true) }}
+                {{ formatDate(note.createdAt, false) }}
                 <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
@@ -156,7 +156,7 @@
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-2 text-gray-400 text-sm">
                 <Clock class="w-4 h-4" />
-                {{ formatDate(note.createdAt, true) }}
+                {{ formatDate(note.createdAt, false) }}
                 <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
@@ -441,18 +441,28 @@ const getPreview = (content) => {
 
 const formatDate = (date, includeTime = false) => {
   if (!date) return ''
-  const options = {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }
+  
+  // Handle Firebase Timestamp
+  const jsDate = date.toDate ? date.toDate() : new Date(date)
   
   if (includeTime) {
-    options.hour = '2-digit'
-    options.minute = '2-digit'
+    const options = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+    return jsDate.toLocaleDateString('da-DK', options)
+  } else {
+    // Only return date without time
+    const options = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }
+    return jsDate.toLocaleDateString('da-DK', options)
   }
-  
-  return new Date(date).toLocaleDateString('da-DK', options)
 }
 
 // Get folder display info (name and color)
