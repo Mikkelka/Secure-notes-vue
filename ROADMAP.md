@@ -4,7 +4,7 @@
 
 ### Search & Discovery
 - [ ] **Global search** - Søg gennem alle noter med highlights
-- [ ] **Recent notes** sektion på forsiden (sidste 5-10 noter)
+- [x] **Recent notes** sektion på forsiden (sidste 5-10 noter) ✅ **FÆRDIG** - Implementeret som default kategori med de 5 nyeste noter
 - [ ] **Quick filters** - Favoritter, folders, dato buttons
 - [ ] **Search within note** - Ctrl+F funktionalitet i note viewer
 
@@ -115,7 +115,7 @@
 ## 🏆 **Quick Wins (Start her!)**
 
 1. **Keyboard shortcuts** - Hurtig at implementere, stor user value
-2. **Recent notes** sektion - Simpel at lave, meget nyttigt
+2. ~~**Recent notes** sektion~~ ✅ **FÆRDIG** - Implementeret som default kategori
 3. **Auto-save** drafts - Forhindrer data tab
 4. **Global search** - Core funktionalitet mange savner
 5. **Swipe gestures** på mobil - Føles moderne og intuitivt
@@ -124,3 +124,13 @@
 
 *Roadmap opdateret: 2025-01-17*
 *Prioriter efter værdi vs. kompleksitet ratio*
+
+## 🎉 **Færdige Features**
+
+### ✅ Recent Notes (Implementeret 2025-01-17)
+- **Default kategori**: "Seneste noter" vises automatisk når app åbnes
+- **Baseret på createdAt**: Viser de 5 nyeste oprettede noter
+- **Performance optimeret**: Ingen localStorage tracking, kun simpel sorting
+- **Farvet beskrivelse**: Grøn Clock-ikon med "Dine 5 senest oprettede noter"
+- **Klikbar sidebar**: Fungerer som alle andre kategorier
+- **Ekskluderer secure**: Secure notes vises ikke i recent notes

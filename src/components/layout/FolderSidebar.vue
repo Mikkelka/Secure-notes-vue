@@ -155,6 +155,7 @@ import {
   Plus,
   Trash2,
   Lock,
+  Clock,
 } from "lucide-vue-next";
 import PinInput from "../base/PinInput.vue";
 
@@ -215,6 +216,11 @@ const defaultFolders = computed(() => [
     id: "all",
     name: "Alle noter",
     icon: FolderOpen,
+  },
+  {
+    id: "recent",
+    name: "Seneste noter",
+    icon: Clock,
   },
   {
     id: "uncategorized",

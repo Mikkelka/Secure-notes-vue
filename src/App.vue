@@ -80,7 +80,7 @@
           ]"
         >
           <div
-            class="h-full px-3 grid gap-4"
+            class="h-full px-3 md:p-3 grid gap-4"
             :style="{
               gridTemplateColumns: getGridColumns,
             }"
@@ -127,6 +127,7 @@
                 :notes="filteredNotes"
                 :search-term="notesStore.searchTerm"
                 :selected-note-id="uiStore.selectedNote?.id"
+                :selected-folder-id="foldersStore.selectedFolderId"
                 @search-change="notesStore.setSearchTerm"
                 @delete-note="notesStore.deleteNote"
                 @note-click="handleNoteClick"
@@ -316,6 +317,9 @@ const filteredNotes = computed(() => {
   if (selectedFolderId === 'all') {
     return baseNotes.filter(note => note.folderId !== 'secure');
   }
+  if (selectedFolderId === 'recent') {
+    return notesStore.recentNotes;
+  }
   if (selectedFolderId === 'uncategorized') {
     return baseNotes.filter(note => !note.folderId);
   }
@@ -378,7 +382,7 @@ const handleNoteClick = (note) => {
 
 const handleSaveNote = async (title, content) => {
   const targetFolderId =
-    ["all", "uncategorized"].includes(foldersStore.selectedFolderId)
+    ["all", "recent", "uncategorized"].includes(foldersStore.selectedFolderId)
       ? null
       : foldersStore.selectedFolderId;
 

@@ -20,6 +20,14 @@
       </div>
     </div>
 
+    <!-- Category description -->
+    <div v-if="!debouncedSearchTerm" class="hidden md:block px-1 mb-2">
+      <div class="flex items-center gap-2 text-sm">
+        <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
+        <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
+      </div>
+    </div>
+
     <!-- Notes list -->
     <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
       <div v-if="notes.length === 0" class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-6 text-center">
@@ -33,6 +41,7 @@
       </div>
       
       <template v-else>
+
         <!-- Favorite Notes Section -->
         <div v-if="favoriteNotes.length > 0">
           <div class="flex items-center gap-2 text-yellow-400 text-sm font-medium mb-2">
@@ -207,7 +216,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Lock, Star, Trash2, Clock, X, Folder } from 'lucide-vue-next'
+import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
@@ -225,6 +234,10 @@ const props = defineProps({
   selectedNoteId: {
     type: String,
     default: null
+  },
+  selectedFolderId: {
+    type: String,
+    default: 'all'
   }
 })
 
@@ -263,6 +276,55 @@ watch(() => props.searchTerm, (newValue) => {
 // Separate favorites and regular notes
 const favoriteNotes = computed(() => props.notes.filter(note => note.isFavorite))
 const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite))
+
+// Icon mapping
+const iconMap = {
+  FolderOpen,
+  Clock,
+  Archive,
+  Shield,
+  Folder
+}
+
+// Category descriptions with icons and colors
+const categoryDescription = computed(() => {
+  switch (props.selectedFolderId) {
+    case 'all':
+      return {
+        icon: iconMap.FolderOpen,
+        color: 'text-blue-400',
+        text: 'Alle dine noter sorteret efter seneste opdatering'
+      }
+    case 'recent':
+      return {
+        icon: iconMap.Clock,
+        color: 'text-green-400',
+        text: 'Dine 5 senest oprettede noter'
+      }
+    case 'uncategorized':
+      return {
+        icon: iconMap.Archive,
+        color: 'text-gray-400',
+        text: 'Noter uden mappe'
+      }
+    case 'secure':
+      return {
+        icon: iconMap.Shield,
+        color: 'text-red-400',
+        text: 'Sikrede noter beskyttet med PIN'
+      }
+    default: {
+      // For custom folders, get folder name
+      const folder = foldersStore.folders.find(f => f.id === props.selectedFolderId)
+      return {
+        icon: iconMap.Folder,
+        color: 'text-purple-400',
+        text: folder ? `Noter i mappen "${folder.name}"` : 'Valgt mappe'
+      }
+    }
+  }
+})
+
 
 // Extract plain text from HTML content
 const extractTextFromHtml = (content) => {

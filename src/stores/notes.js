@@ -127,7 +127,6 @@ export const useNotesStore = defineStore('notes', () => {
   const searchTerm = ref('')
   const editingNote = ref(null)
   const loading = ref(false)
-
   // --- Getters (Computed Properties) ---
 
   // Computed property der håndterer søgning og sortering.
@@ -156,10 +155,10 @@ export const useNotesStore = defineStore('notes', () => {
 
   // Optimeret funktion til at tælle noter i mapper med én gennemgang.
   const getNoteCounts = (folders) => {
-    const initialCounts = { all: 0, uncategorized: 0, secure: 0 }
+    const initialCounts = { all: 0, uncategorized: 0, secure: 0, recent: 0 }
     folders.forEach(folder => { initialCounts[folder.id] = 0 })
 
-    return allNotes.value.reduce((counts, note) => {
+    const counts = allNotes.value.reduce((counts, note) => {
       if (note.folderId === 'secure') {
         counts.secure++
       } else {
@@ -171,7 +170,26 @@ export const useNotesStore = defineStore('notes', () => {
       }
       return counts
     }, initialCounts)
+    
+    // Tilføj count for recent notes (altid 5 eller mindre)
+    counts.recent = Math.min(5, allNotes.value.filter(note => note.folderId !== 'secure').length)
+    
+    return counts
   }
+
+  // --- Recent Notes Functionality ---
+  
+  // Computed property til at få recent notes baseret på createdAt
+  const recentNotes = computed(() => {
+    return allNotes.value
+      .filter(note => note.folderId !== 'secure') // Ekskluder secure notes
+      .sort((a, b) => {
+        const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+        const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+        return bDate.getTime() - aDate.getTime() // Nyeste først
+      })
+      .slice(0, 5) // Vis kun top 5 i UI
+  })
 
   // --- Actions ---
 
@@ -349,6 +367,7 @@ export const useNotesStore = defineStore('notes', () => {
     editingNote,
     loading,
     getNoteCounts,
+    recentNotes,
     
     // Actions
     loadNotes,

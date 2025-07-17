@@ -131,7 +131,7 @@ const saveUserSettings = async (userId, settings) => {
 export const useFoldersStore = defineStore('folders', () => {
   // --- State ---
   const folders = ref([])
-  const selectedFolderId = ref('all')
+  const selectedFolderId = ref('recent')
   const lockedFolders = ref(new Set(['secure'])) // 'secure' er altid låst fra start
   const userSettings = ref({})
   const securePin = ref('1234') // Lokal kopi af PIN for hurtig adgang
@@ -331,7 +331,7 @@ export const useFoldersStore = defineStore('folders', () => {
 
   const resetFolders = () => {
     folders.value = []
-    selectedFolderId.value = 'all'
+    selectedFolderId.value = 'recent'
     lockedFolders.value = new Set(['secure'])
     userSettings.value = {}
     securePin.value = '1234'
