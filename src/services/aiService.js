@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 // --- Konstanter og Konfiguration ---
 
 // Sikkerhedsindstillinger - tillad alt indhold for at undgå blokering af legitim tekst
-const SAFETY_SETTINGS = [
+const _SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
@@ -418,7 +418,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
           tokensPerSecond: inputTokens > 0 ? Math.round((inputTokens / apiTime) * 1000) : 0
         },
         // First chunk timing metrics from test environment  
-        firstChunkTime: Math.round(firstChunkTime || 0),
         firstAnswerChunkTime: Math.round(firstAnswerChunkTime || 0),
         firstThoughtChunkTime: Math.round(firstThoughtChunkTime || 0),
         // Thinking configuration

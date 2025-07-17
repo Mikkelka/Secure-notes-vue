@@ -63,12 +63,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed as _computed } from 'vue'
 import { Star, Trash2, X, Folder } from 'lucide-vue-next'
 import BaseButton from '../../base/BaseButton.vue'
 import { useFoldersStore } from '../../../stores/folders.js'
 
-const props = defineProps({
+const _props = defineProps({
   note: {
     type: Object,
     required: true

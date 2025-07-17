@@ -18,10 +18,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed as _computed } from 'vue'
 import { Clock } from 'lucide-vue-next'
 
-const props = defineProps({
+const _props = defineProps({
   content: {
     type: String,
     required: true

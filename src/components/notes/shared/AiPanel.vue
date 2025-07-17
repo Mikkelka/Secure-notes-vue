@@ -193,7 +193,7 @@ const handleAiProcess = async () => {
       }
     }
     
-    const { processedHtml, thoughtSummaries, performanceMetrics } = await processTextWithAi(
+    const { processedHtml, thoughtSummaries: _thoughtSummaries, performanceMetrics: _performanceMetrics } = await processTextWithAi(
       props.content, 
       props.title, 
       settingsWithInstruction,

@@ -7,7 +7,7 @@
         <NoteHeader
           :note="note"
           :is-editing="isEditing"
-          :is-mobile="true"
+          is-mobile
           @close="$emit('close')"
           @delete="handleDelete"
           @toggle-favorite="$emit('toggleFavorite', note.id)"
@@ -22,7 +22,7 @@
           ref="editorRef"
           :initial-title="editTitle"
           :initial-content="editContent"
-          :is-mobile="true"
+          is-mobile
           @title-change="editTitle = $event"
           @content-change="handleContentChange"
         />
@@ -30,7 +30,7 @@
           v-else
           :content="note.content"
           :created-at="note.createdAt"
-          :is-mobile="true"
+          is-mobile
         />
       </template>
 
@@ -43,7 +43,7 @@
           :title="editTitle"
           :user-settings="userSettings"
           :is-valid="!!(editTitle.trim() && editContent.trim())"
-          :is-mobile="true"
+          is-mobile
           @save="handleSave"
           @cancel="cancelEdit"
           @content-update="handleAiContentUpdate"
@@ -324,7 +324,7 @@ const handleCancelDelete = () => {
 }
 
 // Folder functionality
-const handleFolderLabelClick = ({ event, position }) => {
+const handleFolderLabelClick = ({ event: _event, position }) => {
   if (showDropdown.value) {
     showDropdown.value = false
     return
