@@ -8,9 +8,6 @@
           :note="note"
           :is-editing="isEditing"
           is-mobile
-          @close="$emit('close')"
-          @delete="handleDelete"
-          @toggle-favorite="$emit('toggleFavorite', note.id)"
           @folder-label-click="handleFolderLabelClick"
         />
       </template>
@@ -101,9 +98,6 @@
           :note="note"
           :is-editing="isEditing"
           :is-mobile="false"
-          @close="$emit('close')"
-          @delete="handleDelete"
-          @toggle-favorite="$emit('toggleFavorite', note.id)"
           @folder-label-click="handleFolderLabelClick"
         />
       </template>
