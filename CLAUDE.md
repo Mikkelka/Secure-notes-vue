@@ -56,6 +56,7 @@ SecureStorage.extendSession()
 **auth.js** - Authentication state and session management
 **notes.js** - Notes data management with SecureStorage integration
 **folders.js** - Folder organization with PIN-protected secure folder
+**trash.js** - Trash/recycle bin functionality with soft delete system
 **ui.js** - UI state coordination (mobile drawers, modals, note viewer)
 **settings.js** - Application settings with local storage persistence
 
@@ -76,6 +77,8 @@ Both store login type for master password verification: `localStorage.getItem('l
   encryptedContent: string,  // Base64 encrypted HTML content
   folderId: string | null,   // Reference to folder ('secure' for PIN-protected)
   isFavorite: boolean,
+  isDeleted: boolean,        // Soft delete flag for trash system
+  deletedAt: Timestamp | null, // When note was moved to trash
   createdAt: Timestamp,
   updatedAt: Timestamp
 }
@@ -167,6 +170,16 @@ Both store login type for master password verification: `localStorage.getItem('l
 - @apply directive system reduces CSS bundle size and improves maintainability
 - **Modulær NoteViewer arkitektur** - Opdelt i shared komponenter for bedre maintainability
 - **Isoleret AI testing miljø** - `src/ai-testing/` komplet adskilt fra hovedapp
+- **Modular Trash System** - Separate trash store for clean architecture
+
+**Trash/Recycle Bin System:**
+- **Soft Delete Implementation**: Notes marked as `isDeleted: true` instead of permanent deletion
+- **30-Day Auto-Cleanup**: Automatically removes notes older than 30 days from trash
+- **Separate Store Architecture**: `src/stores/trash.js` handles all trash operations
+- **Client-Side Only**: No Firebase Functions required - pure client-side implementation
+- **Trash Operations**: `moveToTrash()`, `restoreNote()`, `permanentDeleteNote()`, `emptyTrash()`
+- **Filtering Integration**: Active notes automatically filtered from main views
+- **Count Integration**: Trash count integrated into folder sidebar
 
 **AI Performance Architecture:**
 - **Production Models**: Flash-Lite (`gemini-2.5-flash-lite-preview-06-17`) og Flash Standard (`gemini-2.5-flash`)
@@ -208,3 +221,5 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **AI Model Persistence**: Model selection persisted via `sessionStorage.getItem('ai-model')`
 - **Error Handling**: Comprehensive error handling for AI processing failures
 - **Performance**: Real-time streaming with immediate visual feedback
+- **Trash Store Integration**: Notes store delegates all trash operations to dedicated trash store
+- **Store Initialization**: Trash store initialized with notes store reference for shared state access
