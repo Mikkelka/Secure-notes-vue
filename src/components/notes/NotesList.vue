@@ -26,10 +26,10 @@
       <div v-if="notes.length === 0" class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-6 text-center">
         <Lock class="w-8 h-8 text-gray-500 mx-auto mb-2" />
         <h3 class="text-gray-300 text-base mb-1">
-          {{ debouncedSearchTerm ? 'Ingen noter fundet' : 'Ingen noter endnu' }}
+          {{ getEmptyStateTitle() }}
         </h3>
         <p class="text-gray-500 text-sm">
-          {{ debouncedSearchTerm ? 'Prøv en anden søgning' : 'Opret din første krypterede note' }}
+          {{ getEmptyStateDescription() }}
         </p>
       </div>
       
@@ -320,6 +320,31 @@ const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite)
 
 // Check if we're in trash mode
 const isTrashMode = computed(() => props.selectedFolderId === 'trash')
+
+// Empty state messages based on context
+const getEmptyStateTitle = () => {
+  if (debouncedSearchTerm.value) {
+    return 'Ingen noter fundet'
+  }
+  
+  if (isTrashMode.value) {
+    return 'Papirkurven er tom'
+  }
+  
+  return 'Ingen noter endnu'
+}
+
+const getEmptyStateDescription = () => {
+  if (debouncedSearchTerm.value) {
+    return 'Prøv en anden søgning'
+  }
+  
+  if (isTrashMode.value) {
+    return 'Slettede noter vil blive vist her'
+  }
+  
+  return 'Opret din første krypterede note'
+}
 
 // Dialog text based on action type
 const dialogTitle = computed(() => {
