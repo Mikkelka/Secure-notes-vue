@@ -260,6 +260,7 @@ import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
 import { useFoldersStore } from '../../stores/folders.js'
+import { useTrashStore } from '../../stores/trash.js'
 
 const props = defineProps({
   notes: {
@@ -288,6 +289,7 @@ const debouncedSearchTerm = ref('')
 
 // Folders store for folder information
 const foldersStore = useFoldersStore()
+const trashStore = useTrashStore()
 
 // Dropdown state
 const activeDropdown = ref(null)

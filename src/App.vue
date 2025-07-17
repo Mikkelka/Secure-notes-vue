@@ -275,6 +275,7 @@ import { useNotesStore } from "./stores/notes";
 import { useFoldersStore } from "./stores/folders";
 import { useUIStore } from "./stores/ui";
 import { useSettingsStore } from "./stores/settings";
+import { useTrashStore } from "./stores/trash";
 
 // Components
 import ErrorBoundary from "./components/ErrorBoundary.vue";
@@ -302,6 +303,7 @@ const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const uiStore = useUIStore();
 const settingsStore = useSettingsStore();
+const trashStore = useTrashStore();
 
 // --- Template refs ---
 const loginFormRef = ref(null);
@@ -327,7 +329,7 @@ const filteredNotes = computed(() => {
     return baseNotes.filter(note => !note.folderId);
   }
   if (selectedFolderId === 'trash') {
-    return notesStore.trashedNotes;
+    return trashStore.trashedNotes;
   }
   
   // Denne linje håndterer både 'secure' og alle specifikke mappe-ID'er
