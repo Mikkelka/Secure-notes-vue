@@ -285,12 +285,14 @@ const cancelEdit = () => {
 }
 
 const handleSave = async () => {
+  console.log('💾 NoteViewer - Saving content:', editContent.value)
   emit('update', props.note.id, editTitle.value, editContent.value)
   isEditing.value = false
 }
 
 // Content change handler
 const handleContentChange = (newContent) => {
+  console.log('📝 NoteViewer - Content received:', newContent)
   editContent.value = newContent
 }
 

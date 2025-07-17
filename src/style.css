@@ -250,6 +250,14 @@ div[contenteditable="false"] .ProseMirror {
   color: #ffffff !important;
 }
 
+.prose-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.5rem 0;
+  line-height: 1.4;
+  color: #ffffff !important;
+}
+
 .prose-content strong {
   font-weight: bold;
   color: #d1d5db !important;
