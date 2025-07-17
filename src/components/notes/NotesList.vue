@@ -20,13 +20,6 @@
       </div>
     </div>
 
-    <!-- Category description -->
-    <div v-if="!debouncedSearchTerm" class="hidden md:block px-1 mb-2">
-      <div class="flex items-center gap-2 text-sm">
-        <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
-        <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
-      </div>
-    </div>
 
     <!-- Notes list -->
     <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
@@ -117,8 +110,9 @@
 
         <!-- Regular Notes Section -->
         <div v-if="regularNotes.length > 0">
-          <div v-if="favoriteNotes.length > 0" class="flex items-center gap-2 text-gray-400 text-sm font-medium mb-2">
-            Andre noter
+          <div v-if="!debouncedSearchTerm" class="flex items-center gap-2 text-sm font-medium mb-2">
+            <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
+            <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
           </div>
           <div class="space-y-2">
             <div
