@@ -289,7 +289,7 @@ const debouncedSearchTerm = ref('')
 
 // Folders store for folder information
 const foldersStore = useFoldersStore()
-const trashStore = useTrashStore()
+const _trashStore = useTrashStore()
 
 // Dropdown state
 const activeDropdown = ref(null)

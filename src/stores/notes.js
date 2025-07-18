@@ -7,7 +7,7 @@ import {
   where, 
   getDocs, 
   updateDoc, 
-  deleteDoc, 
+  deleteDoc as _deleteDoc, 
   doc, 
   orderBy
 } from 'firebase/firestore'
