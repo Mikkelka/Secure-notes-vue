@@ -91,7 +91,7 @@
     </MobileNoteLayout>
 
     <!-- Desktop Layout -->
-    <DesktopNoteLayout>
+    <DesktopNoteLayout @close="$emit('close')">
       <!-- Desktop Header -->
       <template #header>
         <NoteHeader

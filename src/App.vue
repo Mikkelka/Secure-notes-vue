@@ -73,12 +73,7 @@
           </div>
         </div>
 
-        <div
-          :class="[
-            'flex-1 max-w-6xl transition-all duration-300',
-            uiStore.selectedNote ? 'mr-[40%]' : '',
-          ]"
-        >
+        <div class="flex-1 max-w-6xl">
           <div
             class="h-full px-3 md:p-3 grid gap-4"
             :style="{
@@ -88,7 +83,6 @@
             <div class="space-y-4">
               <div class="hidden md:block">
                 <QuickNote
-                  :is-compact="!!uiStore.selectedNote"
                   @save="handleSaveNote"
                   @mode-change="handleQuickNoteMode"
                 />
@@ -341,13 +335,8 @@ const noteCounts = computed(() => {
 });
 
 const getGridColumns = computed(() => {
-  if (uiStore.selectedNote) {
-    // When note is selected, keep compact layout
-    return isQuickNoteAdvanced.value ? '3fr 2fr' : '1fr 2fr';
-  } else {
-    // When no note selected, give QuickNote more space in advanced mode
-    return isQuickNoteAdvanced.value ? '3fr 2fr' : '2fr 3fr';
-  }
+  // Since NoteViewer is now an overlay, layout doesn't need to change
+  return isQuickNoteAdvanced.value ? '3fr 2fr' : '2fr 3fr';
 });
 
 // --- Genindlæsning af data ---
