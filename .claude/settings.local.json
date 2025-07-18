@@ -30,7 +30,8 @@
       "Bash(eslint . --fix)",
       "Bash(npm run lint:*)",
       "Bash(grep:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(del:*)"
     ],
     "deny": []
   }
