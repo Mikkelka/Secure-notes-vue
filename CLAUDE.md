@@ -16,9 +16,32 @@ This is a secure notes application built with Vue.js 3, Firebase, and client-sid
 **Tech Stack:**
 - **State Management:** Pinia stores 
 - **UI Framework:** Vue 3 Composition API with `<script setup>` 
-- **Rich Text:** TinyMCE with pure HTML storage
+- **Rich Text:** TinyMCE v7.9.1 - **FULLY LOCAL** (no API limits, offline capable)
 - **Styling:** Tailwind CSS v4 with extensive @apply component patterns
 - **Icons:** Lucide Vue Next
+
+### TinyMCE Local Implementation
+
+**Fully Self-Hosted TinyMCE v7.9.1** - Migrated from Tiny Cloud to eliminate API restrictions:
+
+**Local Assets Location:**
+- **Core Script**: `public/tinymce/tinymce.min.js` (445KB)
+- **Complete Package**: All plugins, skins, themes copied from npm package to `public/tinymce/`
+- **Plugins Used**: `lists`, `link`, `autolink`, `autoresize` (for QuickNote)
+- **Dark Theme**: `oxide-dark` skin with custom content styling
+
+**Implementation Details:**
+- **NoteEditor.vue**: Full-featured editor with `tinymce-script-src="/tinymce/tinymce.min.js"`
+- **QuickNote.vue**: Toggle between simple textarea and advanced TinyMCE editor
+- **No API Key**: Removed `api-key` prop entirely - no external dependencies
+- **Offline Capable**: Editor works without internet connection
+- **Zero Cost**: No recurring costs for TinyMCE usage
+
+**Benefits Achieved:**
+- 🚫 **No 1,000 loads/month limitation**
+- ⚡ **Faster loading** (no CDN dependency) 
+- 🔒 **Enhanced security** (no external API calls)
+- 💰 **Zero ongoing costs**
 
 ### Core Security Model
 
