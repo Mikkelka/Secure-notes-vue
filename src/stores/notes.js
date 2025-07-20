@@ -72,6 +72,11 @@ const decryptSingleNote = async (noteData, encryptionKey, userId) => {
     tryDecryptWithFallback(noteData.encryptedContent, encryptionKey, userId, noteData.id)
   ])
 
+  console.log('🔓 Notes Store - DECRYPTED content for note', noteData.id, ':', decryptedContent)
+  console.log('🔓 Notes Store - DECRYPTED Contains H1:', decryptedContent?.includes('<h1>'))
+  console.log('🔓 Notes Store - DECRYPTED Contains H2:', decryptedContent?.includes('<h2>'))
+  console.log('🔓 Notes Store - DECRYPTED Contains H3:', decryptedContent?.includes('<h3>'))
+
   // Hvis titel er tom (f.eks. fra ældre noter), generer en fallback
   const title = decryptedTitle || (decryptedContent.substring(0, 50) + (decryptedContent.length > 50 ? '...' : ''))
 
@@ -282,11 +287,20 @@ export const useNotesStore = defineStore('notes', () => {
     if (!noteId || !newTitle || !newContent) return false
     
     try {
+      console.log('📦 Notes Store - updateNote RECEIVED content:', newContent)
+      console.log('📦 Notes Store - updateNote content TYPE:', typeof newContent)
+      console.log('📦 Notes Store - updateNote Contains H1:', newContent?.includes('<h1>'))
+      console.log('📦 Notes Store - updateNote Contains H2:', newContent?.includes('<h2>'))
+      console.log('📦 Notes Store - updateNote Contains H3:', newContent?.includes('<h3>'))
+      
       const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(newTitle, encryptionKey),
         encryptText(newContent, encryptionKey)
       ])
+      
+      console.log('🔐 Notes Store - BEFORE encryption content:', newContent)
+      console.log('🔐 Notes Store - AFTER encryption content (base64):', encryptedContent)
       
       const now = new Date()
       await updateDoc(doc(db, 'notes', noteId), {

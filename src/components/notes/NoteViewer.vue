@@ -285,7 +285,11 @@ const cancelEdit = () => {
 }
 
 const handleSave = async () => {
-  console.log('💾 NoteViewer - Saving content:', editContent.value)
+  console.log('💾 NoteViewer - Saving content RAW:', editContent.value)
+  console.log('💾 NoteViewer - Saving content TYPE:', typeof editContent.value)
+  console.log('💾 NoteViewer - Contains H1:', editContent.value?.includes('<h1>'))
+  console.log('💾 NoteViewer - Contains H2:', editContent.value?.includes('<h2>'))
+  console.log('💾 NoteViewer - Contains H3:', editContent.value?.includes('<h3>'))
   emit('update', props.note.id, editTitle.value, editContent.value)
   isEditing.value = false
 }

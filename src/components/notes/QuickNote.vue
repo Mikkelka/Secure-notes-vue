@@ -51,6 +51,10 @@
           tinymce-script-src="/tinymce/tinymce.min.js"
           v-model="htmlContent"
           :init="getTinymceConfig(isCompact)"
+          @input="handleContentChange"
+          @node-change="handleContentChange"
+          @exec-command="handleContentChange"
+          @format-apply="handleContentChange"
         />
       </div>
       
@@ -118,17 +122,24 @@ const getTinymceConfig = (isCompact = false) => {
     menubar: false,
     statusbar: false,
     branding: false,
-    plugins: 'lists link autolink autoresize',
-    toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
+    plugins: 'lists link autolink autoresize removeformat',
+    toolbar: 'undo redo | formatselect | h1 h2 h3 | bold italic underline strikethrough | removeformat | bullist | link',
     formats: {
       h1: { block: 'h1' },
       h2: { block: 'h2' },
       h3: { block: 'h3' }
     },
     block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; } h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem 0; line-height: 1.2; color: #ffffff; } h2 { font-size: 1.25rem; font-weight: 600; margin: 0.75rem 0 0.5rem 0; line-height: 1.3; color: #ffffff; } h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5rem 0 0.5rem 0; line-height: 1.4; color: #ffffff; }',
     skin: 'oxide-dark',
     content_css: 'dark',
+    // Allow flexible block formats for proper heading support
+    forced_root_block: '',
+    force_br_newlines: false,
+    force_p_newlines: false,
+    keep_styles: false,
+    verify_html: false,
+    cleanup: false,
     analytics: false,
     usage_tracking: false,
     telemetry: false,
@@ -136,8 +147,25 @@ const getTinymceConfig = (isCompact = false) => {
     auto_update: false,
     // Auto resize options
     autoresize_bottom_margin: 12,
-    autoresize_overflow_padding: 0
+    autoresize_overflow_padding: 0,
+    // Setup callback to ensure format changes trigger events
+    setup: (editor) => {
+      editor.on('NodeChange FormatApply ExecCommand', () => {
+        // Force v-model update on format changes
+        editor.fire('input')
+      })
+    }
   }
+}
+
+// Content change handler for TinyMCE events  
+const handleContentChange = () => {
+  console.log('🔍 QuickNote - TinyMCE content changed:', htmlContent.value)
+  console.log('🔍 QuickNote - Contains H1:', htmlContent.value?.includes('<h1>'))
+  console.log('🔍 QuickNote - Contains H2:', htmlContent.value?.includes('<h2>'))
+  console.log('🔍 QuickNote - Contains H3:', htmlContent.value?.includes('<h3>'))
+  // Force reactivity update
+  htmlContent.value = htmlContent.value
 }
 
 // Content Management

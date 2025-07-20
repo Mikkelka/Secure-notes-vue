@@ -16,6 +16,9 @@
         v-model="localContent"
         :init="getTinymceConfig()"
         @input="handleContentChange"
+        @node-change="handleContentChange"
+        @exec-command="handleContentChange"
+        @format-apply="handleContentChange"
       />
     </div>
   </div>
@@ -64,8 +67,8 @@ const getTinymceConfig = () => {
     menubar: false,
     statusbar: false,
     branding: false,
-    plugins: 'lists link autolink',
-    toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
+    plugins: 'lists link autolink removeformat',
+    toolbar: 'undo redo | formatselect | h1 h2 h3 | bold italic underline strikethrough | removeformat | bullist | link',
     formats: {
       h1: { block: 'h1' },
       h2: { block: 'h2' },
@@ -75,13 +78,18 @@ const getTinymceConfig = () => {
     content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; padding: 0; height: 100%; box-sizing: border-box; } p { margin: 0.5em 0; } h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem 0; line-height: 1.2; color: #ffffff; } h2 { font-size: 1.25rem; font-weight: 600; margin: 0.75rem 0 0.5rem 0; line-height: 1.3; color: #ffffff; } h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5rem 0 0.5rem 0; line-height: 1.4; color: #ffffff; }',
     skin: 'oxide-dark',
     content_css: 'dark',
-    // Preserve heading tags while maintaining proper paragraph behavior
-    forced_root_block: 'p',
+    // Allow flexible block formats for proper heading support
+    forced_root_block: '',
+    force_br_newlines: false,
+    force_p_newlines: false,
+    keep_styles: false,
     remove_trailing_brs: false,
     convert_urls: false,
     element_format: 'html',
     valid_elements: 'p,h1,h2,h3,strong,em,u,strike,ul,ol,li,br,a[href]',
     extended_valid_elements: 'h1,h2,h3',
+    verify_html: false,
+    cleanup: false,
     // Disable analytics and tracking
     analytics: false,
     usage_tracking: false,
@@ -89,13 +97,24 @@ const getTinymceConfig = () => {
     // Reduce touch sensitivity warnings
     touch_ui: false,
     // Disable automatic updates
-    auto_update: false
+    auto_update: false,
+    // Setup callback to ensure format changes trigger events
+    setup: (editor) => {
+      editor.on('NodeChange FormatApply ExecCommand', () => {
+        // Force v-model update on format changes
+        editor.fire('input')
+      })
+    }
   }
 }
 
 // Handle content changes and emit to parent
 const handleContentChange = () => {
-  console.log('🔍 NoteEditor - Content change:', localContent.value)
+  console.log('🔍 NoteEditor - Content change RAW:', localContent.value)
+  console.log('🔍 NoteEditor - Content change TYPE:', typeof localContent.value)
+  console.log('🔍 NoteEditor - Content includes H1:', localContent.value?.includes('<h1>'))
+  console.log('🔍 NoteEditor - Content includes H2:', localContent.value?.includes('<h2>'))
+  console.log('🔍 NoteEditor - Content includes H3:', localContent.value?.includes('<h3>'))
   emit('contentChange', localContent.value)
 }
 

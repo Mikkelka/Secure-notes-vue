@@ -429,6 +429,12 @@ const handleSaveNote = async (title, content) => {
 
 const handleViewerUpdate = async (noteId, title, content) => {
   try {
+    console.log('🚀 App.vue - handleViewerUpdate RECEIVED content:', content)
+    console.log('🚀 App.vue - handleViewerUpdate content TYPE:', typeof content)
+    console.log('🚀 App.vue - handleViewerUpdate Contains H1:', content?.includes('<h1>'))
+    console.log('🚀 App.vue - handleViewerUpdate Contains H2:', content?.includes('<h2>'))
+    console.log('🚀 App.vue - handleViewerUpdate Contains H3:', content?.includes('<h3>'))
+    
     const success = await notesStore.updateNote(
       noteId, title, content
     );
