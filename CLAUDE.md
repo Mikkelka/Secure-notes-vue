@@ -74,6 +74,12 @@ const encryptionKey = SecureStorage.getEncryptionKey()
 SecureStorage.extendSession()
 ```
 
+**Session Timeout Recovery:**
+- **Automatic Recovery**: When encryption key expires but Firebase auth persists, operations auto-retry with `authStore.recoverEncryptionKey()`
+- **Graceful Degradation**: Failed recovery shows user-friendly Danish error messages
+- **Implemented in**: `App.vue` for `handleSaveNote()` and `handleViewerUpdate()` functions
+- **User Experience**: Seamless note saving even after 30-minute session timeout
+
 ### Pinia Store Architecture
 
 **auth.js** - Authentication state and session management
@@ -170,6 +176,12 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **Button States**: Implement purple → blue → green → emerald progression for AI processing
 - **Character Counting**: Vis live character counts under streaming og thinking
 
+**TinyMCE Local Development:**
+- **Assets Location**: All TinyMCE files in `public/tinymce/` - do NOT modify or delete
+- **Component Implementation**: Use `tinymce-script-src="/tinymce/tinymce.min.js"` instead of `api-key`
+- **Version Updates**: When updating TinyMCE package, re-copy from `node_modules/tinymce` to `public/tinymce/`
+- **No External Dependencies**: Editor works offline - no cloud API calls
+
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
 - Pinia stores for cross-component state management
@@ -186,6 +198,8 @@ Both store login type for master password verification: `localStorage.getItem('l
 - Use SecureStorage for all encryption key management
 - Always check login type before password verification: `localStorage.getItem('loginType_${userId}')`
 - For UI privacy, avoid displaying full email addresses
+- **Session Timeout Handling**: Implement automatic recovery for encryption key expiration to prevent data loss
+- **Error Resilience**: Wrap encryption operations in try-catch with recovery logic for seamless UX
 
 **Performance Optimization:**
 - Debounced search with 300ms delay
@@ -246,3 +260,5 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **Performance**: Real-time streaming with immediate visual feedback
 - **Trash Store Integration**: Notes store delegates all trash operations to dedicated trash store
 - **Store Initialization**: Trash store initialized with notes store reference for shared state access
+- **TinyMCE Local**: Fully self-hosted TinyMCE v7.9.1 with `tinymce-script-src="/tinymce/tinymce.min.js"` - no API key or external dependencies
+- **Session Recovery**: Automatic encryption key recovery in `App.vue` prevents note saving failures after session timeout
