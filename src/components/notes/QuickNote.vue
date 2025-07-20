@@ -48,6 +48,7 @@
       <!-- Advanced Mode: TinyMCE -->
       <div v-if="isAdvancedMode" class="tinymce-wrapper">
         <editor
+          ref="editorRef"
           tinymce-script-src="/tinymce/tinymce.min.js"
           v-model="htmlContent"
           :init="getTinymceConfig(isCompact)"
@@ -79,6 +80,7 @@ import { ref } from 'vue'
 import { Save, FileText, Edit } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import Editor from '@tinymce/tinymce-vue'
+import { debounceVue } from '../../utils/debounce.js'
 
 defineProps({
   isCompact: {
@@ -102,6 +104,7 @@ const title = ref('')
 const content = ref('')
 const htmlContent = ref('')
 const isAdvancedMode = ref(false)
+const editorRef = ref(null)
 
 // TinyMCE Configuration
 const getTinymceConfig = (isCompact = false) => {
@@ -158,15 +161,11 @@ const getTinymceConfig = (isCompact = false) => {
   }
 }
 
-// Content change handler for TinyMCE events  
-const handleContentChange = () => {
-  console.log('🔍 QuickNote - TinyMCE content changed:', htmlContent.value)
-  console.log('🔍 QuickNote - Contains H1:', htmlContent.value?.includes('<h1>'))
-  console.log('🔍 QuickNote - Contains H2:', htmlContent.value?.includes('<h2>'))
-  console.log('🔍 QuickNote - Contains H3:', htmlContent.value?.includes('<h3>'))
+// Content change handler for TinyMCE events (debounced for performance)
+const handleContentChange = debounceVue(() => {
   // Force reactivity update
   htmlContent.value = htmlContent.value
-}
+}, 300)
 
 // Content Management
 const getCurrentContent = () => {
@@ -211,6 +210,14 @@ const toggleAdvancedMode = () => {
 
 // Save Logic
 const handleSave = async () => {
+  // Sync content from TinyMCE editor if in advanced mode before saving
+  if (isAdvancedMode.value && editorRef.value && editorRef.value.getContent) {
+    const latestContent = editorRef.value.getContent()
+    if (latestContent !== htmlContent.value) {
+      htmlContent.value = latestContent
+    }
+  }
+  
   const currentContent = getCurrentContent()
   if (title.value.trim() && currentContent.trim()) {
     try {

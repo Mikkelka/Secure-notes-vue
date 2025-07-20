@@ -285,18 +285,20 @@ const cancelEdit = () => {
 }
 
 const handleSave = async () => {
-  console.log('💾 NoteViewer - Saving content RAW:', editContent.value)
-  console.log('💾 NoteViewer - Saving content TYPE:', typeof editContent.value)
-  console.log('💾 NoteViewer - Contains H1:', editContent.value?.includes('<h1>'))
-  console.log('💾 NoteViewer - Contains H2:', editContent.value?.includes('<h2>'))
-  console.log('💾 NoteViewer - Contains H3:', editContent.value?.includes('<h3>'))
+  // Sync content from TinyMCE editor before saving to ensure we have the latest content
+  if (editorRef.value && editorRef.value.getContent) {
+    const latestContent = editorRef.value.getContent()
+    if (latestContent !== editContent.value) {
+      editContent.value = latestContent
+    }
+  }
+  
   emit('update', props.note.id, editTitle.value, editContent.value)
   isEditing.value = false
 }
 
 // Content change handler
 const handleContentChange = (newContent) => {
-  console.log('📝 NoteViewer - Content received:', newContent)
   editContent.value = newContent
 }
 

@@ -27,6 +27,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
+import { debounceVue } from '../../../utils/debounce.js'
+
 
 const props = defineProps({
   initialTitle: {
@@ -108,15 +110,10 @@ const getTinymceConfig = () => {
   }
 }
 
-// Handle content changes and emit to parent
-const handleContentChange = () => {
-  console.log('🔍 NoteEditor - Content change RAW:', localContent.value)
-  console.log('🔍 NoteEditor - Content change TYPE:', typeof localContent.value)
-  console.log('🔍 NoteEditor - Content includes H1:', localContent.value?.includes('<h1>'))
-  console.log('🔍 NoteEditor - Content includes H2:', localContent.value?.includes('<h2>'))
-  console.log('🔍 NoteEditor - Content includes H3:', localContent.value?.includes('<h3>'))
+// Handle content changes and emit to parent (debounced for performance)
+const handleContentChange = debounceVue(() => {
   emit('contentChange', localContent.value)
-}
+}, 300)
 
 // Expose methods for parent component
 defineExpose({
