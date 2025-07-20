@@ -31,7 +31,9 @@
       "Bash(npm run lint:*)",
       "Bash(grep:*)",
       "Bash(wc:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)"
     ],
     "deny": []
   }

@@ -48,7 +48,7 @@
       <!-- Advanced Mode: TinyMCE -->
       <div v-if="isAdvancedMode" class="tinymce-wrapper">
         <editor
-          api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
+          tinymce-script-src="/tinymce/tinymce.min.js"
           v-model="htmlContent"
           :init="getTinymceConfig(isCompact)"
         />

@@ -12,7 +12,7 @@
     <!-- TinyMCE Editor -->
     <div class="tinymce-wrapper flex-1">
       <editor
-        api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
+        tinymce-script-src="/tinymce/tinymce.min.js"
         v-model="localContent"
         :init="getTinymceConfig()"
         @input="handleContentChange"
