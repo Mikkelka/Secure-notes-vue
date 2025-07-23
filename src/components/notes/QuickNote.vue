@@ -48,9 +48,15 @@
       <!-- Advanced Mode: TinyMCE -->
       <div v-if="isAdvancedMode" class="tinymce-wrapper">
         <editor
-          api-key="xops5w4mc9duaby9p8f4vhe2n689r11fauo9m5xbmb3k2grb"
+          ref="editorRef"
+          tinymce-script-src="/tinymce/tinymce.min.js"
+          license-key="gpl"
           v-model="htmlContent"
           :init="getTinymceConfig(isCompact)"
+          @input="handleContentChange"
+          @node-change="handleContentChange"
+          @exec-command="handleContentChange"
+          @format-apply="handleContentChange"
         />
       </div>
       
@@ -75,6 +81,7 @@ import { ref } from 'vue'
 import { Save, FileText, Edit } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import Editor from '@tinymce/tinymce-vue'
+import { debounceVue } from '../../utils/debounce.js'
 
 defineProps({
   isCompact: {
@@ -98,6 +105,7 @@ const title = ref('')
 const content = ref('')
 const htmlContent = ref('')
 const isAdvancedMode = ref(false)
+const editorRef = ref(null)
 
 // TinyMCE Configuration
 const getTinymceConfig = (isCompact = false) => {
@@ -111,7 +119,8 @@ const getTinymceConfig = (isCompact = false) => {
     isCompact ? 200 : (isMobileView ? 300 : 400)
   )
   
-  return {
+  const config = {
+    // License key now handled by component prop
     // Responsive height configuration
     min_height: minHeight,
     max_height: maxHeight,
@@ -119,16 +128,21 @@ const getTinymceConfig = (isCompact = false) => {
     statusbar: false,
     branding: false,
     plugins: 'lists link autolink autoresize',
-    toolbar: 'undo redo | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
+    toolbar: 'undo redo | formatselect | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
     formats: {
       h1: { block: 'h1' },
       h2: { block: 'h2' },
       h3: { block: 'h3' }
     },
     block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; }',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; } h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem 0; line-height: 1.2; color: #ffffff; } h2 { font-size: 1.25rem; font-weight: 600; margin: 0.75rem 0 0.5rem 0; line-height: 1.3; color: #ffffff; } h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5rem 0 0.5rem 0; line-height: 1.4; color: #ffffff; }',
     skin: 'oxide-dark',
     content_css: 'dark',
+    // Default paragraph wrapping for proper structure
+    forced_root_block: 'p',
+    keep_styles: false,
+    verify_html: false,
+    cleanup: false,
     analytics: false,
     usage_tracking: false,
     telemetry: false,
@@ -136,9 +150,24 @@ const getTinymceConfig = (isCompact = false) => {
     auto_update: false,
     // Auto resize options
     autoresize_bottom_margin: 12,
-    autoresize_overflow_padding: 0
+    autoresize_overflow_padding: 0,
+    // Setup callback to ensure format changes trigger events
+    setup: (editor) => {
+      editor.on('NodeChange FormatApply ExecCommand', () => {
+        // Force v-model update on format changes (TinyMCE 7.0 compatible)
+        editor.dispatch('input')
+      })
+    }
   }
+  console.log('🔧 QuickNote TinyMCE config:', config)
+  return config
 }
+
+// Content change handler for TinyMCE events (debounced for performance)
+const handleContentChange = debounceVue(() => {
+  // Force reactivity update
+  htmlContent.value = htmlContent.value
+}, 300)
 
 // Content Management
 const getCurrentContent = () => {
@@ -183,6 +212,14 @@ const toggleAdvancedMode = () => {
 
 // Save Logic
 const handleSave = async () => {
+  // Sync content from TinyMCE editor if in advanced mode before saving
+  if (isAdvancedMode.value && editorRef.value && editorRef.value.getContent) {
+    const latestContent = editorRef.value.getContent()
+    if (latestContent !== htmlContent.value) {
+      htmlContent.value = latestContent
+    }
+  }
+  
   const currentContent = getCurrentContent()
   if (title.value.trim() && currentContent.trim()) {
     try {

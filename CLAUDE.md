@@ -16,9 +16,32 @@ This is a secure notes application built with Vue.js 3, Firebase, and client-sid
 **Tech Stack:**
 - **State Management:** Pinia stores 
 - **UI Framework:** Vue 3 Composition API with `<script setup>` 
-- **Rich Text:** TinyMCE with pure HTML storage
+- **Rich Text:** TinyMCE v7.9.1 - **FULLY LOCAL** (no API limits, offline capable)
 - **Styling:** Tailwind CSS v4 with extensive @apply component patterns
 - **Icons:** Lucide Vue Next
+
+### TinyMCE Local Implementation
+
+**Fully Self-Hosted TinyMCE v7.9.1** - Migrated from Tiny Cloud to eliminate API restrictions:
+
+**Local Assets Location:**
+- **Core Script**: `public/tinymce/tinymce.min.js` (445KB)
+- **Complete Package**: All plugins, skins, themes copied from npm package to `public/tinymce/`
+- **Plugins Used**: `lists`, `link`, `autolink`, `autoresize` (for QuickNote)
+- **Dark Theme**: `oxide-dark` skin with custom content styling
+
+**Implementation Details:**
+- **NoteEditor.vue**: Full-featured editor with `tinymce-script-src="/tinymce/tinymce.min.js"`
+- **QuickNote.vue**: Toggle between simple textarea and advanced TinyMCE editor
+- **No API Key**: Removed `api-key` prop entirely - no external dependencies
+- **Offline Capable**: Editor works without internet connection
+- **Zero Cost**: No recurring costs for TinyMCE usage
+
+**Benefits Achieved:**
+- 🚫 **No 1,000 loads/month limitation**
+- ⚡ **Faster loading** (no CDN dependency) 
+- 🔒 **Enhanced security** (no external API calls)
+- 💰 **Zero ongoing costs**
 
 ### Core Security Model
 
@@ -50,6 +73,12 @@ const encryptionKey = SecureStorage.getEncryptionKey()
 // Activity-based extension
 SecureStorage.extendSession()
 ```
+
+**Session Timeout Recovery:**
+- **Automatic Recovery**: When encryption key expires but Firebase auth persists, operations auto-retry with `authStore.recoverEncryptionKey()`
+- **Graceful Degradation**: Failed recovery shows user-friendly Danish error messages
+- **Implemented in**: `App.vue` for `handleSaveNote()` and `handleViewerUpdate()` functions
+- **User Experience**: Seamless note saving even after 30-minute session timeout
 
 ### Pinia Store Architecture
 
@@ -147,6 +176,12 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **Button States**: Implement purple → blue → green → emerald progression for AI processing
 - **Character Counting**: Vis live character counts under streaming og thinking
 
+**TinyMCE Local Development:**
+- **Assets Location**: All TinyMCE files in `public/tinymce/` - do NOT modify or delete
+- **Component Implementation**: Use `tinymce-script-src="/tinymce/tinymce.min.js"` instead of `api-key`
+- **Version Updates**: When updating TinyMCE package, re-copy from `node_modules/tinymce` to `public/tinymce/`
+- **No External Dependencies**: Editor works offline - no cloud API calls
+
 **Vue 3 Composition API Patterns:**
 - Use `<script setup>` syntax for all components
 - Pinia stores for cross-component state management
@@ -163,6 +198,8 @@ Both store login type for master password verification: `localStorage.getItem('l
 - Use SecureStorage for all encryption key management
 - Always check login type before password verification: `localStorage.getItem('loginType_${userId}')`
 - For UI privacy, avoid displaying full email addresses
+- **Session Timeout Handling**: Implement automatic recovery for encryption key expiration to prevent data loss
+- **Error Resilience**: Wrap encryption operations in try-catch with recovery logic for seamless UX
 
 **Performance Optimization:**
 - Debounced search with 300ms delay
@@ -223,3 +260,5 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **Performance**: Real-time streaming with immediate visual feedback
 - **Trash Store Integration**: Notes store delegates all trash operations to dedicated trash store
 - **Store Initialization**: Trash store initialized with notes store reference for shared state access
+- **TinyMCE Local**: Fully self-hosted TinyMCE v7.9.1 with `tinymce-script-src="/tinymce/tinymce.min.js"` - no API key or external dependencies
+- **Session Recovery**: Automatic encryption key recovery in `App.vue` prevents note saving failures after session timeout

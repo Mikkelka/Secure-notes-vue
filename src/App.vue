@@ -383,27 +383,100 @@ const handleSaveNote = async (title, content) => {
       ? null
       : foldersStore.selectedFolderId;
 
-  const success = await notesStore.saveNote(
-    title, content, targetFolderId, authStore.user
-  );
+  try {
+    const success = await notesStore.saveNote(
+      title, content, targetFolderId, authStore.user
+    );
 
-  if (success && uiStore.showMobileQuickNote) {
-    handleMobileQuickNoteClose();
+    if (success && uiStore.showMobileQuickNote) {
+      handleMobileQuickNoteClose();
+    }
+    return success;
+  } catch (error) {
+    // Handle encryption key timeout - try to recover automatically
+    if (error.message?.includes('Encryption key not available')) {
+      console.log('🔑 Encryption key not available - attempting recovery...');
+      
+      const recovered = await authStore.recoverEncryptionKey();
+      if (recovered) {
+        console.log('✅ Encryption key recovered - retrying note save...');
+        try {
+          const success = await notesStore.saveNote(
+            title, content, targetFolderId, authStore.user
+          );
+          if (success && uiStore.showMobileQuickNote) {
+            handleMobileQuickNoteClose();
+          }
+          return success;
+        } catch (retryError) {
+          console.error('❌ Note save failed even after key recovery:', retryError);
+          alert('Fejl ved oprettelse af note. Prøv at logge ind igen.');
+          return false;
+        }
+      } else {
+        console.error('❌ Could not recover encryption key');
+        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
+        return false;
+      }
+    } else {
+      // Other errors
+      console.error('❌ Fejl ved oprettelse af note:', error);
+      alert('Fejl ved oprettelse af note: ' + error.message);
+      return false;
+    }
   }
-  return success;
 };
 
 const handleViewerUpdate = async (noteId, title, content) => {
-  const success = await notesStore.updateNote(
-    noteId, title, content
-  );
-  if (success) {
-    uiStore.setSelectedNote({
-      ...uiStore.selectedNote,
-      title, content, updatedAt: new Date(),
-    });
+  try {
+    const success = await notesStore.updateNote(
+      noteId, title, content
+    );
+    if (success) {
+      uiStore.setSelectedNote({
+        ...uiStore.selectedNote,
+        title, content, updatedAt: new Date(),
+      });
+    }
+    return success;
+  } catch (error) {
+    // Handle encryption key timeout - try to recover automatically
+    if (error.message?.includes('Encryption key not available')) {
+      console.log('🔑 Encryption key not available - attempting recovery...');
+      
+      const recovered = await authStore.recoverEncryptionKey();
+      if (recovered) {
+        console.log('✅ Encryption key recovered - retrying note update...');
+        try {
+          const success = await notesStore.updateNote(
+            noteId, title, content
+          );
+          if (success) {
+            uiStore.setSelectedNote({
+              ...uiStore.selectedNote,
+              title, content, updatedAt: new Date(),
+            });
+          }
+          return success;
+        } catch (retryError) {
+          console.error('❌ Note update failed even after key recovery:', retryError);
+          // Show user-friendly error message
+          alert('Fejl ved opdatering af note. Prøv at logge ind igen.');
+          return false;
+        }
+      } else {
+        console.error('❌ Could not recover encryption key');
+        // Show user-friendly error message
+        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
+        return false;
+      }
+    } else {
+      // Other errors
+      console.error('❌ Fejl ved opdatering af note:', error);
+      alert('Fejl ved opdatering af note: ' + error.message);
+      return false;
+    }
   }
-  return success;
 };
 
 const handleViewerDelete = async (noteId) => {

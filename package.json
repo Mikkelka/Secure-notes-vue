@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "lines": "./tokei --exclude package-lock.json --exclude node_modules --exclude dist --output json | node -e \"const data=JSON.parse(require('fs').readFileSync(0,'utf-8')); console.log('![Lines of Code](https://img.shields.io/badge/lines%20of%20code-' + data.Total.code + '%20lines-blue)');\""
+    "preview": "vite preview"
   },
   "dependencies": {
     "@google/genai": "^1.5.1",
@@ -18,6 +17,7 @@
     "lucide-vue-next": "^0.517.0",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.1.10",
+    "tinymce": "^7.9.1",
     "vue": "^3.5.16",
     "vue-router": "^4.5.1",
     "workbox-window": "^7.3.0"
