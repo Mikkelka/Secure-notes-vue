@@ -50,6 +50,7 @@
         <editor
           ref="editorRef"
           tinymce-script-src="/tinymce/tinymce.min.js"
+          license-key="gpl"
           v-model="htmlContent"
           :init="getTinymceConfig(isCompact)"
           @input="handleContentChange"
@@ -118,15 +119,16 @@ const getTinymceConfig = (isCompact = false) => {
     isCompact ? 200 : (isMobileView ? 300 : 400)
   )
   
-  return {
+  const config = {
+    // License key now handled by component prop
     // Responsive height configuration
     min_height: minHeight,
     max_height: maxHeight,
     menubar: false,
     statusbar: false,
     branding: false,
-    plugins: 'lists link autolink autoresize removeformat',
-    toolbar: 'undo redo | formatselect | h1 h2 h3 | bold italic underline strikethrough | removeformat | bullist | link',
+    plugins: 'lists link autolink autoresize',
+    toolbar: 'undo redo | formatselect | h1 h2 h3 | bold italic underline strikethrough | bullist | link',
     formats: {
       h1: { block: 'h1' },
       h2: { block: 'h2' },
@@ -136,10 +138,8 @@ const getTinymceConfig = (isCompact = false) => {
     content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #d1d5db; background-color: #374151; } p { margin: 0.5em 0; } h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem 0; line-height: 1.2; color: #ffffff; } h2 { font-size: 1.25rem; font-weight: 600; margin: 0.75rem 0 0.5rem 0; line-height: 1.3; color: #ffffff; } h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5rem 0 0.5rem 0; line-height: 1.4; color: #ffffff; }',
     skin: 'oxide-dark',
     content_css: 'dark',
-    // Allow flexible block formats for proper heading support
-    forced_root_block: '',
-    force_br_newlines: false,
-    force_p_newlines: false,
+    // Default paragraph wrapping for proper structure
+    forced_root_block: 'p',
     keep_styles: false,
     verify_html: false,
     cleanup: false,
@@ -154,11 +154,13 @@ const getTinymceConfig = (isCompact = false) => {
     // Setup callback to ensure format changes trigger events
     setup: (editor) => {
       editor.on('NodeChange FormatApply ExecCommand', () => {
-        // Force v-model update on format changes
-        editor.fire('input')
+        // Force v-model update on format changes (TinyMCE 7.0 compatible)
+        editor.dispatch('input')
       })
     }
   }
+  console.log('🔧 QuickNote TinyMCE config:', config)
+  return config
 }
 
 // Content change handler for TinyMCE events (debounced for performance)
