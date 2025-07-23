@@ -108,7 +108,6 @@ const getTinymceConfig = () => {
       })
     }
   }
-  console.log('🔧 NoteEditor TinyMCE config:', config)
   return config
 }
 

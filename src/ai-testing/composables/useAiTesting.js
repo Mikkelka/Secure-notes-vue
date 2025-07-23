@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 export function useAiTesting() {
   // Minimal configuration - only essentials
   const apiKey = ref('')
-  const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
+  const selectedModel = ref('gemini-2.5-flash-lite')
   const testResults = ref([])
   const isRunning = ref(false)
 
@@ -72,7 +72,6 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     const envApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY
     if (envApiKey) {
       apiKey.value = envApiKey
-      console.log('🧪 Using API key from environment variable')
       return
     }
     
@@ -80,7 +79,6 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
     const savedApiKey = localStorage.getItem('ai-test-api-key')
     if (savedApiKey) {
       apiKey.value = savedApiKey
-      console.log('🧪 Using API key from localStorage')
     }
   }
 
@@ -146,7 +144,6 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       // Import AI service method
       const { processTextWithAi } = await import('../services/aiTestService.js')
       
-      console.log(`🧪 Streaming Test Started - ${selectedModel.value}`)
       
       // Start streaming display
       startStreaming()
@@ -189,7 +186,6 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
         tokensPerSecond: latestMetrics?.tokensPerSecond
       })
       
-      console.log(`✅ Streaming Test Completed - ${totalTime}ms`)
       
       // Stop streaming display
       stopStreaming()

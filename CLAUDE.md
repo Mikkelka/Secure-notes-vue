@@ -219,7 +219,7 @@ Both store login type for master password verification: `localStorage.getItem('l
 - **Count Integration**: Trash count integrated into folder sidebar
 
 **AI Performance Architecture:**
-- **Production Models**: Flash-Lite (`gemini-2.5-flash-lite-preview-06-17`) og Flash Standard (`gemini-2.5-flash`)
+- **Production Models**: Flash-Lite (`gemini-2.5-flash-lite`) og Flash Standard (`gemini-2.5-flash`)
 - **Model Selection**: User-valgt via AI Indstillinger modal, gemt i sessionStorage
 - **Response Time**: Flash-Lite ~1s, Flash Standard ~4s med thinking
 - **Real-time Streaming**: onChunk callbacks med tekst streaming og character counts

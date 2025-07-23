@@ -159,7 +159,6 @@ const getTinymceConfig = (isCompact = false) => {
       })
     }
   }
-  console.log('🔧 QuickNote TinyMCE config:', config)
   return config
 }
 

@@ -136,7 +136,7 @@ const getAiSettings = (userSettings) => {
                        "std-note-organizer";
 
   // Always check sessionStorage for model selection first (AI modal saves here)
-  const selectedModel = sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite-preview-06-17";
+  const selectedModel = sessionStorage.getItem("ai-model") || "gemini-2.5-flash-lite";
 
   if (userSettings?.aiSettings) {
     const { apiKey, selectedInstruction } = userSettings.aiSettings;
@@ -190,14 +190,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     const simplePrompt = `Note titel (kun til kontekst): "${title}"\n\nInput HTML:\n${content}`;
     const promptTime = performance.now() - promptStartTime;
     
-    if (enableDebugTiming) {
-      console.log('=== STREAMING AI PERFORMANCE DEBUG ===');
-      console.log('Model:', model);
-      console.log('Using systemInstruction + Streaming: YES');
-      console.log('Content Length:', content.length);
-      console.log('Setup Time:', Math.round(setupTime), 'ms');
-      console.log('Prompt Prep Time:', Math.round(promptTime), 'ms');
-    }
 
     // Phase 3: Token counting for performance analysis (Google cookbook best practice)
     const tokenCountStart = performance.now();
@@ -212,9 +204,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       tokenCountTime = performance.now() - tokenCountStart;
       inputTokens = tokenResponse.totalTokens;
       
-      if (enableDebugTiming) {
-        console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
-      }
     } catch (error) {
       console.warn('Token counting failed:', error);
       tokenCountTime = performance.now() - tokenCountStart;
@@ -239,17 +228,11 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
         thinkingBudget: -1  // Dynamic thinking - model decides complexity
       };
       
-      if (enableDebugTiming) {
-        console.log('🧠 Thinking enabled with dynamic budget (-1)');
-      }
     } else {
       config.thinkingConfig = {
         thinkingBudget: 0  // Explicit disable - critical for Flash Lite
       };
       
-      if (enableDebugTiming) {
-        console.log('⚡ Thinking explicitly disabled (thinkingBudget: 0)');
-      }
     }
     
     const streamResponse = await ai.models.generateContentStream({
@@ -269,9 +252,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     for await (const chunk of streamResponse) {
       if (firstChunkTime === null) {
         firstChunkTime = performance.now() - apiStartTime;
-        if (enableDebugTiming) {
-          console.log('First chunk received in:', Math.round(firstChunkTime), 'ms');
-        }
       }
       
       // Handle response parts (for thought summaries) - Enhanced with test environment learnings
@@ -287,13 +267,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
             // Measure first thought chunk time
             if (firstThoughtChunkTime === null) {
               firstThoughtChunkTime = performance.now() - apiStartTime;
-              if (enableDebugTiming) {
-                console.log(`🧠 First thought chunk at: ${Math.round(firstThoughtChunkTime)}ms`);
-              }
-            }
-            
-            if (enableDebugTiming) {
-              console.log('🧠 Thought Summary:', part.text.substring(0, 100) + '...');
             }
             
             // Call onThoughtChunk callback for real-time thought UI updates
@@ -307,13 +280,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
             // Measure first answer chunk time
             if (firstAnswerChunkTime === null) {
               firstAnswerChunkTime = performance.now() - apiStartTime;
-              if (enableDebugTiming) {
-                console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
-              }
-            }
-            
-            if (enableDebugTiming) {
-              console.log('💬 Answer:', part.text.substring(0, 100) + '...');
             }
             
             // Call onChunk callback for real-time UI updates
@@ -330,9 +296,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
         // Measure first answer chunk time (for fallback)
         if (firstAnswerChunkTime === null) {
           firstAnswerChunkTime = performance.now() - apiStartTime;
-          if (enableDebugTiming) {
-            console.log(`💬 First answer chunk at: ${Math.round(firstAnswerChunkTime)}ms`);
-          }
         }
         
         // Call onChunk callback for real-time UI updates (fallback)
@@ -345,16 +308,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     console.timeEnd(`AI_API_Call_Streaming_${model}`);
     const apiTime = performance.now() - apiStartTime;
     
-    // Enhanced debug logging from test environment
-    if (enableDebugTiming) {
-      console.log(`🧪 Google Streaming Test: ${model} - ${Math.round(apiTime)}ms`);
-      console.log(`🧠 Thinking: ${enableThinking ? 'ENABLED' : 'DISABLED'}`);
-      console.log(`⚡ First chunk: ${firstChunkTime}ms (perceived performance)`);
-      console.log(`💬 First answer: ${firstAnswerChunkTime || 'N/A'}ms`);
-      console.log(`🧠 First thought: ${firstThoughtChunkTime || 'N/A'}ms`);
-      console.log(`🧠 Thought Summaries Length: ${thoughtSummaries.length} chars`);
-      console.log(`💬 Answer Length: ${fullResponse.length} chars`);
-    }
     
     // Phase 4: Response Processing
     const processStartTime = performance.now();
@@ -373,21 +326,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
     const processTime = performance.now() - processStartTime;
     const totalTime = performance.now() - totalStartTime;
 
-    if (enableDebugTiming) {
-      console.log('First Chunk Time:', Math.round(firstChunkTime || 0), 'ms');
-      console.log('Total API Time:', Math.round(apiTime), 'ms');
-      console.log('Response Processing Time:', Math.round(processTime), 'ms');
-      console.log('Total Time:', Math.round(totalTime), 'ms');
-      console.log('Response Length:', processedHtml.length);
-      if (hasThoughts) {
-        console.log('🧠 Thoughts Detected: YES');
-        console.log('🧠 Thought Summary Length:', thoughtSummaries.length);
-        console.log('🧠 Thought Preview:', thoughtSummaries.substring(0, 200) + '...');
-      } else {
-        console.log('🧠 Thoughts Detected: NO');
-      }
-      console.log('=== END STREAMING AI PERFORMANCE DEBUG ===');
-    }
 
     // Store performance metrics
     if (typeof window !== 'undefined' && window.aiPerformanceMetrics) {
@@ -466,12 +404,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
   } catch (error) {
     const totalTime = performance.now() - totalStartTime;
     
-    if (enableDebugTiming) {
-      console.log('=== STREAMING AI ERROR DEBUG ===');
-      console.log('Error occurred after:', Math.round(totalTime), 'ms');
-      console.log('Error:', error.message);
-      console.log('=== END STREAMING AI ERROR DEBUG ===');
-    }
     
     console.error("Streaming AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";

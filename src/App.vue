@@ -395,11 +395,8 @@ const handleSaveNote = async (title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      console.log('🔑 Encryption key not available - attempting recovery...');
-      
       const recovered = await authStore.recoverEncryptionKey();
       if (recovered) {
-        console.log('✅ Encryption key recovered - retrying note save...');
         try {
           const success = await notesStore.saveNote(
             title, content, targetFolderId, authStore.user
@@ -442,11 +439,8 @@ const handleViewerUpdate = async (noteId, title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      console.log('🔑 Encryption key not available - attempting recovery...');
-      
       const recovered = await authStore.recoverEncryptionKey();
       if (recovered) {
-        console.log('✅ Encryption key recovered - retrying note update...');
         try {
           const success = await notesStore.updateNote(
             noteId, title, content

@@ -54,7 +54,7 @@
                 v-model="selectedModel"
                 class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="gemini-2.5-flash-lite-preview-06-17">Flash Lite (Speed Optimized)</option>
+                <option value="gemini-2.5-flash-lite">Flash Lite (Speed Optimized)</option>
                 <option value="gemini-2.5-flash">Flash Standard (Reasoning)</option>
               </select>
             </div>

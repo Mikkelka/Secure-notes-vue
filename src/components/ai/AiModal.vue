@@ -66,7 +66,7 @@
           @change="handleModelChange"
           class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
-          <option value="gemini-2.5-flash-lite-preview-06-17">
+          <option value="gemini-2.5-flash-lite">
             ⚡ Flash Lite - Hurtigste model (~1s)
           </option>
           <option value="gemini-2.5-flash">
@@ -268,7 +268,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updateAiSettings'])
 
 const apiKey = ref('')
-const selectedModel = ref('gemini-2.5-flash-lite-preview-06-17')
+const selectedModel = ref('gemini-2.5-flash-lite')
 const enableThinking = ref(false)
 const apiStatus = ref({ message: '', type: '' })
 const hasApiKey = ref(false)
@@ -443,7 +443,7 @@ onMounted(() => {
     if (savedModel) {
       selectedModel.value = savedModel
     } else {
-      selectedModel.value = 'gemini-2.5-flash-lite-preview-06-17' // Default to Flash-Lite
+      selectedModel.value = 'gemini-2.5-flash-lite' // Default to Flash-Lite
     }
     enableThinking.value = aiSettings.enableThinking || false
     

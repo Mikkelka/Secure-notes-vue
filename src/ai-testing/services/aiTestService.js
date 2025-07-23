@@ -40,7 +40,6 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
   const tokenCountTime = performance.now() - tokenCountStart;
   const inputTokens = tokenResponse.totalTokens;
   
-  console.log(`🧪 Token Count: ${inputTokens} input tokens (${Math.round(tokenCountTime)}ms)`);
   
   // Build config object with optional thinking
   const config = {
@@ -55,12 +54,10 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
       includeThoughts: true,
       thinkingBudget: -1  // Dynamic thinking - model decides complexity
     };
-    console.log('🧠 Thinking enabled with dynamic budget (-1)');
   } else {
     config.thinkingConfig = {
       thinkingBudget: 0  // Explicit disable - critical for Flash Lite
     };
-    console.log('⚡ Thinking explicitly disabled (thinkingBudget: 0)');
   }
 
   // Google's official streaming approach with configurable thinking
@@ -87,18 +84,15 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
         // Measure first chunk time (perceived performance)
         if (firstChunkTime === null) {
           firstChunkTime = Math.round(performance.now() - startTime);
-          console.log(`⚡ First chunk received at: ${firstChunkTime}ms`);
         }
         
         if (part.thought) {
           // This is a thought summary
-          console.log(`🧠 Thought Summary: ${part.text}`);
           thoughtSummaries += part.text;
           
           // Measure first thought chunk time
           if (firstThoughtChunkTime === null) {
             firstThoughtChunkTime = Math.round(performance.now() - startTime);
-            console.log(`🧠 First thought chunk at: ${firstThoughtChunkTime}ms`);
           }
           
           // Call onThoughtChunk callback for real-time thought UI updates
@@ -107,13 +101,11 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
           }
         } else {
           // This is regular answer content
-          console.log(`💬 Answer: ${part.text}`);
           text += part.text;
           
           // Measure first answer chunk time
           if (firstAnswerChunkTime === null) {
             firstAnswerChunkTime = Math.round(performance.now() - startTime);
-            console.log(`💬 First answer chunk at: ${firstAnswerChunkTime}ms`);
           }
           
           // Call onChunk callback for real-time UI updates
@@ -124,7 +116,6 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
       }
     } else {
       // Fallback for simple chunk structure
-      console.log(chunk.text); // Google's debug output
       text += chunk.text;
       
       // Measure first chunk time (perceived performance)
@@ -149,13 +140,6 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
   const endTime = performance.now();
   const totalTime = Math.round(endTime - startTime);
   
-  console.log(`🧪 Google Streaming Test: ${model} - ${totalTime}ms`);
-  console.log(`🧠 Thinking: ${enableThinking ? 'ENABLED' : 'DISABLED'}`);
-  console.log(`⚡ First chunk: ${firstChunkTime}ms (perceived performance)`);
-  console.log(`💬 First answer: ${firstAnswerChunkTime || 'N/A'}ms`);
-  console.log(`🧠 First thought: ${firstThoughtChunkTime || 'N/A'}ms`);
-  console.log(`🧠 Thought Summaries Length: ${thoughtSummaries.length} chars`);
-  console.log(`💬 Answer Length: ${text.length} chars`);
   
   // Calculate tokens per second
   const tokensPerSecond = Math.round((inputTokens / totalTime) * 1000);
@@ -200,7 +184,7 @@ export const processTextWithAi = async (content, apiKey, model, onChunk = null, 
 // Available models for testing
 export const AVAILABLE_MODELS = [
   {
-    id: 'gemini-2.5-flash-lite-preview-06-17',
+    id: 'gemini-2.5-flash-lite',
     name: 'Gemini 2.5 Flash Lite',
     description: 'Speed optimized model'
   },

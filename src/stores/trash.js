@@ -140,7 +140,6 @@ export const useTrashStore = defineStore('trash', () => {
         !oldTrashedNotes.find(oldNote => oldNote.id === note.id)
       )
       
-      console.log(`Automatisk slettet ${oldTrashedNotes.length} gamle noter fra papirkurv`)
       return true
     } catch (error) {
       console.error('Fejl ved cleanup af gamle noter:', error)
