@@ -298,6 +298,15 @@ div[contenteditable="false"] .ProseMirror {
   color: #d1d5db !important;
 }
 
+.prose-content a {
+  color: #60a5fa !important;
+  text-decoration: underline;
+}
+
+.prose-content a:hover {
+  color: #93c5fd !important;
+}
+
 /* Legacy classes for backward compatibility */
 .editor-text-bold {
   font-weight: bold;
