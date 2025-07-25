@@ -1,9 +1,12 @@
 <template>
   <div class="space-y-4">
-    <!-- Created date -->
-    <div class="flex items-center gap-2 text-gray-400 text-sm">
-      <Clock class="w-4 h-4" />
-      {{ formatDate(createdAt, true) }}
+    <!-- Header with date and copy button -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2 text-gray-400 text-sm">
+        <Clock class="w-4 h-4" />
+        {{ formatDate(createdAt, true) }}
+      </div>
+      <CopyTextButton :html-content="content" />
     </div>
     
     <!-- Content display -->
@@ -20,6 +23,7 @@
 <script setup>
 import { computed as _computed } from 'vue'
 import { Clock } from 'lucide-vue-next'
+import CopyTextButton from '../../base/CopyTextButton.vue'
 
 const _props = defineProps({
   content: {
