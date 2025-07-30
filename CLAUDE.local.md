@@ -10,7 +10,3 @@
 - Prioriter @apply refactoring når du ser gentagelser af 5+ utility classes sammen
 - Dette sparer tokens når Claude læser filer og gør koden mere vedligeholdelsesvenlig
 - Hvis du ser lange klasser i filer vi måske har overset, så lav dem om proaktivt
-
-## Communication Guidelines
-
-- Når jeg har givet udtryk for, at vi er færdige med en implementering, må du gerne skrive [github kommentar] nederst i din respons

@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📋 Quick Navigation
+
+**IMPORTANT**: Always consult `ARCHITECTURE.md` first for comprehensive project structure overview, file locations, and component relationships before exploring the codebase. This reduces search time and provides essential context for all development tasks.
+
 ## Development Commands
 
 - `npm run dev` - Start development server with hot reload
