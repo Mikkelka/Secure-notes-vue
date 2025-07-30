@@ -501,7 +501,7 @@ MIT License - se LICENSE fil for detaljer.
 
 ## 🏷️ Version
 
-Nuværende version: 0.13.1
+Nuværende version: 1.0.0
 
 ---
 

@@ -111,7 +111,7 @@
       </div>
       
       <div class="text-center mt-4">
-        <p class="text-gray-500 text-xs">v0.9.2</p>
+        <p class="text-gray-500 text-xs">v1.0.0</p>
       </div>
     </div>
   </div>
