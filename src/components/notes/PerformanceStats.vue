@@ -1,7 +1,7 @@
 <template>
   <div v-if="stats" class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4">
     <h3 class="text-white font-medium mb-3 flex items-center gap-2">
-      <Zap class="w-4 h-4" />
+      <Zap class="icon-sm" />
       Performance
     </h3>
     

@@ -14,7 +14,7 @@
       <!-- Security Section -->
       <div>
         <div class="flex items-center gap-2 mb-3">
-          <Shield class="w-4 h-4 text-red-400" />
+          <Shield class="icon-sm text-red-400" />
           <h3 class="text-sm font-medium text-white">Sikkerhed</h3>
         </div>
         
@@ -34,7 +34,7 @@
                   {{ option.label }}
                 </option>
               </select>
-              <Clock class="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              <Clock class="absolute right-3 top-2.5 icon-sm text-gray-400 pointer-events-none" />
             </div>
             <p class="text-xs text-gray-500 mt-1">
               Automatisk logout efter inaktivitet
@@ -46,7 +46,7 @@
       <!-- General Section -->
       <div>
         <div class="flex items-center gap-2 mb-3">
-          <Monitor class="w-4 h-4 text-blue-400" />
+          <Monitor class="icon-sm text-blue-400" />
           <h3 class="text-sm font-medium text-white">Generelt</h3>
         </div>
         

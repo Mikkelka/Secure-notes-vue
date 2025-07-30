@@ -11,11 +11,11 @@
           getButtonClass()
         ]"
       >
-        <div v-if="isProcessing && !isStreamingStarted && !streamingText && !thoughtText && !isCompleted" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        <div v-else-if="isCompleted" class="w-4 h-4 text-emerald-200">✓</div>
+        <div v-if="isProcessing && !isStreamingStarted && !streamingText && !thoughtText && !isCompleted" class="icon-sm border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <div v-else-if="isCompleted" class="icon-sm text-emerald-200">✓</div>
         <div v-else-if="thoughtText" class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
         <div v-else-if="isStreamingStarted || streamingText" class="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-        <Brain v-else class="w-4 h-4" />
+        <Brain v-else class="icon-sm" />
         {{ getButtonText() }}
       </button>
       
@@ -26,7 +26,7 @@
         variant="ghost"
         class="note-editing-btn-base note-editing-ai-toggle"
       >
-        <ChevronDown :class="['w-4 h-4 transition-transform', isOpen ? 'rotate-180' : '']" />
+        <ChevronDown :class="['icon-sm transition-transform', isOpen ? 'rotate-180' : '']" />
         Skift
       </BaseButton>
     </div>
@@ -58,7 +58,7 @@
         }"
       >
         <div class="flex-shrink-0 mt-1">
-          <component :is="getIcon(instruction.key)" class="w-4 h-4 text-purple-400" />
+          <component :is="getIcon(instruction.key)" class="icon-sm text-purple-400" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-white flex items-center gap-1">
@@ -68,7 +68,7 @@
           <div class="text-xs text-gray-400 leading-relaxed">{{ instruction.description }}</div>
         </div>
         <div v-if="selectedInstruction === instruction.key" class="flex-shrink-0 mt-1">
-          <Check class="w-4 h-4 text-green-400" />
+          <Check class="icon-sm text-green-400" />
         </div>
       </div>
       
@@ -91,7 +91,7 @@
         }"
       >
         <div class="flex-shrink-0 mt-1">
-          <component :is="getIcon(instruction.key)" class="w-4 h-4 text-orange-400" />
+          <component :is="getIcon(instruction.key)" class="icon-sm text-orange-400" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-white flex items-center gap-1">
@@ -101,7 +101,7 @@
           <div class="text-xs text-gray-400 leading-relaxed line-clamp-2">{{ instruction.description }}</div>
         </div>
         <div v-if="selectedInstruction === instruction.key" class="flex-shrink-0 mt-1">
-          <Check class="w-4 h-4 text-green-400" />
+          <Check class="icon-sm text-green-400" />
         </div>
       </div>
       </div>

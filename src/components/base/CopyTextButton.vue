@@ -5,8 +5,8 @@
     class="copy-text-btn"
     :title="copied ? 'Kopieret!' : 'Kopier tekst'"
   >
-    <Check v-if="copied" class="w-4 h-4 text-green-500" />
-    <Copy v-else class="w-4 h-4" />
+    <Check v-if="copied" class="icon-sm text-green-500" />
+    <Copy v-else class="icon-sm" />
   </button>
 </template>
 

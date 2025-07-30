@@ -3,7 +3,7 @@
     <!-- Header with date and copy button -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2 text-gray-400 text-sm">
-        <Clock class="w-4 h-4" />
+        <Clock class="icon-sm" />
         {{ formatDate(createdAt, true) }}
       </div>
       <CopyTextButton :html-content="content" />

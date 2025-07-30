@@ -7,7 +7,7 @@
       <h2 class="text-xl font-bold text-white mb-2">Der opstod en fejl</h2>
       <p class="text-gray-400 mb-4">Noget gik galt. Prøv at genindlæse siden.</p>
       <BaseButton @click="reloadPage" variant="primary">
-        <RotateCcw class="w-4 h-4" />
+        <RotateCcw class="icon-sm" />
         Genindlæs side
       </BaseButton>
       <details v-if="errorInfo" class="mt-4 text-left">

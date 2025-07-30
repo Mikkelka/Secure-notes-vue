@@ -35,14 +35,14 @@
             @click="handleClearApiKey"
             class="px-3 py-2 bg-red-600/20 border border-red-600 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors flex items-center"
           >
-            <Trash2 class="w-4 h-4" />
+            <Trash2 class="icon-sm" />
           </button>
           <button
             v-else
             @click="handleSaveApiKey"
             class="px-3 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-white transition-colors flex items-center"
           >
-            <Save class="w-4 h-4" />
+            <Save class="icon-sm" />
           </button>
         </div>
         <p 
@@ -137,7 +137,7 @@
               size="sm"
               class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50"
             >
-              <Plus class="w-4 h-4" />
+              <Plus class="icon-sm" />
               Gem Custom Instruction
             </BaseButton>
             <BaseButton
@@ -170,13 +170,13 @@
                     @click="editCustomInstruction(instruction)"
                     class="p-1 text-gray-400 hover:text-purple-300 transition-colors"
                   >
-                    <Edit2 class="w-4 h-4" />
+                    <Edit2 class="icon-sm" />
                   </button>
                   <button
                     @click="deleteCustomInstruction(instruction.id)"
                     class="p-1 text-gray-400 hover:text-red-300 transition-colors"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </div>
               </div>
@@ -218,13 +218,13 @@
                     @click="editStandardInstruction(instruction)"
                     class="p-1 text-gray-400 hover:text-blue-300 transition-colors"
                   >
-                    <Edit2 class="w-4 h-4" />
+                    <Edit2 class="icon-sm" />
                   </button>
                   <button
                     @click="deleteStandardInstruction(instruction.id)"
                     class="p-1 text-gray-400 hover:text-red-300 transition-colors"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </div>
               </div>

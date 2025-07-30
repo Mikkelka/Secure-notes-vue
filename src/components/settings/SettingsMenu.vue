@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4">
     <h3 class="text-white font-medium mb-3 flex items-center gap-2">
-      <Settings class="w-4 h-4" />
+      <Settings class="icon-sm" />
       Hurtige indstillinger
     </h3>
     
@@ -13,7 +13,7 @@
           size="sm"
           class="w-full justify-start"
         >
-          <Key class="w-4 h-4" />
+          <Key class="icon-sm" />
           Skift PIN
         </BaseButton>
         
@@ -23,7 +23,7 @@
           size="sm"
           class="w-full justify-start"
         >
-          <Lock class="w-4 h-4" />
+          <Lock class="icon-sm" />
           Lås sikker mappe
         </BaseButton>
       </div>

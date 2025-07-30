@@ -7,7 +7,7 @@
         :class="activeButton === 'folders' ? 'text-blue-400' : ''"
         @click="$emit('foldersClick')"
       >
-        <FolderOpen class="w-5 h-5" />
+        <FolderOpen class="icon-md" />
       </BaseButton>
       
       <BaseButton
@@ -16,7 +16,7 @@
         :class="activeButton === 'add' ? 'text-blue-400' : ''"
         @click="$emit('addNoteClick')"
       >
-        <Plus class="w-5 h-5" />
+        <Plus class="icon-md" />
       </BaseButton>
       
       <BaseButton
@@ -25,7 +25,7 @@
         :class="activeButton === 'search' ? 'text-blue-400' : ''"
         @click="$emit('searchClick')"
       >
-        <Search class="w-5 h-5" />
+        <Search class="icon-md" />
       </BaseButton>
       
       <BaseButton
@@ -35,7 +35,7 @@
         :class="activeButton === 'settings' ? 'text-blue-400' : ''"
         @click="$emit('settingsClick')"
       >
-        <Settings class="w-5 h-5" />
+        <Settings class="icon-md" />
       </BaseButton>
     </div>
   </div>

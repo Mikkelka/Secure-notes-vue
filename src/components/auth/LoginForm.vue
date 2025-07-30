@@ -18,8 +18,8 @@
           class="btn-google"
           style="background-color: #ffffff; color: #3c4043; border: 1px solid #dadce0; font-family: 'Google Sans', Roboto, sans-serif;"
         >
-          <div v-if="loading" class="w-5 h-5 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
-          <svg v-else class="w-5 h-5" viewBox="0 0 24 24">
+          <div v-if="loading" class="icon-md border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
+          <svg v-else class="icon-md" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -59,14 +59,14 @@
             @click="showPassword = !showPassword"
             class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
           >
-            <EyeOff v-if="showPassword" class="w-4 h-4" />
-            <Eye v-else class="w-4 h-4" />
+            <EyeOff v-if="showPassword" class="icon-sm" />
+            <Eye v-else class="icon-sm" />
           </button>
         </div>
 
         <!-- Error message -->
         <div v-if="error" class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <AlertCircle class="icon-sm flex-shrink-0" />
           <span>{{ error }}</span>
         </div>
 
@@ -78,7 +78,7 @@
             variant="primary"
             class="flex-1"
           >
-            <Unlock v-if="!loading" class="w-4 h-4" />
+            <Unlock v-if="!loading" class="icon-sm" />
             Login
           </BaseButton>
           <BaseButton
@@ -88,7 +88,7 @@
             variant="secondary"
             class="flex-1"
           >
-            <Plus v-if="!loading" class="w-4 h-4" />
+            <Plus v-if="!loading" class="icon-sm" />
             Registrer
           </BaseButton>
         </div>
@@ -97,14 +97,14 @@
       <div class="mt-4 space-y-3">
         <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div class="flex items-center gap-2 text-blue-300 text-sm">
-            <Lock class="w-4 h-4" />
+            <Lock class="icon-sm" />
             <span>Dine data krypteres med dit password før lagring</span>
           </div>
         </div>
         
         <div class="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
           <div class="flex items-center gap-2 text-green-300 text-sm">
-            <Shield class="w-4 h-4" />
+            <Shield class="icon-sm" />
             <span>End-to-end kryptering med AES-256-GCM</span>
           </div>
         </div>

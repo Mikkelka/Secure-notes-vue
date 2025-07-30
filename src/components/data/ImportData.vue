@@ -12,7 +12,7 @@
       
       <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
         <div class="flex items-center gap-2 text-red-300 text-sm">
-          <AlertTriangle class="w-4 h-4" />
+          <AlertTriangle class="icon-sm" />
           <span>ADVARSEL: Dette vil overskrive alle eksisterende data!</span>
         </div>
       </div>
@@ -51,8 +51,8 @@
             :disabled="loading"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50"
           >
-            <Eye v-if="showPassword" class="w-4 h-4" />
-            <EyeOff v-else class="w-4 h-4" />
+            <Eye v-if="showPassword" class="icon-sm" />
+            <EyeOff v-else class="icon-sm" />
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@
       <!-- Progress Display -->
       <div v-if="progress" class="bg-blue-900/20 border border-blue-500/20 rounded-lg p-3">
         <div class="flex items-center gap-2 text-blue-300 text-sm mb-2">
-          <div class="w-4 h-4 border-2 border-blue-300/30 border-t-blue-300 rounded-full animate-spin"></div>
+          <div class="icon-sm border-2 border-blue-300/30 border-t-blue-300 rounded-full animate-spin"></div>
           <span>{{ progress.message }}</span>
         </div>
         <div v-if="progress.progress !== undefined" class="w-full bg-gray-700 rounded-full h-2">
@@ -96,7 +96,7 @@
       <!-- Error Display -->
       <div v-if="error" class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
         <div class="flex items-center gap-2 text-red-300 text-sm">
-          <AlertTriangle class="w-4 h-4" />
+          <AlertTriangle class="icon-sm" />
           <span>{{ error }}</span>
         </div>
       </div>
@@ -116,8 +116,8 @@
           :disabled="!importData || (!isGoogleUser && !password.trim()) || loading"
           @click="handleImport"
         >
-          <div v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <Upload v-else class="w-4 h-4" />
+          <div v-if="loading" class="icon-sm border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <Upload v-else class="icon-sm" />
           {{ loading ? 'Importerer...' : 'Importer data' }}
         </BaseButton>
       </div>

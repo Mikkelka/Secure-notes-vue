@@ -36,7 +36,7 @@
                 size="sm"
                 @click="$emit('close')"
               >
-                <X class="w-5 h-5" />
+                <X class="icon-md" />
               </BaseButton>
             </div>
             

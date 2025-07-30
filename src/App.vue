@@ -277,7 +277,7 @@
           @click="handleCancelMobileCreate"
           class="p-1.5 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
         >
-          <Plus class="w-4 h-4 rotate-45" />
+          <Plus class="icon-sm rotate-45" />
         </button>
       </div>
 

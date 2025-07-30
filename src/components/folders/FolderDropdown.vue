@@ -25,9 +25,9 @@
         ]"
         :disabled="currentFolderId === null"
       >
-        <Folder class="w-4 h-4" style="color: #6b7280" />
+        <Folder class="icon-sm" style="color: #6b7280" />
         <span>Ukategoriseret</span>
-        <Check v-if="currentFolderId === null" class="w-4 h-4 ml-auto text-green-400" />
+        <Check v-if="currentFolderId === null" class="icon-sm ml-auto text-green-400" />
       </button>
       
       <!-- Separator -->
@@ -45,9 +45,9 @@
         ]"
         :disabled="currentFolderId === folder.id"
       >
-        <Folder class="w-4 h-4" :style="{ color: folder.color }" />
+        <Folder class="icon-sm" :style="{ color: folder.color }" />
         <span class="truncate flex-1">{{ folder.name }}</span>
-        <Check v-if="currentFolderId === folder.id" class="w-4 h-4 text-green-400" />
+        <Check v-if="currentFolderId === folder.id" class="icon-sm text-green-400" />
       </button>
       
       <!-- Secure folder (only if unlocked) -->
@@ -59,7 +59,7 @@
           isMobile ? 'py-4' : 'py-3'
         ]"
       >
-        <Folder class="w-4 h-4" style="color: #dc2626" />
+        <Folder class="icon-sm" style="color: #dc2626" />
         <span>Sikker</span>
       </button>
       
@@ -71,9 +71,9 @@
           isMobile ? 'py-4' : 'py-3'
         ]"
       >
-        <Folder class="w-4 h-4" style="color: #dc2626" />
+        <Folder class="icon-sm" style="color: #dc2626" />
         <span>Sikker</span>
-        <Check class="w-4 h-4 ml-auto text-green-400" />
+        <Check class="icon-sm ml-auto text-green-400" />
       </div>
       
       <!-- No folders message -->

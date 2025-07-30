@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="p-4 border-b border-gray-700/50 flex items-center justify-between">
       <h2 class="text-sm font-medium text-white flex items-center gap-2">
-        <FolderOpen class="w-4 h-4" />
+        <FolderOpen class="icon-sm" />
         Mapper
       </h2>
       
@@ -13,7 +13,7 @@
         class="hidden md:flex items-center justify-center w-6 h-6 rounded hover:bg-gray-700/50 text-gray-400 hover:text-green-400 transition-all duration-200"
         :title="showCreateForm ? 'Luk' : 'Opret ny mappe'"
       >
-        <Plus class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-45': showCreateForm }" />
+        <Plus class="icon-sm transition-transform duration-200" :class="{ 'rotate-45': showCreateForm }" />
       </button>
     </div>
 
@@ -139,7 +139,7 @@
         @click="$emit('mobileCreateFolder')"
         class="w-full flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors font-medium text-sm min-h-[44px] touch-manipulation"
       >
-        <Plus class="w-4 h-4" />
+        <Plus class="icon-sm" />
         Opret ny mappe
       </button>
     </div>

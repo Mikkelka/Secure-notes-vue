@@ -24,7 +24,7 @@
         size="sm"
         class="note-editing-btn-base note-editing-undo"
       >
-        <Undo class="w-4 h-4" />
+        <Undo class="icon-sm" />
         Undo
       </BaseButton>
       <BaseButton
@@ -34,7 +34,7 @@
         size="sm"
         class="note-editing-btn-base note-editing-save"
       >
-        <Save class="w-4 h-4" />
+        <Save class="icon-sm" />
         Save
       </BaseButton>
       <BaseButton
@@ -73,7 +73,7 @@
           size="md"
           class="note-editing-btn-base note-editing-undo"
         >
-          <Undo class="w-4 h-4" />
+          <Undo class="icon-sm" />
           Undo
         </BaseButton>
       </div>
@@ -87,7 +87,7 @@
           size="md"
           class="note-editing-btn-mobile note-editing-save"
         >
-          <Save class="w-4 h-4" />
+          <Save class="icon-sm" />
           Save
         </BaseButton>
         <BaseButton

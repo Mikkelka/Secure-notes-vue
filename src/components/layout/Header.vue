@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="icon-container-small">
-          <Shield class="w-5 h-5 text-white" />
+          <Shield class="icon-md text-white" />
         </div>
         <div>
           <h1 class="text-lg font-semibold text-white">SecureNotes</h1>
@@ -20,7 +20,7 @@
             class="header-btn-base header-btn-blue"
             title="Eksporter data"
           >
-            <Download class="w-4 h-4" />
+            <Download class="icon-sm" />
             <span>Export</span>
           </button>
           
@@ -29,7 +29,7 @@
             class="header-btn-base header-btn-purple"
             title="AI Indstillinger"
           >
-            <Brain class="w-4 h-4" />
+            <Brain class="icon-sm" />
             <span>AI</span>
           </button>
           
@@ -39,7 +39,7 @@
             class="header-btn-base header-btn-orange"
             title="AI Testing Lab (Isolated)"
           >
-            <Zap class="w-4 h-4" />
+            <Zap class="icon-sm" />
             <span>Test Lab</span>
           </button>
           
@@ -48,7 +48,7 @@
             class="header-btn-base header-btn-gray"
             title="Indstillinger"
           >
-            <Settings class="w-4 h-4" />
+            <Settings class="icon-sm" />
             <span>Indstillinger</span>
           </button>
           
@@ -56,7 +56,7 @@
             @click="$emit('logout')"
             class="header-btn-base header-btn-red"
           >
-            <LogOut class="w-4 h-4" />
+            <LogOut class="icon-sm" />
             <span>Logout</span>
           </button>
         </div>
@@ -67,7 +67,7 @@
             @click="showMobileMenu = !showMobileMenu"
             class="header-btn-base header-btn-gray"
           >
-            <Menu class="w-4 h-4" />
+            <Menu class="icon-sm" />
           </button>
           
           <!-- Mobile dropdown menu -->
@@ -79,14 +79,14 @@
               @click="$emit('export'); showMobileMenu = false"
               class="dropdown-btn-mobile text-blue-300"
             >
-              <Download class="w-4 h-4" />
+              <Download class="icon-sm" />
               Export
             </button>
             <button
               @click="$emit('ai'); showMobileMenu = false"
               class="dropdown-btn-mobile text-purple-300"
             >
-              <Brain class="w-4 h-4" />
+              <Brain class="icon-sm" />
               AI Indstillinger
             </button>
             <button
@@ -94,21 +94,21 @@
               @click="openTestLab(); showMobileMenu = false"
               class="dropdown-btn-mobile text-orange-300"
             >
-              <Zap class="w-4 h-4" />
+              <Zap class="icon-sm" />
               AI Test Lab
             </button>
             <button
               @click="$emit('settings'); showMobileMenu = false"
               class="dropdown-btn-mobile text-gray-300"
             >
-              <Settings class="w-4 h-4" />
+              <Settings class="icon-sm" />
               Indstillinger
             </button>
             <button
               @click="$emit('logout'); showMobileMenu = false"
               class="dropdown-btn-mobile text-red-300 border-t border-gray-600"
             >
-              <LogOut class="w-4 h-4" />
+              <LogOut class="icon-sm" />
               Logout
             </button>
           </div>

@@ -16,8 +16,8 @@
         class="text-gray-400 hover:text-white !outline-0 !ring-0 !ring-offset-0"
         style="outline: none !important; box-shadow: none !important; background: transparent !important;"
       >
-        <FileText v-if="isAdvancedMode" class="w-4 h-4" />
-        <Edit v-else class="w-4 h-4" />
+        <FileText v-if="isAdvancedMode" class="icon-sm" />
+        <Edit v-else class="icon-sm" />
         {{ isAdvancedMode ? 'Simple' : 'Advanced' }}
       </BaseButton>
     </div>
@@ -68,7 +68,7 @@
           size="sm"
           class="flex-1"
         >
-          <Save class="w-4 h-4" />
+          <Save class="icon-sm" />
           Gem note
         </BaseButton>
       </div>

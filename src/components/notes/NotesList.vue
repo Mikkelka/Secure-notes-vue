@@ -3,7 +3,7 @@
     <!-- Search field - desktop only -->
     <div class="hidden md:block bg-gray-800/60 border border-gray-700/50 rounded-lg p-3 flex-shrink-0">
       <div class="relative">
-        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-gray-400" />
         <input
           v-model="localSearchTerm"
           type="text"
@@ -15,7 +15,7 @@
           @click="localSearchTerm = ''"
           class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
         >
-          <X class="w-4 h-4" />
+          <X class="icon-sm" />
         </button>
       </div>
     </div>
@@ -38,7 +38,7 @@
         <!-- Favorite Notes Section -->
         <div v-if="favoriteNotes.length > 0">
           <div class="flex items-center gap-2 text-yellow-400 text-sm font-medium mb-2">
-            <Star class="w-4 h-4 fill-current" />
+            <Star class="icon-sm fill-current" />
             Favoritter
           </div>
           <div class="space-y-2">
@@ -55,9 +55,9 @@
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-2 text-gray-400 text-sm">
-                <Clock class="w-4 h-4" />
+                <Clock class="icon-sm" />
                 {{ formatDate(note.createdAt, false) }}
-                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+                <Star v-if="note.isFavorite" class="icon-sm text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
                 <span 
@@ -79,14 +79,14 @@
                     class="action-btn-icon text-green-400 hover:text-green-300"
                     title="Gendan note"
                   >
-                    <RotateCcw class="w-4 h-4" />
+                    <RotateCcw class="icon-sm" />
                   </button>
                   <button
                     @click="handlePermanentDelete(note.id)"
                     class="delete-btn"
                     title="Slet permanent"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </template>
                 <template v-else>
@@ -99,13 +99,13 @@
                         : 'text-gray-400 hover:text-yellow-400'
                     ]"
                   >
-                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="icon-sm" />
                   </button>
                   <button
                     @click="handleDeleteNote(note.id)"
                     class="delete-btn"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </template>
               </div>
@@ -130,7 +130,7 @@
         <div v-if="regularNotes.length > 0">
           <div v-if="!debouncedSearchTerm" class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2 text-sm font-medium">
-              <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'w-4 h-4']" />
+              <component :is="categoryDescription.icon" :class="[categoryDescription.color, 'icon-sm']" />
               <span :class="categoryDescription.color">{{ categoryDescription.text }}</span>
             </div>
             <button
@@ -155,9 +155,9 @@
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-2 text-gray-400 text-sm">
-                <Clock class="w-4 h-4" />
+                <Clock class="icon-sm" />
                 {{ formatDate(note.createdAt, false) }}
-                <Star v-if="note.isFavorite" class="w-4 h-4 text-yellow-400 fill-current" />
+                <Star v-if="note.isFavorite" class="icon-sm text-yellow-400 fill-current" />
               </div>
               <div class="flex items-center gap-1" @click.stop>
                 <span 
@@ -179,14 +179,14 @@
                     class="action-btn-icon text-green-400 hover:text-green-300"
                     title="Gendan note"
                   >
-                    <RotateCcw class="w-4 h-4" />
+                    <RotateCcw class="icon-sm" />
                   </button>
                   <button
                     @click="handlePermanentDelete(note.id)"
                     class="delete-btn"
                     title="Slet permanent"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </template>
                 <template v-else>
@@ -199,13 +199,13 @@
                         : 'text-gray-400 hover:text-yellow-400'
                     ]"
                   >
-                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="icon-sm" />
                   </button>
                   <button
                     @click="handleDeleteNote(note.id)"
                     class="delete-btn"
                   >
-                    <Trash2 class="w-4 h-4" />
+                    <Trash2 class="icon-sm" />
                   </button>
                 </template>
               </div>

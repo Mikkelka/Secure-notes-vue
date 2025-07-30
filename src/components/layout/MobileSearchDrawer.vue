@@ -28,7 +28,7 @@
           >
             <div class="p-4">
               <div class="flex items-center gap-3 mb-3">
-                <Search class="w-5 h-5 text-gray-400" />
+                <Search class="icon-md text-gray-400" />
                 <input
                   ref="searchInput"
                   :value="searchTerm"
@@ -42,7 +42,7 @@
                   size="sm"
                   @click="emit('close')"
                 >
-                  <X class="w-5 h-5" />
+                  <X class="icon-md" />
                 </BaseButton>
               </div>
             </div>

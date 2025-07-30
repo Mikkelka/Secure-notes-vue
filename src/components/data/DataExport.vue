@@ -34,8 +34,8 @@
             @click="showPassword = !showPassword"
             class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
           >
-            <Eye v-if="showPassword" class="w-4 h-4" />
-            <EyeOff v-else class="w-4 h-4" />
+            <Eye v-if="showPassword" class="icon-sm" />
+            <EyeOff v-else class="icon-sm" />
           </button>
         </div>
       </div>
@@ -43,7 +43,7 @@
       <!-- Warning -->
       <div class="p-3 rounded-lg border-l-4 bg-yellow-900/20 border-yellow-500">
         <div class="flex items-start gap-2">
-          <AlertTriangle class="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+          <AlertTriangle class="icon-sm text-yellow-400 mt-0.5 flex-shrink-0" />
           <div class="text-sm">
             <div class="font-medium text-yellow-300 mb-1">Sikkerhedsadvarsel</div>
             <div class="text-yellow-200">
@@ -75,8 +75,8 @@
         ]"
       >
         <div class="flex items-start gap-2">
-          <CheckCircle v-if="result.success" class="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-          <AlertTriangle v-else class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+          <CheckCircle v-if="result.success" class="icon-sm text-green-400 mt-0.5 flex-shrink-0" />
+          <AlertTriangle v-else class="icon-sm text-red-400 mt-0.5 flex-shrink-0" />
           <div :class="['text-sm', result.success ? 'text-green-200' : 'text-red-200']">
             {{ result.message }}
           </div>
@@ -89,7 +89,7 @@
           @click="() => { $emit('close'); $emit('openImport'); }"
           class="text-blue-400 hover:text-blue-300 text-sm transition-colors flex items-center justify-center gap-2 mx-auto"
         >
-          <Upload class="w-4 h-4" />
+          <Upload class="icon-sm" />
           Importer noter fra backup fil?
         </button>
       </div>
@@ -109,8 +109,8 @@
           :disabled="loading || !password.trim()"
           @click="handleExport"
         >
-          <div v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <Download v-else class="w-4 h-4" />
+          <div v-if="loading" class="icon-sm border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <Download v-else class="icon-sm" />
           {{ loading ? 'Eksporterer...' : 'Eksporter Backup' }}
         </BaseButton>
       </div>

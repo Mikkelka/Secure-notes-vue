@@ -85,7 +85,7 @@
                 >
                   <div
                     :class="[
-                      'w-4 h-4 rounded-full bg-white transition-transform duration-200',
+                      'icon-sm rounded-full bg-white transition-transform duration-200',
                       enableThinking ? 'translate-x-6' : 'translate-x-0'
                     ]"
                   />

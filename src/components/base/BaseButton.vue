@@ -67,8 +67,8 @@ const sizeClasses = computed(() => {
 const iconClasses = computed(() => {
   const sizes = {
     sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    md: 'icon-sm',
+    lg: 'icon-md'
   }
   return sizes[props.size]
 })
@@ -76,8 +76,8 @@ const iconClasses = computed(() => {
 const spinnerClasses = computed(() => {
   const sizes = {
     sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    md: 'icon-sm',
+    lg: 'icon-md'
   }
   return `${sizes[props.size]} border-2 border-gray-400 border-t-white rounded-full animate-spin`
 })

@@ -55,7 +55,7 @@
               size="sm"
               class="note-action-btn-mobile note-action-edit-mobile"
             >
-              <Edit3 class="w-5 h-5" />
+              <Edit3 class="icon-md" />
             </BaseButton>
             <BaseButton
               @click="$emit('toggleFavorite', note.id)"
@@ -66,7 +66,7 @@
             >
               <Star 
                 :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
-                class="w-5 h-5" 
+                class="icon-md" 
               />
             </BaseButton>
             <BaseButton
@@ -75,7 +75,7 @@
               size="sm"
               class="note-action-btn-mobile note-action-delete-mobile"
             >
-              <Trash2 class="w-5 h-5" />
+              <Trash2 class="icon-md" />
             </BaseButton>
             <BaseButton
               @click="$emit('close')"
@@ -83,7 +83,7 @@
               size="sm"
               class="note-action-btn-mobile note-action-close-mobile"
             >
-              <X class="w-5 h-5" />
+              <X class="icon-md" />
             </BaseButton>
           </div>
         </div>
@@ -145,7 +145,7 @@
               size="sm"
               class="note-action-btn-desktop note-action-edit"
             >
-              <Edit3 class="w-4 h-4" />
+              <Edit3 class="icon-sm" />
               Rediger
             </BaseButton>
             <BaseButton
@@ -157,7 +157,7 @@
             >
               <Star 
                 :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
-                class="w-4 h-4" 
+                class="icon-sm" 
               />
               {{ note.isFavorite ? 'Fjern favorit' : 'Favorit' }}
             </BaseButton>
@@ -167,7 +167,7 @@
               size="sm"
               class="note-action-btn-desktop note-action-delete"
             >
-              <Trash2 class="w-4 h-4" />
+              <Trash2 class="icon-sm" />
               Slet
             </BaseButton>
             <BaseButton
@@ -176,7 +176,7 @@
               size="sm"
               class="note-action-btn-desktop note-action-close"
             >
-              <X class="w-4 h-4" />
+              <X class="icon-sm" />
               Luk
             </BaseButton>
           </div>
