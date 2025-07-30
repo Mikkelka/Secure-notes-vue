@@ -1,83 +1,68 @@
 <template>
   <div class="h-full bg-gray-800/95 border-r border-gray-700/50 flex flex-col">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-700/50">
+    <div class="p-4 border-b border-gray-700/50 flex items-center justify-between">
       <h2 class="text-sm font-medium text-white flex items-center gap-2">
         <FolderOpen class="w-4 h-4" />
         Mapper
       </h2>
+      
+      <!-- Desktop Plus Button -->
+      <button
+        @click="showCreateForm = !showCreateForm"
+        class="hidden md:flex items-center justify-center w-6 h-6 rounded hover:bg-gray-700/50 text-gray-400 hover:text-green-400 transition-all duration-200"
+        :title="showCreateForm ? 'Luk' : 'Opret ny mappe'"
+      >
+        <Plus class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-45': showCreateForm }" />
+      </button>
     </div>
 
-    <!-- Create Folder Bottom Sheet Modal -->
-    <div
-      v-if="showCreateForm"
-      class="fixed inset-0 bg-black/50 z-50 flex items-end"
-      @click="cancelCreateFolder"
-    >
-      <div
-        class="w-full bg-gray-800 rounded-t-xl p-6 space-y-4 transform transition-transform duration-300"
-        @click.stop
-      >
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-white">Opret ny mappe</h3>
-          <button
-            @click="cancelCreateFolder"
-            class="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
-          >
-            <Plus class="w-5 h-5 rotate-45" />
-          </button>
+    <!-- Desktop Inline Create Form -->
+    <div v-if="showCreateForm" class="hidden md:block p-4 bg-gray-800/60 border-b border-gray-700/50">
+      <div class="space-y-3">
+        <input
+          v-model="newFolderName"
+          type="text"
+          placeholder="Mappenavn..."
+          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none text-sm"
+          @keypress.enter="handleCreateFolder"
+          @keydown.escape="cancelCreateFolder"
+          ref="folderNameInput"
+        />
+        
+        <!-- Color Picker -->
+        <div class="flex gap-2">
+          <div
+            v-for="color in folderColors"
+            :key="color.name"
+            @click="newFolderColor = color.name"
+            :class="[
+              'w-6 h-6 rounded cursor-pointer border-2 transition-all',
+              color.class,
+              newFolderColor === color.name ? 'border-white scale-110' : 'border-transparent'
+            ]"
+          />
         </div>
 
-        <!-- Form Content -->
-        <div class="space-y-4">
-          <input
-            v-model="newFolderName"
-            type="text"
-            placeholder="Indtast mappenavn..."
-            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none min-h-[44px]"
-            @keypress.enter="handleCreateFolder"
-            ref="folderNameInput"
-          />
-          
-          <!-- Color Selection -->
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-300">Vælg farve:</label>
-            <div class="flex gap-3 flex-wrap">
-              <button
-                v-for="color in folderColors"
-                :key="color.name"
-                @click="newFolderColor = color.name"
-                :class="[
-                  'w-10 h-10 rounded-lg border-2 transition-all min-h-[44px] min-w-[44px]',
-                  newFolderColor === color.name
-                    ? 'border-white ring-2 ring-blue-500'
-                    : 'border-transparent',
-                  color.class,
-                ]"
-              />
-            </div>
-          </div>
-          
-          <!-- Action Buttons -->
-          <div class="flex gap-3 pt-2">
-            <button
-              @click="handleCreateFolder"
-              :disabled="!newFolderName.trim()"
-              class="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-            >
-              Opret mappe
-            </button>
-            <button
-              @click="cancelCreateFolder"
-              class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium min-h-[44px]"
-            >
-              Annuller
-            </button>
-          </div>
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <button
+            @click="handleCreateFolder"
+            :disabled="!newFolderName.trim()"
+            class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded text-sm font-medium transition-colors"
+          >
+            Opret
+          </button>
+          <button
+            @click="cancelCreateFolder"
+            class="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm transition-colors"
+          >
+            Annuller
+          </button>
         </div>
       </div>
     </div>
+
 
     <!-- Folders List -->
     <div class="flex-1 overflow-auto scrollbar-hide">
@@ -113,12 +98,12 @@
 
       <!-- Custom folders -->
       <div v-if="props.folders.length > 0" class="p-2">
-        <h3 class="text-xs font-medium text-gray-400 mb-2 px-1">Egne mapper</h3>
+        <h3 class="text-[10px] font-medium text-gray-500 mb-1 px-1 uppercase tracking-wide">Egne mapper</h3>
         <div
           v-for="folder in props.folders"
-          :key="folder.id"
+          :key="folder.id"  
           :class="[
-            'group flex items-center gap-2 p-2 mx-1 my-1 rounded cursor-pointer transition-all min-h-[44px] touch-manipulation sm:gap-3 sm:p-3 sm:mx-2 sm:rounded-lg',
+            'group flex items-center gap-2 p-2 mx-1 my-0.5 rounded cursor-pointer transition-all min-h-[40px] touch-manipulation',
             props.selectedFolderId === folder.id
               ? 'bg-gray-700/80 text-white'
               : 'text-gray-300 hover:bg-gray-700/50 hover:text-white',
@@ -126,32 +111,32 @@
           @click="$emit('folderSelect', folder.id)"
         >
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div class="w-3 h-3 rounded sm:w-4 sm:h-4" :class="getColorClass(folder.color)" />
+            <div class="w-3 h-3 rounded" :class="getColorClass(folder.color)" />
           </div>
-          <span class="flex-1 text-xs font-medium truncate sm:text-sm">{{
+          <span class="flex-1 text-xs font-medium truncate">{{
             folder.name
           }}</span>
 
           <div class="flex items-center gap-0.5" @click.stop>
             <button
               @click="$emit('folderDelete', folder.id)"
-              class="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-600 rounded text-red-400 hover:text-red-300 sm:p-2 sm:rounded-lg"
+              class="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-600 rounded text-red-400 hover:text-red-300"
             >
-              <Trash2 class="w-3 h-3 sm:w-4 sm:h-4" />
+              <Trash2 class="w-3 h-3" />
             </button>
           </div>
 
-          <span class="text-xs text-gray-500 px-1 min-w-[20px] text-right sm:text-sm sm:min-w-[24px]">
+          <span class="text-xs text-gray-500 px-1 min-w-[18px] text-right">
             {{ props.noteCounts[folder.id] || 0 }}
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Action Bar -->
-    <div class="border-t border-gray-700/50 p-3 mb-14 bg-gray-800/95">
+    <!-- Bottom Action Bar - Mobile only -->
+    <div class="lg:hidden border-t border-gray-700/50 p-3 mb-14 bg-gray-800/95">
       <button
-        @click="showCreateForm = true"
+        @click="$emit('mobileCreateFolder')"
         class="w-full flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors font-medium text-sm min-h-[44px] touch-manipulation"
       >
         <Plus class="w-4 h-4" />
@@ -217,6 +202,7 @@ const emit = defineEmits([
   "folderDelete",
   "unlockFolder",
   "masterPasswordUnlock",
+  "mobileCreateFolder",
 ]);
 
 // Create folder form state

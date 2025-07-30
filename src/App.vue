@@ -41,6 +41,7 @@
             @folder-delete="handleFolderDelete"
             @unlock-folder="handleUnlockFolder"
             @master-password-unlock="handleMasterPasswordUnlock"
+            @mobile-create-folder="showMobileCreateModal = true; uiStore.closeMobileSidebar()"
           />
         </div>
 
@@ -69,6 +70,7 @@
               @folder-delete="handleFolderDelete"
               @unlock-folder="handleUnlockFolder"
               @master-password-unlock="handleMasterPasswordUnlock"
+              @mobile-create-folder="showMobileCreateModal = true; uiStore.closeMobileSidebar()"
             />
           </div>
         </div>
@@ -257,11 +259,82 @@
       </BaseDialog>
     </div>
   </ErrorBoundary>
+
+  <!-- Mobile Create Folder Modal -->
+  <div
+    v-if="showMobileCreateModal"
+    class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+    @click="handleCancelMobileCreate"
+  >
+    <div
+      class="w-full max-w-sm bg-gray-800 rounded-xl p-6 space-y-4 transform transition-all duration-300 shadow-2xl"
+      @click.stop
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-lg font-semibold text-white">Opret ny mappe</h3>
+        <button
+          @click="handleCancelMobileCreate"
+          class="p-1.5 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
+        >
+          <Plus class="w-4 h-4 rotate-45" />
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="space-y-4">
+        <input
+          v-model="mobileNewFolderName"
+          type="text"
+          placeholder="Mappenavn..."
+          class="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+          @keypress.enter="handleMobileCreateFolder"
+          ref="mobileNameInput"
+        />
+        
+        <!-- Color Selection -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-300">Vælg farve:</label>
+          <div class="grid grid-cols-6 gap-2">
+            <button
+              v-for="color in folderColors"
+              :key="color.name"
+              @click="mobileNewFolderColor = color.name"
+              :class="[
+                'w-8 h-8 rounded-lg border-2 transition-all',
+                mobileNewFolderColor === color.name
+                  ? 'border-white scale-110'
+                  : 'border-transparent',
+                color.class,
+              ]"
+            />
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-2">
+          <button
+            @click="handleMobileCreateFolder"
+            :disabled="!mobileNewFolderName.trim()"
+            class="flex-1 py-2.5 px-4 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          >
+            Opret
+          </button>
+          <button
+            @click="handleCancelMobileCreate"
+            class="flex-1 py-2.5 px-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg font-medium transition-colors"
+          >
+            Annuller
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onUnmounted, ref } from "vue";
-import { Loader2 } from "lucide-vue-next";
+import { computed, watch, onMounted, onUnmounted, ref, nextTick } from "vue";
+import { Loader2, Plus } from "lucide-vue-next";
 
 // Stores
 import { useAuthStore } from "./stores/auth";
@@ -517,6 +590,48 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
 const handleFolderCreate = (name, color) => {
   return foldersStore.createFolder(name, color, authStore.user);
 };
+
+// Mobile Create Folder State
+const showMobileCreateModal = ref(false);
+const mobileNewFolderName = ref("");
+const mobileNewFolderColor = ref("blue");
+const mobileNameInput = ref(null);
+
+// Folder colors (same as in FolderSidebar)
+const folderColors = [
+  { name: "blue", class: "text-blue-400 bg-blue-500/20" },
+  { name: "green", class: "text-green-400 bg-green-500/20" },
+  { name: "purple", class: "text-purple-400 bg-purple-500/20" },
+  { name: "red", class: "text-red-400 bg-red-500/20" },
+  { name: "yellow", class: "text-yellow-400 bg-yellow-500/20" },
+  { name: "pink", class: "text-pink-400 bg-pink-500/20" },
+];
+
+const handleMobileCreateFolder = async () => {
+  if (!mobileNewFolderName.value.trim()) return;
+  
+  try {
+    await foldersStore.createFolder(mobileNewFolderName.value.trim(), mobileNewFolderColor.value, authStore.user);
+    handleCancelMobileCreate();
+  } catch (error) {
+    console.error('Fejl ved oprettelse af mappe:', error);
+  }
+};
+
+const handleCancelMobileCreate = () => {
+  showMobileCreateModal.value = false;
+  mobileNewFolderName.value = "";
+  mobileNewFolderColor.value = "blue";
+};
+
+// Auto-focus mobile input when modal opens
+watch(showMobileCreateModal, (isVisible) => {
+  if (isVisible) {
+    nextTick(() => {
+      mobileNameInput.value?.focus();
+    });
+  }
+});
 
 const handleFolderUpdate = (folderId, name, color) => {
   return foldersStore.updateFolder(folderId, name, color, authStore.user);

@@ -13,7 +13,8 @@
 
       <div class="flex items-center gap-3">
         <!-- Desktop buttons -->
-        <div class="hidden lg:flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-3">
+          
           <button
             @click="$emit('export')"
             class="header-btn-base header-btn-blue"
@@ -61,7 +62,7 @@
         </div>
         
         <!-- Mobile menu -->
-        <div class="lg:hidden relative">
+        <div class="md:hidden relative">
           <button
             @click="showMobileMenu = !showMobileMenu"
             class="header-btn-base header-btn-gray"
@@ -127,7 +128,7 @@
 <script setup>
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Shield, Brain, Download, Settings, LogOut, Menu, Zap } from 'lucide-vue-next'
+import { Shield, Brain, Download, Settings, LogOut, Menu, Zap, Plus } from 'lucide-vue-next'
 import { useSettingsStore } from '../../stores/settings'
 
 const showMobileMenu = ref(false)
