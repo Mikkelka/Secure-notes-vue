@@ -33,7 +33,10 @@
       "Bash(wc:*)",
       "Bash(del:*)",
       "Bash(xcopy:*)",
-      "Bash(robocopy:*)"
+      "Bash(robocopy:*)",
+      "Bash(npm outdated)",
+      "Bash(npm update:*)",
+      "Bash(npm audit:*)"
     ],
     "deny": []
   }
