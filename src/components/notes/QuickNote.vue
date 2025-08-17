@@ -237,6 +237,12 @@ const handleSave = async () => {
         title.value = ''
         content.value = ''
         htmlContent.value = ''
+        
+        // Reset to simple mode after successful save
+        if (isAdvancedMode.value) {
+          isAdvancedMode.value = false
+          emit('mode-change', false)
+        }
       }
     } catch (error) {
       console.error('Error saving note:', error)
