@@ -73,41 +73,59 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <template v-if="isTrashMode">
+                <!-- Note actions dropdown -->
+                <div class="relative" @click.stop>
                   <button
-                    @click="handleRestoreNote(note.id)"
-                    class="action-btn-icon text-green-400 hover:text-green-300"
-                    title="Gendan note"
+                    :ref="el => setNoteMenuRef(note.id, el)"
+                    @click="toggleNoteMenu(note.id, $event)"
+                    class="p-2 hover:bg-gray-700 rounded transition-colors text-white hover:text-gray-300"
+                    title="Mere..."
                   >
-                    <RotateCcw class="icon-sm" />
+                    <EllipsisVertical class="icon-sm" />
                   </button>
-                  <button
-                    @click="handlePermanentDelete(note.id)"
-                    class="delete-btn"
-                    title="Slet permanent"
+                  
+                  <!-- Dropdown menu -->
+                  <div
+                    v-if="activeNoteMenu === note.id"
+                    class="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 min-w-[140px] py-1"
                   >
-                    <Trash2 class="icon-sm" />
-                  </button>
-                </template>
-                <template v-else>
-                  <button
-                    @click="handleToggleFavorite(note.id)"
-                    :class="[
-                      'action-btn-icon',
-                      note.isFavorite
-                        ? 'text-yellow-400 hover:text-yellow-300'
-                        : 'text-gray-400 hover:text-yellow-400'
-                    ]"
-                  >
-                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="icon-sm" />
-                  </button>
-                  <button
-                    @click="handleDeleteNote(note.id)"
-                    class="delete-btn"
-                  >
-                    <Trash2 class="icon-sm" />
-                  </button>
-                </template>
+                    <template v-if="isTrashMode">
+                      <button
+                        @click="handleRestoreNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-green-300 flex items-center gap-2 text-sm"
+                      >
+                        <RotateCcw class="w-4 h-4" />
+                        Gendan
+                      </button>
+                      <button
+                        @click="handlePermanentDelete(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                        Slet permanent
+                      </button>
+                    </template>
+                    <template v-else>
+                      <button
+                        @click="handleToggleFavorite(note.id)"
+                        :class="[
+                          'w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center gap-2 text-sm',
+                          note.isFavorite ? 'text-yellow-300' : 'text-gray-300'
+                        ]"
+                      >
+                        <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                        {{ note.isFavorite ? 'Fjern favorit' : 'Tilføj favorit' }}
+                      </button>
+                      <button
+                        @click="handleDeleteNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                        Slet
+                      </button>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -173,41 +191,59 @@
                   <Folder class="w-3 h-3" />
                   {{ getFolderDisplay(note.folderId).name }}
                 </span>
-                <template v-if="isTrashMode">
+                <!-- Note actions dropdown -->
+                <div class="relative" @click.stop>
                   <button
-                    @click="handleRestoreNote(note.id)"
-                    class="action-btn-icon text-green-400 hover:text-green-300"
-                    title="Gendan note"
+                    :ref="el => setNoteMenuRef(note.id, el)"
+                    @click="toggleNoteMenu(note.id, $event)"
+                    class="p-2 hover:bg-gray-700 rounded transition-colors text-white hover:text-gray-300"
+                    title="Mere..."
                   >
-                    <RotateCcw class="icon-sm" />
+                    <EllipsisVertical class="icon-sm" />
                   </button>
-                  <button
-                    @click="handlePermanentDelete(note.id)"
-                    class="delete-btn"
-                    title="Slet permanent"
+                  
+                  <!-- Dropdown menu -->
+                  <div
+                    v-if="activeNoteMenu === note.id"
+                    class="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 min-w-[140px] py-1"
                   >
-                    <Trash2 class="icon-sm" />
-                  </button>
-                </template>
-                <template v-else>
-                  <button
-                    @click="handleToggleFavorite(note.id)"
-                    :class="[
-                      'action-btn-icon',
-                      note.isFavorite
-                        ? 'text-yellow-400 hover:text-yellow-300'
-                        : 'text-gray-400 hover:text-yellow-400'
-                    ]"
-                  >
-                    <Star :class="note.isFavorite ? 'fill-current' : ''" class="icon-sm" />
-                  </button>
-                  <button
-                    @click="handleDeleteNote(note.id)"
-                    class="delete-btn"
-                  >
-                    <Trash2 class="icon-sm" />
-                  </button>
-                </template>
+                    <template v-if="isTrashMode">
+                      <button
+                        @click="handleRestoreNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-green-300 flex items-center gap-2 text-sm"
+                      >
+                        <RotateCcw class="w-4 h-4" />
+                        Gendan
+                      </button>
+                      <button
+                        @click="handlePermanentDelete(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                        Slet permanent
+                      </button>
+                    </template>
+                    <template v-else>
+                      <button
+                        @click="handleToggleFavorite(note.id)"
+                        :class="[
+                          'w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center gap-2 text-sm',
+                          note.isFavorite ? 'text-yellow-300' : 'text-gray-300'
+                        ]"
+                      >
+                        <Star :class="note.isFavorite ? 'fill-current' : ''" class="w-4 h-4" />
+                        {{ note.isFavorite ? 'Fjern favorit' : 'Tilføj favorit' }}
+                      </button>
+                      <button
+                        @click="handleDeleteNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                        Slet
+                      </button>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -254,8 +290,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw, EllipsisVertical } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
@@ -295,6 +331,10 @@ const _trashStore = useTrashStore()
 const activeDropdown = ref(null)
 const dropdownPosition = ref({ top: 0, left: 0 })
 const folderLabelRefs = ref(new Map())
+
+// Note action dropdown state
+const activeNoteMenu = ref(null)
+const noteMenuRefs = ref(new Map())
 
 // Debounce search term with 300ms delay
 let debounceTimeout = null
@@ -485,18 +525,22 @@ const getFolderDisplay = (folderId) => {
 
 const handleToggleFavorite = (noteId) => {
   emit('toggleFavorite', noteId)
+  closeNoteMenu()
 }
 
 const handleDeleteNote = (noteId) => {
   confirmDialog.value = { isOpen: true, noteId }
+  closeNoteMenu()
 }
 
 const handleRestoreNote = (noteId) => {
   emit('restoreNote', noteId)
+  closeNoteMenu()
 }
 
 const handlePermanentDelete = (noteId) => {
   confirmDialog.value = { isOpen: true, noteId, isPermanent: true }
+  closeNoteMenu()
 }
 
 const handleEmptyTrash = () => {
@@ -569,8 +613,47 @@ const getActiveNote = computed(() => {
   return props.notes.find(note => note.id === activeDropdown.value)
 })
 
+// Note menu functions
+const setNoteMenuRef = (noteId, el) => {
+  if (el) {
+    noteMenuRefs.value.set(noteId, el)
+  } else {
+    noteMenuRefs.value.delete(noteId)
+  }
+}
+
+const toggleNoteMenu = (noteId, event) => {
+  event.stopPropagation()
+  
+  if (activeNoteMenu.value === noteId) {
+    activeNoteMenu.value = null
+  } else {
+    activeNoteMenu.value = noteId
+  }
+}
+
+const closeNoteMenu = () => {
+  activeNoteMenu.value = null
+}
+
+// Close menu when clicking outside
+const handleDocumentClick = (event) => {
+  if (activeNoteMenu.value) {
+    const menuElement = noteMenuRefs.value.get(activeNoteMenu.value)
+    if (menuElement && !menuElement.closest('.relative').contains(event.target)) {
+      closeNoteMenu()
+    }
+  }
+}
+
 onMounted(() => {
   debouncedSearchTerm.value = props.searchTerm
+  document.addEventListener('click', handleDocumentClick)
+})
+
+// Clean up event listener
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
 })
 </script>
 
