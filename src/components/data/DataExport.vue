@@ -5,9 +5,9 @@
     size="lg"
     @close="$emit('close')"
   >
-    <div class="space-y-4">
+    <div class="space-y-6">
       <!-- Description -->
-      <div class="text-center">
+      <div class="text-center bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
         <p class="text-gray-300">
           Eksporter alle dine noter som en læsbar JSON fil
         </p>
@@ -17,7 +17,7 @@
       </div>
 
       <!-- Password Input -->
-      <div>
+      <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
         <label class="block text-sm font-medium text-gray-300 mb-2">
           Bekræft dit password:
         </label>
@@ -26,13 +26,13 @@
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             :placeholder="passwordPlaceholder"
-            class="input-variant-green pr-10"
+            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
             autofocus
           />
           <button
             type="button"
             @click="showPassword = !showPassword"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
           >
             <Eye v-if="showPassword" class="icon-sm" />
             <EyeOff v-else class="icon-sm" />
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Warning -->
-      <div class="p-3 rounded-lg border-l-4 bg-yellow-900/20 border-yellow-500">
+      <div class="p-4 rounded-lg border-l-4 bg-yellow-900/20 border-yellow-500">
         <div class="flex items-start gap-2">
           <AlertTriangle class="icon-sm text-yellow-400 mt-0.5 flex-shrink-0" />
           <div class="text-sm">
@@ -54,9 +54,9 @@
       </div>
 
       <!-- Data Summary -->
-      <div class="bg-gray-900/50 rounded-lg p-3">
-        <h3 class="font-medium text-white mb-2">Data der eksporteres:</h3>
-        <div class="text-sm text-gray-300 space-y-1">
+      <div class="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+        <h3 class="font-medium text-white mb-3">Data der eksporteres:</h3>
+        <div class="text-sm text-gray-300 space-y-2">
           <div>📝 {{ notes.length }} noter</div>
           <div>📁 {{ folders.length }} mapper</div>
           <div>⭐ {{ notes.filter(n => n.isFavorite).length }} favoritter</div>
@@ -68,7 +68,7 @@
       <div 
         v-if="result"
         :class="[
-          'p-3 rounded-lg border-l-4',
+          'p-4 rounded-lg border-l-4',
           result.success 
             ? 'bg-green-900/20 border-green-500' 
             : 'bg-red-900/20 border-red-500'
@@ -84,7 +84,7 @@
       </div>
 
       <!-- Import Link -->
-      <div class="pt-3 border-t border-gray-700/50 text-center">
+      <div class="pt-4 border-t border-gray-700/50 text-center">
         <button
           @click="() => { $emit('close'); $emit('openImport'); }"
           class="text-blue-400 hover:text-blue-300 text-sm transition-colors flex items-center justify-center gap-2 mx-auto"

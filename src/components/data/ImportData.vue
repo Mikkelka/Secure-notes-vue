@@ -5,12 +5,14 @@
     size="lg"
     @close="$emit('close')"
   >
-    <div class="space-y-4">
-      <p class="text-gray-300">
-        Importer en backup fil for at gendanne dine noter og mapper.
-      </p>
+    <div class="space-y-6">
+      <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+        <p class="text-gray-300">
+          Importer en backup fil for at gendanne dine noter og mapper.
+        </p>
+      </div>
       
-      <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+      <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
         <div class="flex items-center gap-2 text-red-300 text-sm">
           <AlertTriangle class="icon-sm" />
           <span>ADVARSEL: Dette vil overskrive alle eksisterende data!</span>
@@ -18,7 +20,7 @@
       </div>
       
       <!-- File Selection -->
-      <div>
+      <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
         <label class="block text-sm font-medium text-gray-300 mb-2">
           Vælg backup fil
         </label>
@@ -28,12 +30,12 @@
           accept=".json"
           @change="handleFileSelect"
           :disabled="loading"
-          class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-600 file:text-white disabled:opacity-50"
+          class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-600 file:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       <!-- Password Input for Email Users -->
-      <div v-if="importData && !isGoogleUser">
+      <div v-if="importData && !isGoogleUser" class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
         <label class="block text-sm font-medium text-gray-300 mb-2">
           Bekræft dit krypterings password
         </label>
@@ -43,13 +45,13 @@
             :type="showPassword ? 'text' : 'password'"
             placeholder="Indtast dit password"
             :disabled="loading"
-            class="input-variant-blue pr-12 disabled:opacity-50 px-4 py-3"
+            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 pr-10"
           />
           <button
             type="button"
             @click="showPassword = !showPassword"
             :disabled="loading"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50 transition-colors"
           >
             <Eye v-if="showPassword" class="icon-sm" />
             <EyeOff v-else class="icon-sm" />
@@ -58,7 +60,7 @@
       </div>
 
       <!-- Google User Info -->
-      <div v-if="importData && isGoogleUser" class="bg-green-900/20 border border-green-500/20 rounded-lg p-3">
+      <div v-if="importData && isGoogleUser" class="bg-green-900/20 border border-green-500/20 rounded-lg p-4">
         <div class="flex items-center gap-2 text-green-300 text-sm">
           <div class="w-2 h-2 bg-green-400 rounded-full"></div>
           <span>Google login - import vil automatisk bruge din Google konto til dekryptering</span>
@@ -66,9 +68,9 @@
       </div>
       
       <!-- Backup Info -->
-      <div v-if="importData" class="bg-gray-900/50 rounded-lg p-3">
-        <h3 class="font-medium text-white mb-2">Backup information:</h3>
-        <div class="text-sm text-gray-300 space-y-1">
+      <div v-if="importData" class="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+        <h3 class="font-medium text-white mb-3">Backup information:</h3>
+        <div class="text-sm text-gray-300 space-y-2">
           <div>📅 Dato: {{ formatDate(importData.exportDate) }}</div>
           <div>📝 Noter: {{ importData.notesCount }}</div>
           <div>📁 Mapper: {{ importData.foldersCount }}</div>
@@ -80,7 +82,7 @@
       </div>
 
       <!-- Progress Display -->
-      <div v-if="progress" class="bg-blue-900/20 border border-blue-500/20 rounded-lg p-3">
+      <div v-if="progress" class="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4">
         <div class="flex items-center gap-2 text-blue-300 text-sm mb-2">
           <div class="icon-sm border-2 border-blue-300/30 border-t-blue-300 rounded-full animate-spin"></div>
           <span>{{ progress.message }}</span>
@@ -94,7 +96,7 @@
       </div>
 
       <!-- Error Display -->
-      <div v-if="error" class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+      <div v-if="error" class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
         <div class="flex items-center gap-2 text-red-300 text-sm">
           <AlertTriangle class="icon-sm" />
           <span>{{ error }}</span>
