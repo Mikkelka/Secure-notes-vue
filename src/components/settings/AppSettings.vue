@@ -10,7 +10,7 @@
       <p class="text-gray-400 text-sm">Indlæser indstillinger...</p>
     </div>
     
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-6">
       <!-- Security Section -->
       <div>
         <div class="flex items-center gap-2 mb-3">
@@ -18,28 +18,22 @@
           <h3 class="text-sm font-medium text-white">Sikkerhed</h3>
         </div>
         
-        <div class="space-y-3 pl-6">
-          <!-- Session Timeout -->
-          <div>
-            <label class="block text-sm text-gray-300 mb-2">
-              Session timeout
-            </label>
-            <div class="relative">
-              <select
-                v-model="sessionTimeout"
-                @change="handleSettingChange('sessionTimeout', parseInt(sessionTimeout))"
-                class="select-base"
-              >
-                <option v-for="option in timeoutOptions" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <Clock class="absolute right-3 top-2.5 icon-sm text-gray-400 pointer-events-none" />
-            </div>
-            <p class="text-xs text-gray-500 mt-1">
-              Automatisk logout efter inaktivitet
-            </p>
-          </div>
+        <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            Session timeout
+          </label>
+          <select
+            v-model="sessionTimeout"
+            @change="handleSettingChange('sessionTimeout', parseInt(sessionTimeout))"
+            class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            <option v-for="option in timeoutOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <p class="text-xs text-gray-400 mt-2">
+            Automatisk logout efter inaktivitet
+          </p>
         </div>
       </div>
 
@@ -50,65 +44,59 @@
           <h3 class="text-sm font-medium text-white">Generelt</h3>
         </div>
         
-        <div class="space-y-3 pl-6">
+        <div class="space-y-4">
           <!-- Performance Stats Toggle -->
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="text-sm text-gray-300">
-                Vis performance statistik
+          <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="block text-sm font-medium text-gray-300">
+                  Vis performance statistik
+                </label>
+                <p class="text-xs text-gray-400 mt-1">
+                  Vis performance blok på forsiden
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  :checked="showPerformanceStats"
+                  @change="handleSettingChange('showPerformanceStats', !showPerformanceStats)"
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
-              <p class="text-xs text-gray-500">
-                Vis performance blok på forsiden
-              </p>
             </div>
-            <button
-              @click="handleSettingChange('showPerformanceStats', !showPerformanceStats)"
-              :class="[
-                'toggle-base toggle-focus',
-                showPerformanceStats ? 'bg-blue-600' : 'bg-gray-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'toggle-thumb toggle-thumb-transition h-4 w-4',
-                  showPerformanceStats ? 'translate-x-6' : 'translate-x-1'
-                ]"
-              />
-            </button>
           </div>
 
           <!-- Test Lab Toggle -->
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="text-sm text-gray-300">
-                🧪 Test Lab
+          <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="block text-sm font-medium text-gray-300">
+                  🧪 Test Lab
+                </label>
+                <p class="text-xs text-gray-400 mt-1">
+                  Vis Test Lab knap i header (for udviklere)
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  :checked="showTestLab"
+                  @change="handleSettingChange('showTestLab', !showTestLab)"
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
               </label>
-              <p class="text-xs text-gray-500">
-                Vis Test Lab knap i header (for udviklere)
-              </p>
             </div>
-            <button
-              @click="handleSettingChange('showTestLab', !showTestLab)"
-              :class="[
-                'toggle-base toggle-focus',
-                showTestLab ? 'bg-purple-600' : 'bg-gray-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'toggle-thumb toggle-thumb-transition h-4 w-4',
-                  showTestLab ? 'translate-x-6' : 'translate-x-1'
-                ]"
-              />
-            </button>
           </div>
         </div>
       </div>
 
       <!-- Current Settings Summary -->
-      <div class="bg-gray-900/50 border border-gray-700/50 rounded-lg p-3">
-        <h4 class="text-sm font-medium text-gray-300 mb-2">Aktuelle indstillinger</h4>
-        <div class="space-y-1 text-xs text-gray-400">
+      <div class="bg-gray-900/50 border border-gray-700/50 rounded-lg p-4">
+        <h4 class="text-sm font-medium text-gray-300 mb-3">Aktuelle indstillinger</h4>
+        <div class="space-y-2 text-xs text-gray-400">
           <div class="flex justify-between">
             <span>Session timeout:</span>
             <span class="text-white">{{ getTimeoutLabel(parseInt(sessionTimeout)) }}</span>
