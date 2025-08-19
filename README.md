@@ -1,109 +1,120 @@
-# Secure Notes Vue
+# Sikre Noter - Secure Notes Vue
 
-![Lines of Code](https://img.shields.io/badge/lines%20of%20code-2227%20lines-blue)
+[![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-DD2C00?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
+[![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Lines of Code](https://img.shields.io/badge/lines%20of%20code-2227%20lines-blue?style=for-the-badge)](.)
 
-En sikker notesapplikation med end-to-end kryptering, bygget med Vue.js 3, Firebase og client-side kryptering. Alle noter krypteres lokalt før de gemmes i databasen.
+A modern, secure note-taking application built with Vue.js 3 and Firebase, implementing client-side encryption for maximum data security. All notes are encrypted locally before being stored in the database.
 
-## ✨ Funktioner
+> **🌐 Language Note**: This application features a Danish user interface while maintaining English documentation for international developers.
 
-- 🔒 **Client-side kryptering** - Dine noter er krypteret før de forlader din browser
-- 📱 **Mobile-first design** - Optimeret til både desktop og mobil
-- 📁 **Folder organisation** - Organiser noter i farvekodede mapper
-- 🔐 **PIN-beskyttet sikker mappe** - Ekstra sikkerhed for følsomme noter
-- 🤖 **AI-powered note enhancement** - Real-time streaming med Google Generative AI (Flash-Lite & Flash Standard)
-- ⭐ **Favorit noter** - Markér vigtige noter som favoritter
-- 🔍 **Hurtig søgning** - Debounced search med 300ms delay
-- 🌙 **Mørkt tema** - Øjenskånende mørkt tema
-- 📝 **Rich text editor** - TinyMCE v7.9.1 fuldt lokalt hostet (offline capable, zero cost)
-- 🔄 **Session timeout** - Automatisk recovery og seamless note saving
-- 🗑️ **Trash/Recycle Bin** - Soft delete med 30-day auto-cleanup og restore funktion
-- 🧪 **AI Testing Lab** - Isoleret testing miljø for AI funktioner
-- ⚡ **Real-time AI Streaming** - Live tekst streaming med thinking process display
-- 🎨 **Tailwind @apply System** - Optimeret styling med semantic class names
-- 📊 **Performance Metrics** - Console logging af AI timing og token counts
-- 🔧 **Modulær Architecture** - Component-baseret design for optimal performance
+## 🔐 Security & Privacy First
 
-## 🏗️ Arkitektur
+**Sikre Noter** prioritizes your privacy by implementing **end-to-end encryption** directly in the browser:
 
-Dette er en **self-hosted** applikation, hvilket betyder:
-- Du skal sætte din egen Firebase projekt op
-- Du skal selv hoste applikationen
-- Du har fuld kontrol over dine data
-- Ingen tredjeparter har adgang til dine noter
+- 🛡️ **Client-side encryption**: Your notes are encrypted locally before being sent to Firebase
+- 🔑 **PBKDF2 key derivation**: 210,000 iterations with user-specific salts
+- 🎯 **AES-GCM encryption**: 256-bit keys with random IVs for each operation
+- ⏰ **Session timeout**: Automatic security logout after 30 minutes with recovery
+- 🚫 **Zero-knowledge**: The server never sees your unencrypted data
+- 🔒 **Self-hosted**: Full control over your data and infrastructure
 
-### 🔧 Tech Stack
+## ✨ Features
 
-- **Frontend**: Vue.js 3 med Composition API (`<script setup>` syntax)
-- **State Management**: Pinia stores (auth, notes, folders, trash, ui, settings)
-- **Rich Text Editor**: TinyMCE v7.9.1 - **Fuldt lokalt hostet** (offline capable, zero cost)
-- **Styling**: Tailwind CSS v4 med omfattende @apply komponent patterns
-- **Icons**: Lucide Vue Next
-- **Backend**: Firebase (Firestore, Authentication, Hosting)
-- **Encryption**: Client-side AES-GCM med PBKDF2 key derivation
-- **AI Integration**: Google Generative AI (Flash-Lite & Flash Standard)
+### 📝 Note Management
+- **Rich Text Editor**: Complete TinyMCE v7.9.1 integration (locally hosted, offline capable)
+- **Folder Organization**: Organize notes in customizable colored folders
+- **Secure Folder**: PIN-protected folder for sensitive notes
+- **Favorites**: Mark important notes as favorites
+- **Full-text Search**: Fast search through all your notes with 300ms debounce
+- **Trash/Recycle Bin**: Soft delete with 30-day auto-cleanup and restore functionality
 
-### 📝 TinyMCE Lokal Implementation
+### 🤖 AI Integration
+- **Google Generative AI**: Powered by Gemini 2.5 Flash models
+- **Real-time Streaming**: Live text streaming during AI processing
+- **Dual Models**: Flash-Lite (fast ~1s) and Flash Standard (advanced ~4s with thinking)
+- **Customizable Prompts**: User-defined AI instructions and behavior
+- **Performance Metrics**: Detailed timing and token statistics
+- **Isolated Testing**: Dedicated AI testing lab environment
 
-**Fuldt self-hosted TinyMCE v7.9.1** - Migreret fra Tiny Cloud for at eliminere API begrænsninger:
+### 📱 Modern User Experience
+- **Progressive Web App**: Install as native app on any platform
+- **Responsive Design**: Optimized for both desktop and mobile
+- **Dark/Light Theme**: Automatic theme switching based on system preferences
+- **Touch Optimization**: Responsive touch targets and interactions (44-48px minimum)
+- **Offline Capable**: Works without internet connection (PWA + local TinyMCE)
+- **Danish UI**: Complete Danish language support
 
-**Lokale Assets:**
-- **Core Script**: `public/tinymce/tinymce.min.js` (445KB)
-- **Komplet Pakke**: Alle plugins, skins, themes kopieret fra npm pakke til `public/tinymce/`
-- **Plugins**: `lists`, `link`, `autolink`, `autoresize` (til QuickNote)
-- **Mørkt Tema**: `oxide-dark` skin med custom content styling
+### 🔧 Advanced Features
+- **Import/Export**: Full data backup and restoration capabilities
+- **Session Recovery**: Intelligent session management with automatic key recovery
+- **Performance Optimized**: Debounced search, lazy loading, modular architecture
+- **Keyboard Shortcuts**: Quick keyboard shortcuts for power users
+- **Mobile-First Design**: Touch-optimized interface with gesture support
 
-**Fordele:**
-- 🚫 **Ingen 1.000 loads/måned begrænsning**
-- ⚡ **Hurtigere indlæsning** (ingen CDN afhængighed)
-- 🔒 **Forbedret sikkerhed** (ingen eksterne API kald)
-- 💰 **Nul løbende omkostninger**
-- 🌐 **Offline capable** - Editor virker uden internetforbindelse
+## 🛠️ Technology Stack
 
-## 📋 Forudsætninger
+### Frontend Architecture
+- **Vue.js 3** - Modern reactive framework with Composition API (`<script setup>`)
+- **Pinia** - Next-generation state management for Vue
+- **TinyMCE 7.9.1** - Rich text editor (fully self-hosted, 0 API costs)
+- **Tailwind CSS 4** - Utility-first CSS framework with @apply component system
+- **Lucide Vue Next** - Modern icon library
 
-- Node.js (version 18 eller senere)
-- npm eller yarn
-- Firebase projekt
-- Google Generative AI API key (optional, for AI funktioner)
+### Backend & Services
+- **Firebase Authentication** - User authentication (Google OAuth + email/password)
+- **Firebase Firestore** - NoSQL database for encrypted data storage
+- **Google Generative AI** - AI-powered note enhancement (Gemini models)
+- **Workbox** - Service worker for PWA functionality
 
-## 🚀 Installation
+### Build Tools & Development
+- **Vite 6** - Lightning-fast build tool and dev server
+- **ESLint 9** - JavaScript/Vue linting with modern configuration
+- **Vite PWA Plugin** - Progressive Web App capabilities
+- **Firebase CLI** - Deployment and hosting tools
 
-### 1. Klon repository
+## 📋 Prerequisites
 
+- **Node.js** v18 or later
+- **npm** or **yarn** package manager
+- **Firebase project** with Firestore and Authentication enabled
+- **Google AI API key** (optional, for AI features)
+
+## 🚀 Quick Start
+
+### 1. Clone Repository
 ```bash
-git clone https://github.com/[din-bruger]/secure-notes-vue.git
+git clone https://github.com/[USERNAME]/secure-notes-vue.git
 cd secure-notes-vue
 ```
 
-### 2. Installer dependencies
-
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
 ### 3. Firebase Setup
 
-#### 3.1 Opret Firebase Projekt
-1. Gå til [Firebase Console](https://console.firebase.google.com/)
-2. Klik "Add project" og følg guiden
-3. Aktivér Google Analytics (optional)
+#### 3.1 Create Firebase Project
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click "Add project" and follow the setup wizard
+3. Enable Google Analytics (optional)
 
-#### 3.2 Aktivér Authentication
-1. I Firebase Console: Authentication → Get started
-2. Gå til "Sign-in method" tab
-3. Aktivér "Email/Password" og "Google" providers
+#### 3.2 Enable Authentication
+1. In Firebase Console: Authentication → Get started
+2. Go to "Sign-in method" tab
+3. Enable "Email/Password" and "Google" providers
 
-#### 3.3 Opret Firestore Database
-1. I Firebase Console: Firestore Database → Create database
-2. Vælg "Start in test mode" (vi konfigurerer sikkerhed senere)
-3. Vælg en region (fx europe-west1)
+#### 3.3 Create Firestore Database
+1. In Firebase Console: Firestore Database → Create database
+2. Start in test mode (we'll configure security later)
+3. Select a region (e.g., europe-west1)
 
-#### 3.4 Aktivér Hosting
-1. I Firebase Console: Hosting → Get started
-2. Følg guiden for at aktivere hosting
-
-#### 3.5 Firestore Security Rules
-Kopier følgende sikkerhedsregler til Firestore:
+#### 3.4 Configure Security Rules
+Copy these security rules to Firestore:
 
 ```javascript
 rules_version = '2';
@@ -129,380 +140,291 @@ service cloud.firestore {
 }
 ```
 
-### 4. Environment Variables
+### 4. Environment Configuration
 
-Kopier `.env.example` til `.env` og udfyld dine Firebase credentials:
+Copy `.env.example` to `.env` and fill in your Firebase credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-**Krævede Firebase Konfiguration:**
+**Required Firebase Configuration:**
 ```env
-VITE_FIREBASE_API_KEY=din-api-key
-VITE_FIREBASE_AUTH_DOMAIN=dit-projekt.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=dit-projekt-id
-VITE_FIREBASE_STORAGE_BUCKET=dit-projekt.appspot.com
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 ```
 
-**Valgfrie Sikkerhedsindstillinger:**
+**Optional Security Settings:**
 ```env
-# PBKDF2 iterationer (standard: 210000)
+# PBKDF2 iterations (default: 210000)
 VITE_PBKDF2_ITERATIONS=210000
 
-# Encryption version prefix (standard: 'securenotes_v1_')
-VITE_ENCRYPTION_VERSION=securenotes_v1_
-
-# Session timeout i millisekunder (standard: 1800000ms / 30 minutter)
+# Session timeout in milliseconds (default: 30 minutes)
 VITE_SESSION_TIMEOUT=1800000
+
+# Encryption version prefix (default: 'securenotes_v1_')
+VITE_ENCRYPTION_VERSION=securenotes_v1_
 ```
 
-**Google AI Integration (Optional):**
-```env
-# Google Generative AI API key til AI funktioner
-VITE_GOOGLE_AI_API_KEY=din-google-ai-api-key
-```
-
-Find dine Firebase credentials:
+Find your Firebase credentials:
 1. Firebase Console → Project Settings → General
-2. Scroll ned til "Your apps" og vælg din web app
-3. Kopier config værdierne til din `.env` fil
+2. Scroll to "Your apps" and select your web app
+3. Copy config values to your `.env` file
 
-**Sikkerhedsnoter:**
-- Gem aldrig production `.env` filer i version control
-- Brug forskellige Firebase projekter til development og production
-- Rotatér API keys regelmæssigt for optimal sikkerhed
-
-## 🔧 Development
-
-Start development server:
+### 5. Start Development Server
 ```bash
 npm run dev
 ```
 
-Applikationen vil være tilgængelig på `http://localhost:5173`
+The application will be available at `http://localhost:5173`
 
-### 👩‍💻 Development Guidelines
+## 🏗️ Project Structure
 
-**Vue 3 Composition API Patterns:**
-- Brug `<script setup>` syntax til alle komponenter
-- Pinia stores til cross-component state management
-- Reactive refs og computed properties til local state
-- Consistent naming conventions på tværs af komponenter
+```
+src/
+├── components/              # Vue components
+│   ├── auth/               # Login and authentication
+│   ├── notes/              # Note management components
+│   │   ├── shared/         # Shared note components
+│   │   └── layouts/        # Desktop/mobile layouts
+│   ├── folders/            # Folder organization
+│   ├── ai/                 # AI integration components
+│   ├── layout/             # App layout and navigation
+│   ├── base/               # Reusable base components
+│   ├── data/               # Import/export functionality
+│   └── settings/           # Application settings
+├── stores/                 # Pinia state management
+│   ├── auth.js            # Authentication state
+│   ├── notes.js           # Notes data management
+│   ├── folders.js         # Folder organization
+│   ├── trash.js           # Trash/recycle bin
+│   ├── ui.js              # UI state coordination
+│   └── settings.js        # Application settings
+├── services/              # External services
+│   └── aiService.js       # Google AI integration
+├── utils/                 # Utility functions
+│   ├── encryption.js      # Client-side encryption
+│   ├── secureStorage.js   # Encryption key management
+│   └── debounce.js        # Performance utilities
+├── ai-testing/            # Isolated AI testing environment
+└── assets/                # Static assets
+```
 
-**SecureStorage Best Practices:**
-- Brug altid `SecureStorage.getEncryptionKey()` til encryption operationer
-- Send aldrig encryption keys som function parametre
-- Lad SecureStorage håndtere session timeout og cleanup
-- Husk at trigger Vue reactivity når keys sættes: `encryptionKeyTrigger.value++`
+## 🔒 Security Architecture
 
-**Security Considerations:**
-- Log aldrig encryption keys eller passwords
-- Brug SecureStorage til al encryption key management
-- Tjek altid login type før password verification: `localStorage.getItem('loginType_${userId}')`
-- Implementér automatic recovery for encryption key expiration
-- Wrap encryption operationer i try-catch med recovery logic
+### Client-Side Encryption
+The application implements a robust zero-knowledge encryption model:
 
-**Tailwind CSS @apply Guidelines:**
-- Refactor lange, gentagende Tailwind-klasser til @apply direktiver i `src/style.css`
-- Brug semantiske klassenavne som beskriver komponenten/funktionen
-- Gruppér relaterede @apply klasser sammen med kommentarer
-- Prioritér @apply refactoring når du ser gentagelser af 5+ utility classes
+- **Password-based key derivation**: PBKDF2 with 210,000 iterations
+- **User-specific salts**: Each user has a unique salt (`securenotes_v1_${userId}`)
+- **AES-GCM encryption**: 256-bit keys with random IVs for each encryption operation
+- **Firebase stores only encrypted data**: The server never sees plaintext content
+- **Centralized key management**: SecureStorage utility for consistent key handling
 
-**TinyMCE Local Development:**
-- Alle TinyMCE filer i `public/tinymce/` - modificér eller slet IKKE
-- Brug `tinymce-script-src="/tinymce/tinymce.min.js"` i stedet for `api-key`
-- Ved version opdateringer: re-copy fra `node_modules/tinymce` til `public/tinymce/`
-- Editor virker offline - ingen cloud API kald
+### SecureStorage System
+**Centralized Encryption Key Management** (`utils/secureStorage.js`):
+- Static class managing single encryption key instance across entire application
+- Automatic session timeout with configurable duration (default 30 minutes)
+- Secure key storage with automatic cleanup on timeout or logout
+- Vue reactivity integration with trigger system to prevent race conditions
 
-**AI Integration Guidelines:**
-- Tjek altid sessionStorage for bruger-valgt model: `sessionStorage.getItem('ai-model')`
-- Brug `onChunk` og `onThoughtChunk` callbacks for real-time UI opdateringer
-- Implementér purple → blue → green → emerald button progression for AI processing
-- Inkludér console.log for timing og performance metrics
+### Session Timeout Recovery
+- **Automatic Recovery**: When encryption key expires but Firebase auth persists, operations auto-retry with `authStore.recoverEncryptionKey()`
+- **Graceful Degradation**: Failed recovery shows user-friendly error messages
+- **Seamless UX**: Note saving continues working even after session timeout
 
-## 📦 Build og Deploy
+### Database Schema
 
-### Build til produktion:
+**Notes Collection** (`/notes/{noteId}`):
+```javascript
+{
+  userId: string,                // Firebase Auth user ID
+  encryptedTitle: string,        // Base64 encrypted title
+  encryptedContent: string,      // Base64 encrypted HTML content
+  folderId: string | null,       // Folder reference ('secure' for PIN-protected)
+  isFavorite: boolean,
+  isDeleted: boolean,            // Soft delete flag for trash system
+  deletedAt: Timestamp | null,
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+}
+```
+
+## 🤖 AI Integration
+
+### Google Generative AI Models
+- **Flash-Lite (`gemini-2.5-flash-lite`)**: ~1 second response time, optimized for quick interactions
+- **Flash Standard (`gemini-2.5-flash`)**: ~4 seconds response time with thinking capabilities
+
+### Real-time Streaming
+- **onChunk callbacks**: Text streaming with live character counts
+- **onThoughtChunk callbacks**: Real-time thinking process display
+- **Button State Management**: Purple → Blue (thinking) → Green (streaming) → Emerald (complete)
+- **Performance Metrics**: Console logging of timing and token counts
+
+### AI Testing Environment
+- **Isolated Testing Lab**: `src/ai-testing/` completely separate from main app
+- **Access**: Test Lab button in header opens `/ai-test.html` in new window
+- **Independence**: Zero dependencies on main app, dedicated testing service
+
+## 🗑️ Trash/Recycle Bin System
+
+**Soft Delete Implementation** with client-side management:
+- **Soft Delete**: Notes marked as `isDeleted: true` instead of permanent deletion
+- **30-Day Auto-Cleanup**: Automatically removes notes older than 30 days from trash
+- **Restore Function**: Deleted notes can be recovered from trash
+- **No Backend Required**: Pure client-side implementation using Firestore queries
+
+## ⚡ Performance Optimizations
+
+### Component Architecture
+- **Modular NoteViewer**: Split into shared components (~311 lines total)
+- **Selective Re-rendering**: Only relevant components re-render on changes
+- **Component Isolation**: TinyMCE editor isolated for stability
+
+### CSS & Bundle Optimization
+- **Tailwind @apply System**: Semantic class names replace long utility strings
+- **Token Reduction**: `"bg-gray-800/60 border rounded-lg p-3..."` becomes `"note-item"`
+- **Reduced Bundle Size**: Centralized styling reduces CSS bundle size
+
+### Search & Filtering
+- **Debounced Search**: 300ms delay for efficient searching
+- **Client-Side Filtering**: Efficient note filtering with Vue computed properties
+- **Real-time Updates**: Instant results without database queries
+
+## 📦 Build & Deployment
+
+### Build for Production
 ```bash
 npm run build
 ```
 
-### Deploy til Firebase Hosting:
+### Deploy to Firebase Hosting
 ```bash
-# Installer Firebase CLI hvis ikke allerede installeret
+# Install Firebase CLI if not already installed
 npm install -g firebase-tools
 
-# Login til Firebase
+# Login to Firebase
 firebase login
 
-# Initialiser Firebase i dit projekt (første gang)
+# Initialize Firebase in your project (first time)
 firebase init hosting
 
 # Deploy
 firebase deploy
 ```
 
-## 🔒 Sikkerhedsmodel
+### Alternative Hosting
+- **Vercel**: Import GitHub repo and auto-deploy
+- **Netlify**: Drag and drop `dist` folder
+- **Traditional web hosting**: Upload `dist` folder contents
 
-Applikationen bruger **client-side kryptering**:
+## 🧪 Development & Testing
 
-- **PBKDF2 key derivation**: Bruger 210.000 iterationer
-- **Bruger-specifikke salts**: Hver bruger har et unikt salt (`securenotes_v1_${userId}`)
-- **AES-GCM kryptering**: 256-bit nøgler med tilfældige IVs for hver kryptering
-- **Firebase gemmer kun krypteret data**: Serveren ser aldrig plaintext indhold
-- **Centraliseret encryption key management**: SecureStorage utility for konsistent key håndtering
-
-### 🔐 SecureStorage Architecture
-
-**Centraliseret Encryption Key Management** (`utils/secureStorage.js`):
-- Static class der håndterer enkelt encryption key instans på tværs af hele applikationen
-- Automatisk session timeout med konfigurerbar varighed (standard 30 minutter)
-- Sikker key storage med automatisk cleanup ved timeout eller logout
-- Vue reactivity integration med trigger system for at forhindre race conditions
-
-**Session Timeout Recovery:**
-- **Automatisk Recovery**: Når encryption key udløber men Firebase auth forbliver aktiv, gentager operationer automatisk med `authStore.recoverEncryptionKey()`
-- **Graceful Degradation**: Fejlet recovery viser brugervenlige danske fejlbeskeder
-- **Seamless UX**: Noter kan gemmes problemfrit selv efter 30-minutters session timeout
-- **Implementation**: Automatisk recovery implementeret i `App.vue` for `handleSaveNote()` og `handleViewerUpdate()`
-
-**API Usage Pattern:**
-```javascript
-// Setting key (typisk i auth.js)
-SecureStorage.setEncryptionKey(derivedKey, () => logout())
-encryptionKeyTrigger.value++ // Trigger Vue reactivity
-
-// Getting key (i enhver store)
-const encryptionKey = SecureStorage.getEncryptionKey()
-
-// Activity-based extension
-SecureStorage.extendSession()
+### Development Commands
+```bash
+npm run dev      # Start development server with hot reload
+npm run build    # Build for production
+npm run lint     # Run ESLint on codebase
+npm run preview  # Preview production build locally
 ```
 
-### 🤖 AI Integration
+### AI Testing
+The application includes an isolated AI testing environment accessible via the header "AI Test Lab" button.
 
-**Google Generative AI Integration** med to modeller til forskellige use cases:
+### Code Quality
+- **ESLint 9** with Vue-specific rules
+- **Vue 3 Composition API** patterns throughout
+- **Consistent naming conventions** across components
+- **Security-first development** practices
 
-**Produktions Modeller:**
-- **Flash-Lite (`gemini-2.5-flash-lite`)**: ~1 sekund responstid, optimeret til hurtige interaktioner
-- **Flash Standard (`gemini-2.5-flash`)**: ~4 sekunder responstid med thinking capabilities
+## 🤝 Contributing
 
-**Real-time Streaming:**
-- **onChunk callbacks**: Tekst streaming med live character counts
-- **onThoughtChunk callbacks**: Real-time thinking proces display  
-- **Button State Management**: Purple → Blue (thinking) → Green (streaming) → Emerald (complete)
-- **Performance Metrics**: Console logging af timing og token counts
+Contributions are welcome! Please follow these guidelines:
 
-**Model Selection:**
-- Bruger-valgt via AI Indstillinger modal
-- Model valg gemt i `sessionStorage.getItem('ai-model')`
-- Universal `enableThinking` toggle for begge modeller
-- Session integration med settings persistence
+1. **Fork** the repository
+2. **Create feature branch**: `git checkout -b feature/AmazingFeature`
+3. **Commit changes**: `git commit -m 'Add some AmazingFeature'`
+4. **Push to branch**: `git push origin feature/AmazingFeature`
+5. **Open Pull Request**
 
-**AI Testing Environment:**
-- **Isoleret Testing Lab**: `src/ai-testing/` komplet adskilt fra hovedapp
-- **Standalone Service**: Dedicated `aiTestService.js` med zero dependencies
-- **Adgang**: Test Lab knap i header åbner `/ai-test.html` i nyt vindue
-- **Features**: Performance metrics, begge AI modeller, streaming test
-
-### 🗂️ Database Schema & Collections
-
-**Firestore Collections Struktur:**
-
-**Notes Collection** (`/notes/{noteId}`):
-```javascript
-{
-  userId: string,                // Bruger ID fra Firebase Auth
-  encryptedTitle: string,        // Base64 krypteret titel
-  encryptedContent: string,      // Base64 krypteret HTML indhold
-  folderId: string | null,       // Reference til folder ('secure' for PIN-beskyttet)
-  isFavorite: boolean,           // Favorit status
-  isDeleted: boolean,            // Soft delete flag til trash system
-  deletedAt: Timestamp | null,   // Tidspunkt note blev flyttet til trash
-  createdAt: Timestamp,          // Oprettelsestidspunkt
-  updatedAt: Timestamp           // Sidste opdateringstidspunkt
-}
-```
-
-**Folders Collection** (`/folders/{folderId}`):
-```javascript
-{
-  userId: string,                // Bruger ID fra Firebase Auth
-  encryptedName: string,         // Base64 krypteret folder navn
-  color: string,                 // Color identifier til UI display
-  createdAt: Timestamp,          // Oprettelsestidspunkt
-  updatedAt: Timestamp           // Sidste opdateringstidspunkt
-}
-```
-
-**UserSettings Collection** (`/userSettings/{userId}`):
-```javascript
-{
-  userId: string,                // Bruger ID (bruges som document ID)
-  encryptedPinHash: string,      // Krypteret PIN til sikker folder adgang
-  encryptedAiSettings: string,   // Krypteret AI konfiguration
-  createdAt: Timestamp,          // Oprettelsestidspunkt
-  updatedAt: Timestamp           // Sidste opdateringstidspunkt
-}
-```
-
-**Sikkerhed:**
-- Alle brugerdata krypteres client-side før gemning
-- Firebase ser kun krypteret data - aldrig plaintext
-- Firestore Security Rules sikrer at brugere kun kan tilgå deres egne data
-
-### 🗑️ Trash/Recycle Bin System
-
-**Soft Delete Implementation** - Noter slettes ikke permanent med det samme:
-
-**Funktionalitet:**
-- **Soft Delete**: Noter markeres som `isDeleted: true` i stedet for permanent sletning
-- **30-Day Auto-Cleanup**: Noter ældre end 30 dage fjernes automatisk fra trash
-- **Restore Function**: Slettede noter kan gendannes fra papirkurven
-- **Client-Side Only**: Ingen Firebase Functions krævet - ren client-side implementation
-
-**Trash Operations:**
-```javascript
-// Disponible operationer i trash store
-moveToTrash(noteId)           // Flyt note til trash
-restoreNote(noteId)           // Gendan note fra trash  
-permanentDeleteNote(noteId)   // Slet note permanent
-emptyTrash()                  // Tøm hele papirkurven
-```
-
-**Store Architecture:**
-- **Separate Store**: `src/stores/trash.js` håndterer alle trash operationer
-- **Clean Architecture**: Modulær opdeling med dedicated trash store
-- **Integration**: Notes store delegerer alle trash operationer til trash store
-- **Count Integration**: Trash count integreret i folder sidebar
-
-**Filtrering:**
-- Aktive noter filtreres automatisk fra hoved visninger
-- Trash view viser kun slettede noter (`isDeleted: true`)
-- Automatisk opdatering af note counts og folder displays
-
-### 🏗️ Component Architecture
-
-**Modulær NoteViewer Arkitektur** - Opdelt i shared komponenter for optimal performance:
-
-**Core Components:**
-- **`NoteHeader.vue`**: Titel, folder selector, actions (favorit, delete, export)
-- **`NoteContent.vue`**: Pure content display med formattering og typography  
-- **`NoteEditor.vue`**: TinyMCE editing interface isoleret fra andre komponenter
-- **`AiPanel.vue`**: AI processing UI med real-time streaming og button states
-
-**Layout Wrappers:**
-- **Mobile Layout**: Touch-optimeret interface med gesture support
-- **Desktop Layout**: Keyboard shortcuts og multi-pane interface
-- **Responsive Design**: Automatisk tilpasning mellem layouts
-
-**Pinia Store Integration:**
-- **auth.js**: Authentication state og session management
-- **notes.js**: Notes data management med SecureStorage integration
-- **folders.js**: Folder organisation med PIN-protected secure folder
-- **trash.js**: Trash/recycle bin functionality med soft delete system
-- **ui.js**: UI state coordination (mobile drawers, modals, note viewer)
-- **settings.js**: Application settings med local storage persistence
-
-**Performance Benefits:**
-- **Selective Re-rendering**: Kun relevante komponenter re-renderes ved AI responses
-- **Component Isolation**: TinyMCE editor isolated fra andre components for stabilitet
-- **Lazy Loading**: Komponenter indlæses kun når nødvendigt
-- **State Optimization**: Effektiv note filtrering med computed properties
-
-### ⚡ Performance & Optimization
-
-**Search Optimization:**
-- **Debounced Search**: 300ms delay for efficient søgning uden at overbelaste systemet
-- **Client-Side Filtering**: Effektiv note filtrering med Vue computed properties
-- **Real-time Updates**: Øjeblikkeligt resultater uden database queries
-
-**CSS & Bundle Optimization:**
-- **Tailwind @apply System**: Semantic class names erstatter lange utility class strings
-- **Token Reduction**: `"bg-gray-800/60 border rounded-lg p-3..."` bliver til `"note-item"`
-- **Reduced Bundle Size**: Centraliseret styling i `src/style.css` reducerer CSS bundle størrelse
-- **Maintainability**: Konsistent styling på tværs af hele applikationen
-
-**Mobile Touch Optimization:**
-- **Touch Action**: `touch-action: manipulation` for responsive interactions
-- **Touch Targets**: Minimum 44-48px touch targets for accessibility compliance
-- **Gesture Support**: Native mobile gestures til navigation og actions
-- **Viewport Optimization**: Optimal viewport konfiguration for mobile enheder
-
-**Component Performance:**
-- **Modulær Architecture**: NoteViewer opdelt i dedikerede komponenter (~311 linjer total)
-- **Efficient Re-rendering**: Kun componenter der berøres af ændringer re-renderes
-- **State Management**: Pinia stores optimeret til minimal re-computation
-- **Memory Management**: Automatisk cleanup ved component unmount
-
-**Encryption Performance:**
-- **PBKDF2 Iterations**: 210.000 iterationer balanceret mellem sikkerhed og performance
-- **Batch Operations**: Effektive batch updates til Firestore
-- **Session Caching**: Encryption keys cached i session for hurtige operationer
-- **Background Processing**: Ikke-kritiske operationer køres i background
-
-## 🌍 Hosting Alternativer
-
-Du kan hoste applikationen på:
-- **Firebase Hosting** (anbefalet - letteste setup)
-- **Vercel** - Importer GitHub repo og deploy
-- **Netlify** - Træk og slip `dist` mappen
-- **Traditionel webhosting** - Upload `dist` mappen
+### Development Standards
+- Follow Vue 3 Composition API patterns with `<script setup>`
+- Use Pinia stores for state management
+- Follow the existing ESLint configuration
+- Write descriptive commit messages
+- Test functionality thoroughly before submitting
+- Maintain security standards (no hardcoded secrets)
 
 ## 🔧 Configuration
 
 ### Session Timeout
-Standard session timeout er 30 minutter. Juster i `.env`:
-```
-VITE_SESSION_TIMEOUT=1800000
-```
-
-### Encryption Iterations
-Juster PBKDF2 iterationer (højere = mere sikker, men langsommere):
-```
-VITE_PBKDF2_ITERATIONS=210000
+Default session timeout is 30 minutes. Adjust in `.env`:
+```env
+VITE_SESSION_TIMEOUT=1800000  # 30 minutes in milliseconds
 ```
 
-## 📱 Mobile Support
+### Encryption Strength
+Adjust PBKDF2 iterations (higher = more secure but slower):
+```env
+VITE_PBKDF2_ITERATIONS=210000  # Default: 210,000 iterations
+```
 
-Applikationen er optimeret til mobile enheder med:
-- Touch-optimeret interface
-- Responsive design
-- Mobile-first navigation
-- Gesture support
+### AI Integration
+Add Google AI API key for AI features:
+```env
+VITE_GOOGLE_AI_API_KEY=your_google_ai_api_key
+```
 
-## 🐛 Fejlfinding
+## 🐛 Troubleshooting
 
-### Almindelige problemer:
+### Common Issues
 
-**Firebase connection fejl:**
-- Tjek at alle environment variables er korrekt sat
-- Verificer at Firebase projekt ID er korrekt
-- Tjek at Firestore database er oprettet
+**Firebase Connection Errors:**
+- Verify all environment variables are correctly set
+- Check Firebase project ID is correct
+- Ensure Firestore database is created and configured
 
-**Authentication fejl:**
-- Tjek at Email/Password og Google authentication er aktiveret
-- Verificer at authorized domains er konfigureret korrekt
+**Authentication Errors:**
+- Verify Email/Password and Google authentication are enabled
+- Check authorized domains are configured correctly in Firebase
+- Ensure `.env` file contains correct Firebase config
 
-**Build fejl:**
-- Slet `node_modules` og kør `npm install` igen
-- Tjek at Node.js version er 18 eller nyere
+**Build Errors:**
+- Delete `node_modules` and run `npm install` again
+- Check Node.js version is 18 or later
+- Verify all required environment variables are set
 
-## 🤝 Bidrag
+**TinyMCE Issues:**
+- Ensure `public/tinymce/` directory exists and is populated
+- Check that `tinymce-script-src="/tinymce/tinymce.min.js"` is used (no API key)
+- Verify TinyMCE files were copied from `node_modules/tinymce/` to `public/tinymce/`
 
-Bidrag er velkomne! Opret gerne issues og pull requests.
+## 🏷️ Version & License
 
-## 📄 Licens
+**Current Version**: 1.0.0  
+**License**: MIT License (see LICENSE file for details)
 
-MIT License - se LICENSE fil for detaljer.
+## 📞 Contact & Support
 
-## 🏷️ Version
+- **Issues & Bug Reports**: [GitHub Issues](https://github.com/[USERNAME]/secure-notes-vue/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/[USERNAME]/secure-notes-vue/discussions)
+- **Security Concerns**: Please report security issues privately
 
-Nuværende version: 1.0.0
+## 🌟 Acknowledgments
+
+- **Vue.js** team for the excellent framework
+- **Firebase** for reliable backend infrastructure
+- **TinyMCE** for powerful rich text editing
+- **Google AI** for advanced language model capabilities
+- **Tailwind CSS** for utility-first styling
 
 ---
 
-*Bygget med ❤️ og Vue.js 3*
+**⚡ Built with ❤️ using Vue.js 3, Firebase, and client-side encryption**
+
+*For detailed developer instructions, see `CLAUDE.md` and `ARCHITECTURE.md` files.*
