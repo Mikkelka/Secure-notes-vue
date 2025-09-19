@@ -530,8 +530,12 @@ hr {
   background-color: #374151;
 }
 
+.action-btn-icon {
+  @apply p-2 hover:bg-gray-700 rounded transition-colors;
+}
+
 .note-menu-btn {
-  @apply action-btn-icon text-white hover:text-gray-300;
+  @apply p-2 hover:bg-gray-700 rounded transition-colors text-white hover:text-gray-300;
 }
 
 /* Dialog & Modal Patterns */
@@ -562,10 +566,6 @@ hr {
 
 .folder-label {
   @apply px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity;
-}
-
-.action-btn-icon {
-  @apply p-2 hover:bg-gray-700 rounded transition-colors;
 }
 
 .delete-btn {
