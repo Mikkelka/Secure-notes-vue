@@ -106,6 +106,43 @@ const getTinymceConfig = () => {
         // Force v-model update on format changes (TinyMCE 7.0 compatible)
         editor.dispatch('input')
       })
+
+      // Add heading toggle functionality
+      editor.ui.registry.addButton('h1', {
+        text: 'H1',
+        onAction: () => {
+          const node = editor.selection.getNode()
+          if (node.tagName === 'H1') {
+            editor.execCommand('FormatBlock', false, 'p')
+          } else {
+            editor.execCommand('FormatBlock', false, 'h1')
+          }
+        }
+      })
+
+      editor.ui.registry.addButton('h2', {
+        text: 'H2',
+        onAction: () => {
+          const node = editor.selection.getNode()
+          if (node.tagName === 'H2') {
+            editor.execCommand('FormatBlock', false, 'p')
+          } else {
+            editor.execCommand('FormatBlock', false, 'h2')
+          }
+        }
+      })
+
+      editor.ui.registry.addButton('h3', {
+        text: 'H3',
+        onAction: () => {
+          const node = editor.selection.getNode()
+          if (node.tagName === 'H3') {
+            editor.execCommand('FormatBlock', false, 'p')
+          } else {
+            editor.execCommand('FormatBlock', false, 'h3')
+          }
+        }
+      })
     }
   }
   return config
