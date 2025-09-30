@@ -117,6 +117,13 @@
                         {{ note.isFavorite ? 'Fjern favorit' : 'Tilføj favorit' }}
                       </button>
                       <button
+                        @click="handleDuplicateNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-blue-300 flex items-center gap-2 text-sm"
+                      >
+                        <Copy class="w-4 h-4" />
+                        Lav kopi
+                      </button>
+                      <button
                         @click="handleDeleteNote(note.id)"
                         class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
                       >
@@ -235,6 +242,13 @@
                         {{ note.isFavorite ? 'Fjern favorit' : 'Tilføj favorit' }}
                       </button>
                       <button
+                        @click="handleDuplicateNote(note.id)"
+                        class="w-full px-3 py-2 text-left hover:bg-gray-700 text-blue-300 flex items-center gap-2 text-sm"
+                      >
+                        <Copy class="w-4 h-4" />
+                        Lav kopi
+                      </button>
+                      <button
                         @click="handleDeleteNote(note.id)"
                         class="w-full px-3 py-2 text-left hover:bg-gray-700 text-red-300 flex items-center gap-2 text-sm"
                       >
@@ -291,7 +305,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw, EllipsisVertical } from 'lucide-vue-next'
+import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw, EllipsisVertical, Copy } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
@@ -317,7 +331,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite', 'moveNoteToFolder', 'restoreNote', 'permanentDeleteNote', 'emptyTrash'])
+const emit = defineEmits(['searchChange', 'deleteNote', 'noteClick', 'toggleFavorite', 'moveNoteToFolder', 'restoreNote', 'permanentDeleteNote', 'emptyTrash', 'duplicateNote'])
 
 const localSearchTerm = ref('')
 const confirmDialog = ref({ isOpen: false, noteId: null, isPermanent: false, isEmptyTrash: false })
@@ -525,6 +539,11 @@ const getFolderDisplay = (folderId) => {
 
 const handleToggleFavorite = (noteId) => {
   emit('toggleFavorite', noteId)
+  closeNoteMenu()
+}
+
+const handleDuplicateNote = (noteId) => {
+  emit('duplicateNote', noteId)
   closeNoteMenu()
 }
 

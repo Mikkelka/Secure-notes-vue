@@ -64,10 +64,18 @@
               class="note-action-btn-mobile"
               :class="note.isFavorite ? 'note-action-favorite-mobile-active' : 'note-action-favorite-mobile'"
             >
-              <Star 
-                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
-                class="icon-md" 
+              <Star
+                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'"
+                class="icon-md"
               />
+            </BaseButton>
+            <BaseButton
+              @click="handleDuplicate"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-mobile note-action-duplicate-mobile"
+            >
+              <Copy class="icon-md" />
             </BaseButton>
             <BaseButton
               @click="handleDelete"
@@ -155,11 +163,20 @@
               class="note-action-btn-desktop"
               :class="note.isFavorite ? 'note-action-favorite-active' : 'note-action-favorite'"
             >
-              <Star 
-                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'" 
-                class="icon-sm" 
+              <Star
+                :class="note.isFavorite ? 'fill-yellow-400' : 'fill-none'"
+                class="icon-sm"
               />
               {{ note.isFavorite ? 'Fjern favorit' : 'Favorit' }}
+            </BaseButton>
+            <BaseButton
+              @click="handleDuplicate"
+              variant="ghost"
+              size="sm"
+              class="note-action-btn-desktop note-action-duplicate"
+            >
+              <Copy class="icon-sm" />
+              Lav kopi
             </BaseButton>
             <BaseButton
               @click="handleDelete"
@@ -214,7 +231,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { Star, Trash2, X, Edit3 } from 'lucide-vue-next'
+import { Star, Trash2, X, Edit3, Copy } from 'lucide-vue-next'
 import BaseButton from '../base/BaseButton.vue'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
@@ -239,7 +256,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'update', 'delete', 'toggleFavorite', 'moveNoteToFolder'])
+const emit = defineEmits(['close', 'update', 'delete', 'toggleFavorite', 'moveNoteToFolder', 'duplicate'])
 
 // Minimal state management (most logic moved to child components)
 const isEditing = ref(false)
@@ -309,6 +326,11 @@ const handleAiContentUpdate = (processedContent) => {
   if (editorRef.value) {
     editorRef.value.setContent(processedContent)
   }
+}
+
+// Duplicate functionality
+const handleDuplicate = () => {
+  emit('duplicate', props.note.id)
 }
 
 // Delete functionality

@@ -132,6 +132,7 @@
                 @note-click="handleNoteClick"
                 @toggle-favorite="handleToggleFavorite"
                 @move-note-to-folder="handleMoveNoteToFolder"
+                @duplicate-note="handleDuplicateNote"
               />
             </div>
           </div>
@@ -148,6 +149,7 @@
         @delete="handleViewerDelete"
         @toggle-favorite="handleToggleFavorite"
         @move-note-to-folder="handleMoveNoteToFolder"
+        @duplicate="handleDuplicateNote"
       />
 
       <!-- Modals and Drawers -->
@@ -563,10 +565,10 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
     alert('Du skal først låse op for den sikre mappe');
     return false;
   }
-  
+
   try {
     const success = await notesStore.moveNoteToFolder(noteId, newFolderId);
-    
+
     if (success) {
       // Update selectedNote if it's the one being moved
       if (uiStore.selectedNote?.id === noteId) {
@@ -577,12 +579,28 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
         });
       }
     }
-    
+
     return success;
   } catch (error) {
     console.error('Fejl ved flytning af note:', error);
     alert('Kunne ikke flytte noten. Prøv igen.');
     return false;
+  }
+};
+
+const handleDuplicateNote = async (noteId) => {
+  try {
+    const success = await notesStore.duplicateNote(noteId, authStore.user);
+
+    if (success) {
+      // Close the note viewer after duplicating
+      uiStore.closeNoteViewer();
+    } else {
+      alert('Kunne ikke kopiere noten. Prøv igen.');
+    }
+  } catch (error) {
+    console.error('Fejl ved kopiering af note:', error);
+    alert('Kunne ikke kopiere noten. Prøv igen.');
   }
 };
 
