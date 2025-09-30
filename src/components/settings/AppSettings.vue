@@ -132,7 +132,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Clock, Shield, Monitor } from 'lucide-vue-next'
+import { Shield, Monitor } from 'lucide-vue-next'
 import BaseDialog from '../base/BaseDialog.vue'
 import BaseButton from '../base/BaseButton.vue'
 import { useSettingsStore } from '../../stores/settings'

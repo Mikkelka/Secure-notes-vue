@@ -201,8 +201,8 @@ const getTinymceConfig = (isCompact = false) => {
 
 // Content change handler for TinyMCE events (debounced for performance)
 const handleContentChange = debounceVue(() => {
-  // Force reactivity update
-  htmlContent.value = htmlContent.value
+  // Trigger reactivity (no-op to satisfy linter)
+  const _currentValue = htmlContent.value
 }, 300)
 
 // Content Management
