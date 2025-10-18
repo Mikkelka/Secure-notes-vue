@@ -128,7 +128,7 @@
 <script setup>
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Shield, Brain, Download, Settings, LogOut, Menu, Zap, Plus } from 'lucide-vue-next'
+import { Shield, Brain, Download, Settings, LogOut, Menu, Zap } from 'lucide-vue-next'
 import { useSettingsStore } from '../../stores/settings'
 
 const showMobileMenu = ref(false)

@@ -163,7 +163,7 @@ const getAiSettings = (userSettings) => {
 
 
 // AI Processing with streaming and systemInstruction optimization
-export const processTextWithAi = async (content, title, userSettings = null, enableDebugTiming = false, onChunk = null, onThoughtChunk = null) => {
+export const processTextWithAi = async (content, title, userSettings = null, _enableDebugTiming = false, onChunk = null, onThoughtChunk = null) => {
   const totalStartTime = performance.now();
   
   const { apiKey, model, instructionType } = getAiSettings(userSettings);
@@ -402,9 +402,6 @@ export const processTextWithAi = async (content, title, userSettings = null, ena
       performanceMetrics
     };
   } catch (error) {
-    const totalTime = performance.now() - totalStartTime;
-    
-    
     console.error("Streaming AI Processing Error:", error);
     let errorMessage = "AI processering fejlede: ";
     const errorText = error.message.toLowerCase();

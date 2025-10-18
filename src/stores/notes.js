@@ -339,7 +339,7 @@ export const useNotesStore = defineStore('notes', () => {
   const moveNoteToFolder = async (noteId, folderId) => {
     const note = allNotes.value.find(n => n.id === noteId)
     if (!note) return false
-    
+
     try {
       const targetFolderId = folderId || null
       await updateDoc(doc(db, 'notes', noteId), {
@@ -350,6 +350,59 @@ export const useNotesStore = defineStore('notes', () => {
       return true
     } catch (error) {
       console.error('Fejl ved flytning af note:', error)
+      return false
+    }
+  }
+
+  const duplicateNote = async (noteId, user) => {
+    const originalNote = allNotes.value.find(n => n.id === noteId)
+    if (!originalNote || !user) return false
+
+    try {
+      const encryptionKey = SecureStorage.getEncryptionKey()
+
+      // Lav kopi af titel med " (Kopi)" suffix
+      const duplicatedTitle = originalNote.title + ' (Kopi)'
+
+      // Krypter titel og content
+      const [encryptedTitle, encryptedContent] = await Promise.all([
+        encryptText(duplicatedTitle, encryptionKey),
+        encryptText(originalNote.content, encryptionKey)
+      ])
+
+      const now = new Date()
+      const noteData = {
+        userId: user.uid,
+        encryptedTitle,
+        encryptedContent,
+        folderId: originalNote.folderId || null,
+        isFavorite: false, // Reset favorite status for duplicated note
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now
+      }
+
+      // Opret nyt dokument i Firestore (får automatisk nyt ID)
+      const docRef = await addDoc(collection(db, 'notes'), noteData)
+
+      // Tilføj til local state
+      const newNote = {
+        id: docRef.id,
+        title: duplicatedTitle,
+        content: originalNote.content,
+        folderId: originalNote.folderId || null,
+        isFavorite: false,
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now
+      }
+
+      allNotes.value.unshift(newNote) // Tilføj til toppen af listen
+      return true
+    } catch (error) {
+      console.error('Fejl ved kopiering af note:', error)
       return false
     }
   }
@@ -383,7 +436,7 @@ export const useNotesStore = defineStore('notes', () => {
     loading,
     getNoteCounts,
     recentNotes,
-    
+
     // Actions
     loadNotes,
     saveNote,
@@ -395,12 +448,13 @@ export const useNotesStore = defineStore('notes', () => {
     cleanupOldTrashedNotes,
     toggleFavorite,
     moveNoteToFolder,
+    duplicateNote,
     resetNotes,
-    
+
     // Setters
     setSearchTerm,
     setEditingNote,
-    
+
     // Trash Store
     trashStore
   }
