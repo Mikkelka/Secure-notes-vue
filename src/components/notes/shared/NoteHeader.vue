@@ -33,6 +33,7 @@
 <script setup>
 import { ref, computed as _computed } from 'vue'
 import { Folder } from 'lucide-vue-next'
+import { FOLDER_IDS } from '../../../constants/folderIds'
 import { useFoldersStore } from '../../../stores/folders.js'
 
 const _props = defineProps({
@@ -60,8 +61,8 @@ const getFolderDisplay = (folderId) => {
   if (!folderId) {
     return { name: 'Ukategoriseret', color: '#6b7280' }
   }
-  
-  if (folderId === 'secure') {
+
+  if (folderId === FOLDER_IDS.SECURE) {
     return { name: 'Sikker', color: '#dc2626' }
   }
   

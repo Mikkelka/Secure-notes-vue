@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  deleteDoc,
   doc,
   setDoc,
   getDoc
@@ -15,6 +15,7 @@ import {
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
+import { FOLDER_IDS } from '../constants/folderIds'
 // ANBEFALING: Du skal bruge en password verifikationsfunktion her for master password unlock.
 // import { verifyPassword } from '../utils/encryption' 
 
@@ -131,8 +132,8 @@ const saveUserSettings = async (userId, settings) => {
 export const useFoldersStore = defineStore('folders', () => {
   // --- State ---
   const folders = ref([])
-  const selectedFolderId = ref('recent')
-  const lockedFolders = ref(new Set(['secure'])) // 'secure' er altid låst fra start
+  const selectedFolderId = ref(FOLDER_IDS.RECENT)
+  const lockedFolders = ref(new Set([FOLDER_IDS.SECURE])) // 'secure' er altid låst fra start
   const userSettings = ref({})
   const securePin = ref('1234') // Lokal kopi af PIN for hurtig adgang
 
@@ -230,9 +231,9 @@ export const useFoldersStore = defineStore('folders', () => {
     try {
       await deleteDoc(doc(db, 'folders', folderId))
       folders.value = folders.value.filter(folder => folder.id !== folderId)
-      
+
       if (selectedFolderId.value === folderId) {
-        selectFolder('all')
+        selectFolder(FOLDER_IDS.ALL)
       }
       return true
     } catch (error) {
@@ -246,7 +247,7 @@ export const useFoldersStore = defineStore('folders', () => {
   }
 
   const unlockFolder = (folderId, pin) => {
-    if (folderId === 'secure' && pin === securePin.value) {
+    if (folderId === FOLDER_IDS.SECURE && pin === securePin.value) {
       lockedFolders.value.delete(folderId)
       selectFolder(folderId) // Vælg automatisk mappen efter oplåsning
       return true
@@ -306,9 +307,9 @@ export const useFoldersStore = defineStore('folders', () => {
   }
 
   const lockSecureFolder = () => {
-    lockedFolders.value.add('secure')
-    if (selectedFolderId.value === 'secure') {
-      selectFolder('all')
+    lockedFolders.value.add(FOLDER_IDS.SECURE)
+    if (selectedFolderId.value === FOLDER_IDS.SECURE) {
+      selectFolder(FOLDER_IDS.ALL)
     }
   }
 
@@ -331,8 +332,8 @@ export const useFoldersStore = defineStore('folders', () => {
 
   const resetFolders = () => {
     folders.value = []
-    selectedFolderId.value = 'recent'
-    lockedFolders.value = new Set(['secure'])
+    selectedFolderId.value = FOLDER_IDS.RECENT
+    lockedFolders.value = new Set([FOLDER_IDS.SECURE])
     userSettings.value = {}
     securePin.value = '1234'
   }
