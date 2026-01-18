@@ -306,6 +306,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Search, Lock, Star, Trash2, Clock, X, Folder, FolderOpen, Archive, Shield, RotateCcw, EllipsisVertical, Copy } from 'lucide-vue-next'
+import { FOLDER_IDS } from '../../constants/folderIds'
 import BaseDialog from '../base/BaseDialog.vue'
 import FolderDropdown from '../folders/FolderDropdown.vue'
 import { extractPlainText } from '../../services/aiService.js'
@@ -327,7 +328,7 @@ const props = defineProps({
   },
   selectedFolderId: {
     type: String,
-    default: 'all'
+    default: FOLDER_IDS.ALL
   }
 })
 
@@ -373,7 +374,7 @@ const favoriteNotes = computed(() => props.notes.filter(note => note.isFavorite)
 const regularNotes = computed(() => props.notes.filter(note => !note.isFavorite))
 
 // Check if we're in trash mode
-const isTrashMode = computed(() => props.selectedFolderId === 'trash')
+const isTrashMode = computed(() => props.selectedFolderId === FOLDER_IDS.TRASH)
 
 // Empty state messages based on context
 const getEmptyStateTitle = () => {
@@ -436,31 +437,31 @@ const iconMap = {
 // Category descriptions with icons and colors
 const categoryDescription = computed(() => {
   switch (props.selectedFolderId) {
-    case 'all':
+    case FOLDER_IDS.ALL:
       return {
         icon: iconMap.FolderOpen,
         color: 'text-blue-400',
         text: 'Alle dine noter sorteret efter seneste opdatering'
       }
-    case 'recent':
+    case FOLDER_IDS.RECENT:
       return {
         icon: iconMap.Clock,
         color: 'text-green-400',
         text: 'Dine 5 senest oprettede noter'
       }
-    case 'uncategorized':
+    case FOLDER_IDS.UNCATEGORIZED:
       return {
         icon: iconMap.Archive,
         color: 'text-gray-400',
         text: 'Noter uden mappe'
       }
-    case 'secure':
+    case FOLDER_IDS.SECURE:
       return {
         icon: iconMap.Shield,
         color: 'text-red-400',
         text: 'Sikrede noter beskyttet med PIN'
       }
-    case 'trash':
+    case FOLDER_IDS.TRASH:
       return {
         icon: iconMap.Trash2,
         color: 'text-red-400',
@@ -524,8 +525,8 @@ const getFolderDisplay = (folderId) => {
   if (!folderId) {
     return { name: 'Ukategoriseret', color: '#6b7280' }
   }
-  
-  if (folderId === 'secure') {
+
+  if (folderId === FOLDER_IDS.SECURE) {
     return { name: 'Sikker', color: '#dc2626' }
   }
   

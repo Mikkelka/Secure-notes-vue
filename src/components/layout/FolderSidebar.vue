@@ -86,7 +86,7 @@
             folder.name
           }}
             <Lock
-              v-if="folder.id === 'secure'"
+              v-if="folder.id === FOLDER_IDS.SECURE"
               class="w-2.5 h-2.5 text-gray-400 sm:w-3 sm:h-3"
             />
           </span>
@@ -146,7 +146,7 @@
 
     <!-- PIN Prompt Modal for Secure Folder -->
     <PinInput
-      v-if="showPinPrompt === 'secure'"
+      v-if="showPinPrompt === FOLDER_IDS.SECURE"
       :length="4"
       :user="user"
       @complete="handleUnlockFolder"
@@ -170,6 +170,8 @@ import {
   Lock,
   Clock,
 } from "lucide-vue-next";
+import { FOLDER_IDS } from "../../constants/folderIds";
+import { FOLDER_COLORS } from "../../constants/folderColors";
 import PinInput from "../base/PinInput.vue";
 
 const props = defineProps({
@@ -216,14 +218,8 @@ const showPinPrompt = ref(null);
 const pinInputRef = ref(null);
 
 // Folder colors like React version
-const folderColors = [
-  { name: "blue", class: "text-blue-400 bg-blue-500/20" },
-  { name: "green", class: "text-green-400 bg-green-500/20" },
-  { name: "purple", class: "text-purple-400 bg-purple-500/20" },
-  { name: "red", class: "text-red-400 bg-red-500/20" },
-  { name: "yellow", class: "text-yellow-400 bg-yellow-500/20" },
-  { name: "pink", class: "text-pink-400 bg-pink-500/20" },
-];
+// Use centralized folder colors from constants
+const folderColors = FOLDER_COLORS;
 
 const defaultFolders = computed(() => [
   {

@@ -143,6 +143,8 @@ const getTinymceConfig = (isCompact = false) => {
     keep_styles: false,
     verify_html: false,
     cleanup: false,
+    valid_elements: 'p,h1,h2,h3,strong,em,u,strike,ul,ol,li,br,a[href|target|rel]',
+    extended_valid_elements: 'h1,h2,h3',
     analytics: false,
     usage_tracking: false,
     telemetry: false,

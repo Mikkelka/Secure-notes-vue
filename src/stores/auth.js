@@ -26,12 +26,13 @@ const setupAuthPersistence = async () => {
 const deriveAndStoreKeys = async (user, password, loginType) => {
   const key = await deriveKeyFromPassword(password, user.uid)
   const verifier = await generatePasswordVerifier(password, user.uid)
+  const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
   
   localStorage.setItem(`passwordVerifier_${user.uid}`, verifier)
   localStorage.setItem(`loginType_${user.uid}`, loginType)
   
   // Gem encrypted password kun for email login
-  if (loginType === 'email') {
+  if (loginType === 'email' && allowDevPasswordCache) {
     localStorage.setItem(`encryptedPassword_${user.uid}`, btoa(password))
   }
   
@@ -93,13 +94,14 @@ export const useAuthStore = defineStore('auth', () => {
     if (!loginType) {
       return false
     }
+    const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
     
     try {
       let key = null
       
       if (loginType === 'google') {
         key = await deriveKeyFromPassword(user.value.uid, user.value.uid)
-      } else if (loginType === 'email') {
+      } else if (loginType === 'email' && allowDevPasswordCache) {
         const encryptedPassword = localStorage.getItem(`encryptedPassword_${user.value.uid}`)
         if (encryptedPassword) {
           const password = atob(encryptedPassword)
@@ -352,10 +354,11 @@ export const useAuthStore = defineStore('auth', () => {
         
         try {
           let key = null
+          const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
           
           if (loginType === 'google') {
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
-          } else if (loginType === 'email') {
+          } else if (loginType === 'email' && allowDevPasswordCache) {
             const encryptedPassword = localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)
             if (encryptedPassword) {
               const password = atob(encryptedPassword)

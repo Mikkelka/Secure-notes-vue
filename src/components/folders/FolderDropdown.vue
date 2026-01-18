@@ -52,8 +52,8 @@
       
       <!-- Secure folder (only if unlocked) -->
       <button
-        v-if="showSecureFolder && currentFolderId !== 'secure'"
-        @click="handleSelectFolder('secure')"
+        v-if="showSecureFolder && currentFolderId !== FOLDER_IDS.SECURE"
+        @click="handleSelectFolder(FOLDER_IDS.SECURE)"
         :class="[
           'dropdown-btn-base px-3 text-gray-300',
           isMobile ? 'py-4' : 'py-3'
@@ -62,10 +62,10 @@
         <Folder class="icon-sm" style="color: #dc2626" />
         <span>Sikker</span>
       </button>
-      
+
       <!-- Current secure folder indicator -->
       <div
-        v-if="currentFolderId === 'secure'"
+        v-if="currentFolderId === FOLDER_IDS.SECURE"
         :class="[
           'w-full px-3 flex items-center gap-2 text-sm bg-gray-700 text-gray-300',
           isMobile ? 'py-4' : 'py-3'
@@ -93,6 +93,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
 import { Folder, Check } from 'lucide-vue-next'
+import { FOLDER_IDS } from '../../constants/folderIds'
 
 const props = defineProps({
   currentFolderId: {
@@ -152,7 +153,7 @@ const emit = defineEmits(['select', 'close'])
 
 // Show secure folder only if it's unlocked and not the current folder
 const showSecureFolder = computed(() => {
-  return !props.lockedFolders.has('secure')
+  return !props.lockedFolders.has(FOLDER_IDS.SECURE)
 })
 
 // Filter available folders to exclude current folder

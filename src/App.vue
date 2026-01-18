@@ -89,7 +89,7 @@
                   @mode-change="handleQuickNoteMode"
                 />
               </div>
-              <div v-if="foldersStore.selectedFolderId === 'secure'" class="hidden md:block">
+              <div v-if="foldersStore.selectedFolderId === FOLDER_IDS.SECURE" class="hidden md:block">
                 <SettingsMenu
                   :locked-folders="foldersStore.lockedFolders"
                   @change-secure-pin="openChangePinDialog"
@@ -182,7 +182,7 @@
       <!-- Mobile Bottom Menu -->
       <MobileBottomMenu
         :active-button="uiStore.activeMobileButton"
-        :show-settings="foldersStore.selectedFolderId === 'secure'"
+        :show-settings="foldersStore.selectedFolderId === FOLDER_IDS.SECURE"
         @folders-click="handleMobileFoldersClick"
         @add-note-click="handleMobileAddNoteClick"
         @search-click="handleMobileSearchClick"
@@ -205,7 +205,7 @@
         <QuickNote :is-compact="false" hide-title is-in-drawer @save="handleSaveNote" @mode-change="handleQuickNoteMode" />
       </MobileDrawer>
       <MobileDrawer
-        v-if="foldersStore.selectedFolderId === 'secure'"
+        v-if="foldersStore.selectedFolderId === FOLDER_IDS.SECURE"
         :is-open="uiStore.showMobileSettings"
         title="Indstillinger"
         height="h-[50vh]"
@@ -338,6 +338,10 @@
 import { computed, watch, onMounted, onUnmounted, ref, nextTick } from "vue";
 import { Loader2, Plus } from "lucide-vue-next";
 
+// Constants
+import { FOLDER_IDS } from "./constants/folderIds";
+import { FOLDER_COLORS } from "./constants/folderColors";
+
 // Stores
 import { useAuthStore } from "./stores/auth";
 import { useNotesStore } from "./stores/notes";
@@ -388,19 +392,19 @@ const filteredNotes = computed(() => {
   // Brug den nye 'searchedAndSortedNotes' fra din store som base
   const baseNotes = notesStore.searchedAndSortedNotes;
 
-  if (selectedFolderId === 'all') {
-    return baseNotes.filter(note => note.folderId !== 'secure');
+  if (selectedFolderId === FOLDER_IDS.ALL) {
+    return baseNotes.filter(note => note.folderId !== FOLDER_IDS.SECURE);
   }
-  if (selectedFolderId === 'recent') {
+  if (selectedFolderId === FOLDER_IDS.RECENT) {
     return notesStore.recentNotes;
   }
-  if (selectedFolderId === 'uncategorized') {
+  if (selectedFolderId === FOLDER_IDS.UNCATEGORIZED) {
     return baseNotes.filter(note => !note.folderId);
   }
-  if (selectedFolderId === 'trash') {
+  if (selectedFolderId === FOLDER_IDS.TRASH) {
     return trashStore.trashedNotes;
   }
-  
+
   // Denne linje håndterer både 'secure' og alle specifikke mappe-ID'er
   return baseNotes.filter(note => note.folderId === selectedFolderId);
 });
@@ -561,7 +565,7 @@ const handleToggleFavorite = async (noteId) => {
 // --- Folder Move Handler ---
 const handleMoveNoteToFolder = async (noteId, newFolderId) => {
   // Check if user has access to the target folder
-  if (newFolderId === 'secure' && foldersStore.lockedFolders.has('secure')) {
+  if (newFolderId === FOLDER_IDS.SECURE && foldersStore.lockedFolders.has(FOLDER_IDS.SECURE)) {
     alert('Du skal først låse op for den sikre mappe');
     return false;
   }
@@ -616,14 +620,8 @@ const mobileNewFolderColor = ref("blue");
 const mobileNameInput = ref(null);
 
 // Folder colors (same as in FolderSidebar)
-const folderColors = [
-  { name: "blue", class: "text-blue-400 bg-blue-500/20" },
-  { name: "green", class: "text-green-400 bg-green-500/20" },
-  { name: "purple", class: "text-purple-400 bg-purple-500/20" },
-  { name: "red", class: "text-red-400 bg-red-500/20" },
-  { name: "yellow", class: "text-yellow-400 bg-yellow-500/20" },
-  { name: "pink", class: "text-pink-400 bg-pink-500/20" },
-];
+// Use centralized folder colors from constants
+const folderColors = FOLDER_COLORS;
 
 const handleMobileCreateFolder = async () => {
   if (!mobileNewFolderName.value.trim()) return;

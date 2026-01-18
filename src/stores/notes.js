@@ -1,20 +1,22 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc as _deleteDoc, 
-  doc, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  deleteDoc as _deleteDoc,
+  doc,
   orderBy
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { encryptText, decryptText } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
 import { useTrashStore } from './trash'
+import { FOLDER_IDS } from '../constants/folderIds'
+import { sanitizeNoteContent } from '../utils/sanitizeHtml'
 
 // Helper til at udtrække ren tekst fra HTML indhold.
 const extractTextFromContent = (content) => {
@@ -163,38 +165,44 @@ export const useNotesStore = defineStore('notes', () => {
 
   // Optimeret funktion til at tælle noter i mapper med én gennemgang.
   const getNoteCounts = (folders) => {
-    const initialCounts = { all: 0, uncategorized: 0, secure: 0, recent: 0, trash: 0 }
+    const initialCounts = {
+      [FOLDER_IDS.ALL]: 0,
+      [FOLDER_IDS.UNCATEGORIZED]: 0,
+      [FOLDER_IDS.SECURE]: 0,
+      [FOLDER_IDS.RECENT]: 0,
+      [FOLDER_IDS.TRASH]: 0
+    }
     folders.forEach(folder => { initialCounts[folder.id] = 0 })
 
     const activeNotes = trashStore.filterActiveNotes(allNotes.value)
     const counts = activeNotes.reduce((counts, note) => {
-      if (note.folderId === 'secure') {
-        counts.secure++
+      if (note.folderId === FOLDER_IDS.SECURE) {
+        counts[FOLDER_IDS.SECURE]++
       } else {
-        counts.all++
-        const folderKey = note.folderId || 'uncategorized'
+        counts[FOLDER_IDS.ALL]++
+        const folderKey = note.folderId || FOLDER_IDS.UNCATEGORIZED
         if (Object.prototype.hasOwnProperty.call(counts, folderKey)) {
           counts[folderKey]++
         }
       }
       return counts
     }, initialCounts)
-    
+
     // Tilføj count for recent notes (altid 5 eller mindre)
-    counts.recent = Math.min(5, activeNotes.filter(note => note.folderId !== 'secure').length)
-    
+    counts[FOLDER_IDS.RECENT] = Math.min(5, activeNotes.filter(note => note.folderId !== FOLDER_IDS.SECURE).length)
+
     // Tilføj count for trash notes
-    counts.trash = trashStore.getTrashCount()
-    
+    counts[FOLDER_IDS.TRASH] = trashStore.getTrashCount()
+
     return counts
   }
 
   // --- Recent Notes Functionality ---
-  
+
   // Computed property til at få recent notes baseret på createdAt
   const recentNotes = computed(() => {
     return trashStore.filterActiveNotes(allNotes.value)
-      .filter(note => note.folderId !== 'secure') // Ekskluder secure noter
+      .filter(note => note.folderId !== FOLDER_IDS.SECURE) // Ekskluder secure noter
       .sort((a, b) => {
         const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
         const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
@@ -234,13 +242,14 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   const saveNote = async (title, content, folderId, user) => {
-    if (!title.trim() || !content.trim() || !user) return false
+    const sanitizedContent = sanitizeNoteContent(content)
+    if (!title.trim() || !sanitizedContent.trim() || !user) return false
     
     try {
       const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(title, encryptionKey),
-        encryptText(content, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
       
       const now = new Date()
@@ -261,7 +270,7 @@ export const useNotesStore = defineStore('notes', () => {
       const newNote = {
         id: docRef.id,
         title,
-        content,
+        content: sanitizedContent,
         folderId: folderId || null,
         isFavorite: false,
         isDeleted: false,
@@ -279,13 +288,14 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   const updateNote = async (noteId, newTitle, newContent) => {
-    if (!noteId || !newTitle || !newContent) return false
+    const sanitizedContent = sanitizeNoteContent(newContent)
+    if (!noteId || !newTitle.trim() || !sanitizedContent.trim()) return false
     
     try {
       const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(newTitle, encryptionKey),
-        encryptText(newContent, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
       
       const now = new Date()
@@ -300,7 +310,7 @@ export const useNotesStore = defineStore('notes', () => {
         allNotes.value[noteIndex] = { 
           ...allNotes.value[noteIndex], 
           title: newTitle,
-          content: newContent, 
+          content: sanitizedContent, 
           updatedAt: now 
         }
       }
@@ -359,6 +369,7 @@ export const useNotesStore = defineStore('notes', () => {
     if (!originalNote || !user) return false
 
     try {
+      const sanitizedContent = sanitizeNoteContent(originalNote.content)
       const encryptionKey = SecureStorage.getEncryptionKey()
 
       // Lav kopi af titel med " (Kopi)" suffix
@@ -367,7 +378,7 @@ export const useNotesStore = defineStore('notes', () => {
       // Krypter titel og content
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(duplicatedTitle, encryptionKey),
-        encryptText(originalNote.content, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
 
       const now = new Date()
@@ -390,7 +401,7 @@ export const useNotesStore = defineStore('notes', () => {
       const newNote = {
         id: docRef.id,
         title: duplicatedTitle,
-        content: originalNote.content,
+        content: sanitizedContent,
         folderId: originalNote.folderId || null,
         isFavorite: false,
         isDeleted: false,

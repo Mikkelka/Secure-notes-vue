@@ -88,7 +88,7 @@ const getTinymceConfig = () => {
     remove_trailing_brs: false,
     convert_urls: false,
     element_format: 'html',
-    valid_elements: 'p,h1,h2,h3,strong,em,u,strike,ul,ol,li,br,a[href]',
+    valid_elements: 'p,h1,h2,h3,strong,em,u,strike,ul,ol,li,br,a[href|target|rel]',
     extended_valid_elements: 'h1,h2,h3',
     verify_html: false,
     cleanup: false,
