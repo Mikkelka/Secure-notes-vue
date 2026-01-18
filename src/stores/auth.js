@@ -15,6 +15,13 @@ import { deriveKeyFromPassword, generatePasswordVerifier } from '../utils/encryp
 import { SecureStorage } from '../utils/secureStorage'
 import { useSettingsStore } from './settings'
 
+/**
+ * @typedef {Object} AuthRecoveryResult
+ * @property {boolean} ok
+ * @property {boolean} needsPassword
+ */
+
+
 // --- Helper funktioner til authentication ---
 
 // Helper til at sætte Firebase persistence op
@@ -34,6 +41,8 @@ const deriveAndStoreKeys = async (user, password, loginType) => {
   // Gem encrypted password kun for email login
   if (loginType === 'email' && allowDevPasswordCache) {
     localStorage.setItem(`encryptedPassword_${user.uid}`, btoa(password))
+  } else {
+    localStorage.removeItem(`encryptedPassword_${user.uid}`)
   }
   
   return { key, verifier }
@@ -86,15 +95,34 @@ export const useAuthStore = defineStore('auth', () => {
     encryptionKeyTrigger.value
     return !!(user.value && SecureStorage.hasEncryptionKey())
   })
+
+  const getLoginType = () => {
+    if (!user.value?.uid) return null
+    return localStorage.getItem(`loginType_${user.value.uid}`)
+  }
+
+  const getDevPasswordCacheEnabled = () => {
+    return import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
+  }
+
+  const cleanupDevPasswordCache = (userId) => {
+    if (!userId) return
+    if (!getDevPasswordCacheEnabled()) {
+      localStorage.removeItem(`encryptedPassword_${userId}`)
+    }
+  }
   
   // Helper function to recover encryption key if missing but user is logged in
+  /**
+   * @returns {Promise<AuthRecoveryResult>}
+   */
   const recoverEncryptionKey = async () => {
-    if (!user.value || SecureStorage.hasEncryptionKey()) return false
-    const loginType = localStorage.getItem(`loginType_${user.value.uid}`)
+    if (!user.value || SecureStorage.hasEncryptionKey()) return { ok: false, needsPassword: false }
+    const loginType = getLoginType()
     if (!loginType) {
-      return false
+      return { ok: false, needsPassword: false }
     }
-    const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
+    const allowDevPasswordCache = getDevPasswordCacheEnabled()
     
     try {
       let key = null
@@ -114,10 +142,38 @@ export const useAuthStore = defineStore('auth', () => {
           SecureStorage.clearEncryptionKey()
         })
         encryptionKeyTrigger.value++
-        return true
-      } else {
-        return false
+        return { ok: true, needsPassword: false }
       }
+
+      return { ok: false, needsPassword: loginType === 'email' }
+    } catch {
+      return { ok: false, needsPassword: loginType === 'email' }
+    }
+  }
+
+  /**
+   * @param {string} password
+   * @returns {Promise<boolean>}
+   */
+  const setEncryptionKeyFromPassword = async (password) => {
+    if (!user.value?.uid || !password?.trim()) return false
+    const loginType = getLoginType()
+    if (loginType !== 'email') return false
+
+    try {
+      const storedVerifier = localStorage.getItem(`passwordVerifier_${user.value.uid}`)
+      if (!storedVerifier) return false
+
+      const { verifyPassword } = await import('../utils/encryption')
+      const isValid = await verifyPassword(password, user.value.uid, storedVerifier)
+      if (!isValid) return false
+
+      const key = await deriveKeyFromPassword(password, user.value.uid)
+      SecureStorage.setEncryptionKey(key, () => {
+        SecureStorage.clearEncryptionKey()
+      })
+      encryptionKeyTrigger.value++
+      return true
     } catch {
       return false
     }
@@ -226,6 +282,7 @@ export const useAuthStore = defineStore('auth', () => {
       // For Google login, brug UID som password
       const authPassword = loginType === 'google' ? result.user.uid : password
       const { key, verifier } = await deriveAndStoreKeys(result.user, authPassword, loginType)
+      cleanupDevPasswordCache(result.user.uid)
       
       setupUserSession(result.user, verifier, key)
       
@@ -263,6 +320,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * @param {string} email
+   * @param {string} password
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
   const handleLogin = async (email, password) => {
     if (!email || !password) {
       throw new Error('Email og password er påkrævet')
@@ -275,6 +337,11 @@ export const useAuthStore = defineStore('auth', () => {
     )
   }
 
+  /**
+   * @param {string} email
+   * @param {string} password
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
   const handleRegister = async (email, password) => {
     if (!email || !password) {
       throw new Error('Email og password er påkrævet')
@@ -294,6 +361,9 @@ export const useAuthStore = defineStore('auth', () => {
     )
   }
 
+  /**
+   * @returns {Promise<{success: boolean, error?: string, needsPassword?: boolean}>}
+   */
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider()
     provider.addScope('email')
@@ -344,6 +414,7 @@ export const useAuthStore = defineStore('auth', () => {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         user.value = firebaseUser
+        cleanupDevPasswordCache(firebaseUser.uid)
         
         const storedVerifier = localStorage.getItem(`passwordVerifier_${firebaseUser.uid}`)
         const loginType = localStorage.getItem(`loginType_${firebaseUser.uid}`)
@@ -354,7 +425,7 @@ export const useAuthStore = defineStore('auth', () => {
         
         try {
           let key = null
-          const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
+          const allowDevPasswordCache = getDevPasswordCacheEnabled()
           
           if (loginType === 'google') {
             key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
@@ -403,6 +474,8 @@ export const useAuthStore = defineStore('auth', () => {
     extendSession,
     setupActivityListeners,
     initializeAuth,
-    recoverEncryptionKey
+    recoverEncryptionKey,
+    setEncryptionKeyFromPassword,
+    getLoginType
   }
 })

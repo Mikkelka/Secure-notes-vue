@@ -18,6 +18,20 @@ import { useTrashStore } from './trash'
 import { FOLDER_IDS } from '../constants/folderIds'
 import { sanitizeNoteContent } from '../utils/sanitizeHtml'
 
+/**
+ * @typedef {Object} Note
+ * @property {string} id
+ * @property {string} title
+ * @property {string} content
+ * @property {string} folderId
+ * @property {boolean} isFavorite
+ * @property {boolean} isDeleted
+ * @property {Date|null} deletedAt
+ * @property {Date} createdAt
+ * @property {Date} updatedAt
+ */
+
+
 // Helper til at udtrække ren tekst fra HTML indhold.
 const extractTextFromContent = (content) => {
   if (!content || typeof content !== 'string') return ''
@@ -241,6 +255,13 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  /**
+   * @param {string} title
+   * @param {string} content
+   * @param {string|null} folderId
+   * @param {import('firebase/auth').User} user
+   * @returns {Promise<boolean>}
+   */
   const saveNote = async (title, content, folderId, user) => {
     const sanitizedContent = sanitizeNoteContent(content)
     if (!title.trim() || !sanitizedContent.trim() || !user) return false
@@ -287,6 +308,12 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  /**
+   * @param {string} noteId
+   * @param {string} newTitle
+   * @param {string} newContent
+   * @returns {Promise<boolean>}
+   */
   const updateNote = async (noteId, newTitle, newContent) => {
     const sanitizedContent = sanitizeNoteContent(newContent)
     if (!noteId || !newTitle.trim() || !sanitizedContent.trim()) return false
@@ -364,6 +391,11 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  /**
+   * @param {string} noteId
+   * @param {import('firebase/auth').User} user
+   * @returns {Promise<boolean>}
+   */
   const duplicateNote = async (noteId, user) => {
     const originalNote = allNotes.value.find(n => n.id === noteId)
     if (!originalNote || !user) return false
@@ -470,3 +502,4 @@ export const useNotesStore = defineStore('notes', () => {
     trashStore
   }
 })
+

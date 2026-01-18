@@ -27,7 +27,25 @@ const ALLOWED_ATTR = [
 ]
 const SAFE_URI_REGEX = /^(https?:|mailto:|tel:)/i
 const URL_REGEX = /\b((?:https?:\/\/|www\.)[^\s<]+[^\s<\.)])/gi
+const SANITIZE_CACHE = new Map()
+const MAX_CACHE_ENTRIES = 200
 let hooksInstalled = false
+
+const getCachedSanitized = (content) => {
+  if (!SANITIZE_CACHE.has(content)) return null
+  const value = SANITIZE_CACHE.get(content)
+  SANITIZE_CACHE.delete(content)
+  SANITIZE_CACHE.set(content, value)
+  return value
+}
+
+const setCachedSanitized = (content, sanitized) => {
+  SANITIZE_CACHE.set(content, sanitized)
+  if (SANITIZE_CACHE.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = SANITIZE_CACHE.keys().next().value
+    SANITIZE_CACHE.delete(oldestKey)
+  }
+}
 
 const linkifyHtml = (html) => {
   if (typeof DOMParser === 'undefined') {
@@ -120,12 +138,18 @@ export const sanitizeNoteContent = (content) => {
 
   ensureHooksInstalled()
 
+  const cached = getCachedSanitized(content)
+  if (cached !== null) return cached
+
   const linkifiedContent = linkifyHtml(content)
 
-  return DOMPurify.sanitize(linkifiedContent, {
+  const sanitized = DOMPurify.sanitize(linkifiedContent, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     ALLOWED_URI_REGEXP: SAFE_URI_REGEX,
     ALLOW_DATA_ATTR: false
   })
+
+  setCachedSanitized(content, sanitized)
+  return sanitized
 }

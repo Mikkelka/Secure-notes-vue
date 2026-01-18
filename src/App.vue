@@ -1,4 +1,5 @@
 <template>
+  <NotificationToast />
   <ErrorBoundary>
     <!-- Login Skærm -->
     <div v-if="!authStore.isLoggedIn">
@@ -178,6 +179,13 @@
         :is-open="uiStore.showAppSettings"
         @close="uiStore.closeAppSettings"
       />
+      <ReauthDialog
+        :is-open="showReauthDialog"
+        :login-type="authStore.getLoginType()"
+        :error="reauthError"
+        @confirm="handleReauthConfirm"
+        @cancel="handleReauthCancel"
+      />
 
       <!-- Mobile Bottom Menu -->
       <MobileBottomMenu
@@ -353,6 +361,7 @@ import { useTrashStore } from "./stores/trash";
 // Components
 import ErrorBoundary from "./components/ErrorBoundary.vue";
 import LoginForm from "./components/auth/LoginForm.vue";
+import ReauthDialog from "./components/auth/ReauthDialog.vue";
 import Header from "./components/layout/Header.vue";
 import FolderSidebar from "./components/layout/FolderSidebar.vue";
 import MobileBottomMenu from "./components/layout/MobileBottomMenu.vue";
@@ -369,6 +378,8 @@ import ImportData from "./components/data/ImportData.vue";
 import AiModal from "./components/ai/AiModal.vue";
 import AppSettings from "./components/settings/AppSettings.vue";
 import BaseDialog from "./components/base/BaseDialog.vue";
+import NotificationToast from "./components/base/NotificationToast.vue";
+import { useNotificationsStore } from "./stores/notifications";
 
 // --- Store initialisering ---
 const authStore = useAuthStore();
@@ -377,9 +388,14 @@ const foldersStore = useFoldersStore();
 const uiStore = useUIStore();
 const settingsStore = useSettingsStore();
 const trashStore = useTrashStore();
+const notificationsStore = useNotificationsStore();
 
 // --- Template refs ---
 const loginFormRef = ref(null);
+const showReauthDialog = ref(false);
+const reauthError = ref("");
+const reauthResolver = ref(null);
+const reauthPromise = ref(null);
 
 // --- Lokal state (f.eks. til dialoger) ---
 const isChangePinDialogOpen = ref(false);
@@ -432,6 +448,53 @@ const reloadAllData = async () => {
   }
 };
 
+const promptReauth = () => {
+  if (reauthPromise.value) return reauthPromise.value;
+
+  reauthError.value = "";
+  showReauthDialog.value = true;
+  reauthPromise.value = new Promise((resolve) => {
+    reauthResolver.value = resolve;
+  });
+  return reauthPromise.value;
+};
+
+const handleReauthConfirm = async (password) => {
+  if (!password) {
+    reauthError.value = "Password er påkrævet";
+    return;
+  }
+
+  const success = await authStore.setEncryptionKeyFromPassword(password);
+  if (success) {
+    showReauthDialog.value = false;
+    reauthError.value = "";
+    reauthResolver.value?.(true);
+    reauthResolver.value = null;
+    reauthPromise.value = null;
+  } else {
+    reauthError.value = "Forkert password. Prøv igen.";
+  }
+};
+
+const handleReauthCancel = () => {
+  showReauthDialog.value = false;
+  reauthError.value = "";
+  reauthResolver.value?.(false);
+  reauthResolver.value = null;
+  reauthPromise.value = null;
+};
+
+const ensureEncryptionKey = async () => {
+  if (authStore.encryptionKey) return true;
+  const recovery = await authStore.recoverEncryptionKey();
+  if (recovery.ok) return true;
+  if (recovery.needsPassword) {
+    return await promptReauth();
+  }
+  return false;
+};
+
 // --- Auth Handlers ---
 const handleLogin = async (email, password) => {
   const result = await authStore.handleLogin(email, password);
@@ -463,6 +526,12 @@ const handleSaveNote = async (title, content) => {
       : foldersStore.selectedFolderId;
 
   try {
+    const hasKey = await ensureEncryptionKey();
+    if (!hasKey) {
+      notificationsStore.notify("Session udløbet. Log venligst ind igen for at gemme noter.", "error");
+      return false;
+    }
+
     const success = await notesStore.saveNote(
       title, content, targetFolderId, authStore.user
     );
@@ -474,7 +543,7 @@ const handleSaveNote = async (title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         try {
           const success = await notesStore.saveNote(
@@ -486,25 +555,30 @@ const handleSaveNote = async (title, content) => {
           return success;
         } catch (retryError) {
           console.error('❌ Note save failed even after key recovery:', retryError);
-          alert('Fejl ved oprettelse af note. Prøv at logge ind igen.');
+          notificationsStore.notify("Fejl ved oprettelse af note. Prøv at logge ind igen.", "error");
           return false;
         }
-      } else {
-        console.error('❌ Could not recover encryption key');
-        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
-        return false;
       }
-    } else {
-      // Other errors
-      console.error('❌ Fejl ved oprettelse af note:', error);
-      alert('Fejl ved oprettelse af note: ' + error.message);
+      console.error('❌ Could not recover encryption key');
+      notificationsStore.notify("Session udløbet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
+
+    // Other errors
+    console.error('❌ Fejl ved oprettelse af note:', error);
+    notificationsStore.notify(`Fejl ved oprettelse af note: ${error.message}`, "error");
+    return false;
   }
 };
 
 const handleViewerUpdate = async (noteId, title, content) => {
   try {
+    const hasKey = await ensureEncryptionKey();
+    if (!hasKey) {
+      notificationsStore.notify("Session udløbet. Log venligst ind igen for at gemme noter.", "error");
+      return false;
+    }
+
     const success = await notesStore.updateNote(
       noteId, title, content
     );
@@ -518,7 +592,7 @@ const handleViewerUpdate = async (noteId, title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         try {
           const success = await notesStore.updateNote(
@@ -534,21 +608,20 @@ const handleViewerUpdate = async (noteId, title, content) => {
         } catch (retryError) {
           console.error('❌ Note update failed even after key recovery:', retryError);
           // Show user-friendly error message
-          alert('Fejl ved opdatering af note. Prøv at logge ind igen.');
+          notificationsStore.notify("Fejl ved opdatering af note. Prøv at logge ind igen.", "error");
           return false;
         }
-      } else {
-        console.error('❌ Could not recover encryption key');
-        // Show user-friendly error message
-        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
-        return false;
       }
-    } else {
-      // Other errors
-      console.error('❌ Fejl ved opdatering af note:', error);
-      alert('Fejl ved opdatering af note: ' + error.message);
+      console.error('❌ Could not recover encryption key');
+      // Show user-friendly error message
+      notificationsStore.notify("Session udløbet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
+
+    // Other errors
+    console.error('❌ Fejl ved opdatering af note:', error);
+    notificationsStore.notify(`Fejl ved opdatering af note: ${error.message}`, "error");
+    return false;
   }
 };
 
@@ -566,7 +639,7 @@ const handleToggleFavorite = async (noteId) => {
 const handleMoveNoteToFolder = async (noteId, newFolderId) => {
   // Check if user has access to the target folder
   if (newFolderId === FOLDER_IDS.SECURE && foldersStore.lockedFolders.has(FOLDER_IDS.SECURE)) {
-    alert('Du skal først låse op for den sikre mappe');
+    notificationsStore.notify("Du skal først låse op for den sikre mappe", "warning");
     return false;
   }
 
@@ -587,7 +660,7 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
     return success;
   } catch (error) {
     console.error('Fejl ved flytning af note:', error);
-    alert('Kunne ikke flytte noten. Prøv igen.');
+    notificationsStore.notify("Kunne ikke flytte noten. Prøv igen.", "error");
     return false;
   }
 };
@@ -600,11 +673,11 @@ const handleDuplicateNote = async (noteId) => {
       // Close the note viewer after duplicating
       uiStore.closeNoteViewer();
     } else {
-      alert('Kunne ikke kopiere noten. Prøv igen.');
+      notificationsStore.notify("Kunne ikke kopiere noten. Prøv igen.", "error");
     }
   } catch (error) {
     console.error('Fejl ved kopiering af note:', error);
-    alert('Kunne ikke kopiere noten. Prøv igen.');
+    notificationsStore.notify("Kunne ikke kopiere noten. Prøv igen.", "error");
   }
 };
 
@@ -701,13 +774,13 @@ const handleChangeSecurePin = async () => {
       authStore.user
     );
     if (success) {
-      alert("PIN ændret succesfuldt!");
+      notificationsStore.notify("PIN ændret succesfuldt!", "success");
       isChangePinDialogOpen.value = false;
     } else {
-      alert("Kunne ikke ændre PIN. Prøv igen.");
+      notificationsStore.notify("Kunne ikke ændre PIN. Prøv igen.", "error");
     }
   } else {
-    alert("PIN skal være 4 cifre.");
+    notificationsStore.notify("PIN skal være 4 cifre.", "warning");
   }
 };
 
@@ -773,7 +846,7 @@ watch(
       await reloadAllData();
     } else if (user && !encryptionKey) {
       // User is logged in but encryption key is missing - try recovery
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         // Small delay to ensure Vue reactivity propagates
         await new Promise(resolve => setTimeout(resolve, 50));
