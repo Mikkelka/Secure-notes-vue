@@ -1,8 +1,6 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
@@ -11,63 +9,35 @@ import {
   signInWithPopup
 } from 'firebase/auth'
 import { auth } from '../firebase'
-import { deriveKeyFromPassword, generatePasswordVerifier } from '../utils/encryption'
+import { deriveKeyFromPassword } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
 import { useSettingsStore } from './settings'
 
-/**
- * @typedef {Object} AuthRecoveryResult
- * @property {boolean} ok
- * @property {boolean} needsPassword
- */
-
-
 // --- Helper funktioner til authentication ---
 
-// Helper til at sætte Firebase persistence op
+// Helper til at sÃ¦tte Firebase persistence op
 const setupAuthPersistence = async () => {
   await setPersistence(auth, browserLocalPersistence)
 }
 
-// Helper til at derive og gemme krypteringsnøgler
-const deriveAndStoreKeys = async (user, password, loginType) => {
-  const key = await deriveKeyFromPassword(password, user.uid)
-  const verifier = await generatePasswordVerifier(password, user.uid)
-  const allowDevPasswordCache = import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
-  
-  localStorage.setItem(`passwordVerifier_${user.uid}`, verifier)
-  localStorage.setItem(`loginType_${user.uid}`, loginType)
-  
-  // Gem encrypted password kun for email login
-  if (loginType === 'email' && allowDevPasswordCache) {
-    localStorage.setItem(`encryptedPassword_${user.uid}`, btoa(password))
-  } else {
-    localStorage.removeItem(`encryptedPassword_${user.uid}`)
-  }
-  
-  return { key, verifier }
+// Helper til at derive og gemme krypteringsnÃ¸gler (Google-only)
+const deriveAndStoreKeys = async (user) => {
+  const key = await deriveKeyFromPassword(user.uid, user.uid)
+  localStorage.setItem(`loginType_${user.uid}`, 'google')
+  localStorage.removeItem(`passwordVerifier_${user.uid}`)
+  localStorage.removeItem(`encryptedPassword_${user.uid}`)
+  return { key }
 }
 
 // Helper til at mappe Firebase auth fejl til brugervenlige beskeder
 const mapAuthError = (error, operation) => {
   const commonErrors = {
-    'auth/network-request-failed': 'Netværksfejl. Tjek din forbindelse',
-    'auth/too-many-requests': 'For mange forsøg. Prøv igen senere',
+    'auth/network-request-failed': 'NetvÃ¦rksfejl. Tjek din forbindelse',
+    'auth/too-many-requests': 'For mange forsÃ¸g. PrÃ¸v igen senere',
     'auth/invalid-email': 'Ugyldig email adresse'
   }
   
   const operationErrors = {
-    login: {
-      'auth/user-disabled': 'Denne konto er deaktiveret',
-      'auth/user-not-found': 'Ingen bruger med denne email',
-      'auth/wrong-password': 'Forkert password',
-      'auth/invalid-credential': 'Forkert email eller password'
-    },
-    register: {
-      'auth/email-already-in-use': 'Email er allerede i brug',
-      'auth/weak-password': 'Password er for svagt',
-      'auth/operation-not-allowed': 'Email/password login er ikke aktiveret'
-    },
     google: {
       'auth/popup-closed-by-user': 'Login blev annulleret',
       'auth/popup-blocked': 'Popup blev blokeret af browseren',
@@ -82,7 +52,6 @@ const mapAuthError = (error, operation) => {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
-  const passwordVerifier = ref(null)
   const loading = ref(true)
   const showTimeoutWarning = ref(false)
   
@@ -96,79 +65,11 @@ export const useAuthStore = defineStore('auth', () => {
     return !!(user.value && SecureStorage.hasEncryptionKey())
   })
 
-  const getLoginType = () => {
-    if (!user.value?.uid) return null
-    return localStorage.getItem(`loginType_${user.value.uid}`)
-  }
-
-  const getDevPasswordCacheEnabled = () => {
-    return import.meta.env.VITE_ALLOW_DEV_PASSWORD_CACHE === 'true'
-  }
-
-  const cleanupDevPasswordCache = (userId) => {
-    if (!userId) return
-    if (!getDevPasswordCacheEnabled()) {
-      localStorage.removeItem(`encryptedPassword_${userId}`)
-    }
-  }
-  
   // Helper function to recover encryption key if missing but user is logged in
-  /**
-   * @returns {Promise<AuthRecoveryResult>}
-   */
   const recoverEncryptionKey = async () => {
-    if (!user.value || SecureStorage.hasEncryptionKey()) return { ok: false, needsPassword: false }
-    const loginType = getLoginType()
-    if (!loginType) {
-      return { ok: false, needsPassword: false }
-    }
-    const allowDevPasswordCache = getDevPasswordCacheEnabled()
-    
+    if (!user.value || SecureStorage.hasEncryptionKey()) return false
     try {
-      let key = null
-      
-      if (loginType === 'google') {
-        key = await deriveKeyFromPassword(user.value.uid, user.value.uid)
-      } else if (loginType === 'email' && allowDevPasswordCache) {
-        const encryptedPassword = localStorage.getItem(`encryptedPassword_${user.value.uid}`)
-        if (encryptedPassword) {
-          const password = atob(encryptedPassword)
-          key = await deriveKeyFromPassword(password, user.value.uid)
-        }
-      }
-      
-      if (key) {
-        SecureStorage.setEncryptionKey(key, () => {
-          SecureStorage.clearEncryptionKey()
-        })
-        encryptionKeyTrigger.value++
-        return { ok: true, needsPassword: false }
-      }
-
-      return { ok: false, needsPassword: loginType === 'email' }
-    } catch {
-      return { ok: false, needsPassword: loginType === 'email' }
-    }
-  }
-
-  /**
-   * @param {string} password
-   * @returns {Promise<boolean>}
-   */
-  const setEncryptionKeyFromPassword = async (password) => {
-    if (!user.value?.uid || !password?.trim()) return false
-    const loginType = getLoginType()
-    if (loginType !== 'email') return false
-
-    try {
-      const storedVerifier = localStorage.getItem(`passwordVerifier_${user.value.uid}`)
-      if (!storedVerifier) return false
-
-      const { verifyPassword } = await import('../utils/encryption')
-      const isValid = await verifyPassword(password, user.value.uid, storedVerifier)
-      if (!isValid) return false
-
-      const key = await deriveKeyFromPassword(password, user.value.uid)
+      const key = await deriveKeyFromPassword(user.value.uid, user.value.uid)
       SecureStorage.setEncryptionKey(key, () => {
         SecureStorage.clearEncryptionKey()
       })
@@ -257,10 +158,9 @@ export const useAuthStore = defineStore('auth', () => {
     resetSessionTimers()
   }
 
-  // Helper til at sætte user session op efter successful authentication
-  const setupUserSession = (authUser, verifier, key) => {
+  // Helper til at sÃ¦tte user session op efter successful authentication
+  const setupUserSession = (authUser, key) => {
     user.value = authUser
-    passwordVerifier.value = verifier
     
     // Set encryption key in SecureStorage with logout callback
     SecureStorage.setEncryptionKey(key, () => {
@@ -272,23 +172,20 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Hovedfunktion til at eksekvere authentication flow
-  const executeAuthFlow = async (authOperation, loginType, password = null) => {
+  const executeAuthFlow = async (authOperation) => {
     loading.value = true
     
     try {
       await setupAuthPersistence()
       const result = await authOperation()
       
-      // For Google login, brug UID som password
-      const authPassword = loginType === 'google' ? result.user.uid : password
-      const { key, verifier } = await deriveAndStoreKeys(result.user, authPassword, loginType)
-      cleanupDevPasswordCache(result.user.uid)
+      const { key } = await deriveAndStoreKeys(result.user)
       
-      setupUserSession(result.user, verifier, key)
+      setupUserSession(result.user, key)
       
       return { success: true }
     } catch (error) {
-      return { success: false, error: mapAuthError(error, loginType) }
+      return { success: false, error: mapAuthError(error, 'google') }
     } finally {
       loading.value = false
     }
@@ -321,48 +218,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * @param {string} email
-   * @param {string} password
    * @returns {Promise<{success: boolean, error?: string}>}
-   */
-  const handleLogin = async (email, password) => {
-    if (!email || !password) {
-      throw new Error('Email og password er påkrævet')
-    }
-    
-    return executeAuthFlow(
-      () => signInWithEmailAndPassword(auth, email, password),
-      'login',
-      password
-    )
-  }
-
-  /**
-   * @param {string} email
-   * @param {string} password
-   * @returns {Promise<{success: boolean, error?: string}>}
-   */
-  const handleRegister = async (email, password) => {
-    if (!email || !password) {
-      throw new Error('Email og password er påkrævet')
-    }
-    
-    if (password.length < 8) {
-      return { 
-        success: false, 
-        error: 'Password skal være mindst 8 tegn langt' 
-      }
-    }
-    
-    return executeAuthFlow(
-      () => createUserWithEmailAndPassword(auth, email, password),
-      'register',
-      password
-    )
-  }
-
-  /**
-   * @returns {Promise<{success: boolean, error?: string, needsPassword?: boolean}>}
    */
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider()
@@ -370,12 +226,9 @@ export const useAuthStore = defineStore('auth', () => {
     provider.addScope('profile')
     
     const result = await executeAuthFlow(
-      () => signInWithPopup(auth, provider),
-      'google'
+      () => signInWithPopup(auth, provider)
     )
-    
-    // Tilføj needsPassword: false til Google login response
-    return { ...result, needsPassword: false }
+    return result
   }
 
   const logout = async () => {
@@ -414,46 +267,18 @@ export const useAuthStore = defineStore('auth', () => {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         user.value = firebaseUser
-        cleanupDevPasswordCache(firebaseUser.uid)
-        
-        const storedVerifier = localStorage.getItem(`passwordVerifier_${firebaseUser.uid}`)
-        const loginType = localStorage.getItem(`loginType_${firebaseUser.uid}`)
-        
-        if (storedVerifier) {
-          passwordVerifier.value = storedVerifier
-        }
         
         try {
-          let key = null
-          const allowDevPasswordCache = getDevPasswordCacheEnabled()
-          
-          if (loginType === 'google') {
-            key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
-          } else if (loginType === 'email' && allowDevPasswordCache) {
-            const encryptedPassword = localStorage.getItem(`encryptedPassword_${firebaseUser.uid}`)
-            if (encryptedPassword) {
-              const password = atob(encryptedPassword)
-              key = await deriveKeyFromPassword(password, firebaseUser.uid)
-            }
-          }
-          
-          if (key) {
-            // Set encryption key in SecureStorage with logout callback
-            SecureStorage.setEncryptionKey(key, () => {
-              logout()
-            })
-            
-            // Trigger reactivity for encryptionKey computed property
-            encryptionKeyTrigger.value++
-          } else {
-            SecureStorage.clearEncryptionKey()
-          }
+          const key = await deriveKeyFromPassword(firebaseUser.uid, firebaseUser.uid)
+          SecureStorage.setEncryptionKey(key, () => {
+            logout()
+          })
+          encryptionKeyTrigger.value++
         } catch {
           SecureStorage.clearEncryptionKey()
         }
       } else {
         user.value = null
-        passwordVerifier.value = null
         SecureStorage.clearEncryptionKey()
       }
       loading.value = false
@@ -467,15 +292,14 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     showTimeoutWarning,
     settings,
-    handleLogin,
-    handleRegister,
     handleGoogleLogin,
     logout,
     extendSession,
     setupActivityListeners,
     initializeAuth,
-    recoverEncryptionKey,
-    setEncryptionKeyFromPassword,
-    getLoginType
+    recoverEncryptionKey
   }
 })
+
+
+

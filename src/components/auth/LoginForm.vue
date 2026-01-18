@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="fullscreen-bg">
     <div
       class="bg-gray-800/80 backdrop-blur border border-gray-700/50 rounded-2xl p-6 w-full max-w-md"
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Google Login - Primary option -->
-      <div class="mb-6">
+      <div class="mb-4">
         <button
           @click="handleGoogleSubmit"
           :disabled="loading"
@@ -48,81 +48,25 @@
           </svg>
           Log ind med Google
         </button>
+        <p class="text-xs text-gray-400 mt-2 text-center">
+          Google kan ikke se dine noter – alt er end-to-end krypteret.
+        </p>
       </div>
 
-      <!-- Divider -->
-      <div class="flex items-center gap-3 mb-6">
-        <div class="flex-1 h-px bg-gray-600"></div>
-        <span class="text-gray-400 text-sm">eller brug email</span>
-        <div class="flex-1 h-px bg-gray-600"></div>
-      </div>
-
-      <div class="space-y-3">
-        <div class="relative">
-          <input
-            v-model="email"
-            type="email"
-            placeholder="Email"
-            class="input-base"
-          />
-        </div>
-
-        <div class="relative">
-          <input
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="Password (bruges til kryptering)"
-            class="input-base pr-11"
-            @keypress.enter="handleSubmit('login')"
-          />
-          <button
-            type="button"
-            @click="showPassword = !showPassword"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-          >
-            <EyeOff v-if="showPassword" class="icon-sm" />
-            <Eye v-else class="icon-sm" />
-          </button>
-        </div>
-
-        <!-- Error message -->
-        <div
-          v-if="error"
-          class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm"
-        >
-          <AlertCircle class="icon-sm flex-shrink-0" />
-          <span>{{ error }}</span>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <BaseButton
-            @click="handleSubmit('login')"
-            :disabled="!email || !password"
-            :loading="loading"
-            variant="primary"
-            class="flex-1"
-          >
-            <Unlock v-if="!loading" class="icon-sm" />
-            Login
-          </BaseButton>
-          <BaseButton
-            @click="handleSubmit('register')"
-            :disabled="!email || !password"
-            :loading="loading"
-            variant="secondary"
-            class="flex-1"
-          >
-            <Plus v-if="!loading" class="icon-sm" />
-            Registrer
-          </BaseButton>
-        </div>
+      <!-- Error message -->
+      <div
+        v-if="error"
+        class="flex items-center gap-2 p-3 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm"
+      >
+        <AlertCircle class="icon-sm flex-shrink-0" />
+        <span>{{ error }}</span>
       </div>
 
       <div class="mt-4 space-y-3">
         <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div class="flex items-center gap-2 text-blue-300 text-sm">
             <Lock class="icon-sm" />
-            <span>Dine data krypteres med dit password før lagring</span>
+            <span>Dine data krypteres via din Google-konto før lagring</span>
           </div>
         </div>
 
@@ -143,16 +87,7 @@
 
 <script setup>
 import { ref } from "vue";
-import {
-  Shield,
-  Unlock,
-  Plus,
-  Eye,
-  EyeOff,
-  Lock,
-  AlertCircle,
-} from "lucide-vue-next";
-import BaseButton from "../base/BaseButton.vue";
+import { Shield, Lock, AlertCircle } from "lucide-vue-next";
 
 defineProps({
   loading: {
@@ -161,22 +96,9 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["login", "register", "googleLogin"]);
+const emit = defineEmits(["googleLogin"]);
 
-const email = ref("");
-const password = ref("");
-const showPassword = ref(false);
 const error = ref("");
-
-const handleSubmit = async (action) => {
-  error.value = "";
-
-  if (action === "login") {
-    emit("login", email.value, password.value);
-  } else {
-    emit("register", email.value, password.value);
-  }
-};
 
 const handleGoogleSubmit = async () => {
   error.value = "";
@@ -189,8 +111,6 @@ const setError = (errorMessage) => {
 };
 
 const clearForm = () => {
-  email.value = "";
-  password.value = "";
   error.value = "";
 };
 
@@ -199,3 +119,4 @@ defineExpose({
   clearForm,
 });
 </script>
+

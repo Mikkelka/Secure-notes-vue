@@ -28,7 +28,7 @@ export const deriveKeyFromPassword = async (password, userId) => {
       ['encrypt', 'decrypt']
     );
   } catch {
-    throw new Error('Kunne ikke generere krypteringsnÃ¸gle');
+    throw new Error('Kunne ikke generere krypteringsnøgle');
   }
 };
 
@@ -37,7 +37,7 @@ export const encryptText = async (text, key) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
     
-    // Generer tilfÃ¦ldig IV for hver kryptering
+    // Generer tilfældig IV for hver kryptering
     const iv = crypto.getRandomValues(new Uint8Array(12));
     
     const encrypted = await crypto.subtle.encrypt(
@@ -78,23 +78,6 @@ export const decryptText = async (encryptedData, key) => {
     const result = new TextDecoder().decode(decrypted);
     return result;
   } catch {
-    throw new Error('Kunne ikke dekryptere data - forkert password?');
+    throw new Error('Kunne ikke dekryptere data');
   }
-};
-
-// HjÃ¦lpefunktion til at verificere password
-export const verifyPassword = async (password, userId, testData) => {
-  try {
-    const key = await deriveKeyFromPassword(password, userId);
-    await decryptText(testData, key);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-// Generer en test-streng til password verifikation
-export const generatePasswordVerifier = async (password, userId) => {
-  const key = await deriveKeyFromPassword(password, userId);
-  return encryptText('password_verifier', key);
 };
