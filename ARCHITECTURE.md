@@ -4,11 +4,10 @@ Dette dokument giver et hurtigt overblik over applikationens struktur og alle fi
 
 ## 🏷️ Version Information
 
-**Current Version: V1.0.0** - Official production release
-- Stable client-side encryption implementation
-- Full AI integration with Google Gemini models  
-- Complete feature set with robust session management
-- Production-ready trash system and data recovery
+**Current Version: V1.1.x** - Google-only auth + security hardening
+- Google OAuth only (email/password removed)
+- Client-side encryption + sanitization on render/save
+- Toast-based notifications
 - Local TinyMCE implementation for offline capability
 
 ## 📋 Projekt Overview
@@ -33,7 +32,7 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 │   ├── AI-PERFORMANCE-INVESTIGATION.md
 │   ├── BACKUP-GUIDE.md
 │   ├── firebase-rules.md
-│   └── archive/                   # Arkiverede dokumenter
+│   └── archive/                   # Arkiverede dokumenter (ROADMAP/CLAUDE)
 ├── public/
 │   ├── icon-*.png                 # PWA ikoner (48px til 512px)
 │   └── tinymce/                   # Lokalt TinyMCE (445KB + plugins)
@@ -55,8 +54,7 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 │   ├── services/                  # Business logic services
 │   └── utils/                     # Utility functions
 ├── ai-test.html                   # Standalone AI testing page
-├── CLAUDE.md                      # Claude Code instruktioner  
-├── CLAUDE.local.md                # Private udvikler-instruktioner
+├── AGENTS.md                      # Codex instruktioner  
 └── package.json                   # Dependencies (Vue 3, Firebase, TinyMCE)
 ```
 
@@ -64,10 +62,9 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 
 ### `src/stores/auth.js`
 **Ansvar:** Authentication state og session management
-- Firebase auth integration (Google OAuth + email/password)
+- Firebase auth integration (Google OAuth only)
 - Encryption key management via SecureStorage
 - Session timeout handling (30 min default)
-- Master password verification
 - Key recovery efter timeout
 
 ### `src/stores/notes.js` 
@@ -115,7 +112,7 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 - **AiInstructionDropdown.vue** - AI instruction templates
 
 ### `src/components/auth/`
-- **LoginForm.vue** - Login/register form med validation
+- **LoginForm.vue** - Google-only login
 
 ### `src/components/base/`
 **Reusable UI komponenter:**
@@ -124,6 +121,7 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 - **BaseToggle.vue** - Toggle switch component  
 - **CopyTextButton.vue** - Copy-to-clipboard button
 - **PinInput.vue** - 4-digit PIN input
+- **NotificationToast.vue** - Toast notifications
 
 ### `src/components/data/`
 - **DataExport.vue** - Note export functionality (JSON)
@@ -191,6 +189,11 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 - User-specific salts (`securenotes_v1_${userId}`)
 - Random IV per encryption operation
 
+#### `sanitizeHtml.js`
+**HTML Sanitization:**
+- DOMPurify sanitize med allowlist
+- Linkify + cached sanitization
+
 #### `debounce.js`
 **Utility function for search debouncing (300ms)**
 
@@ -207,7 +210,7 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 - **Zero Cost:** Ingen løbende omkostninger
 
 ### Client-Side Encryption Model
-- **Password-based key derivation:** PBKDF2 med 210,000 iterations
+- **Google-only key derivation:** PBKDF2 med 210,000 iterations (UID as password)
 - **User-specific salts:** `securenotes_v1_${userId}`
 - **AES-GCM encryption:** 256-bit keys med random IVs
 - **Firebase stores kun encrypted data:** Server ser aldrig plaintext
@@ -225,16 +228,16 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 
 ### Session Timeout Recovery
 - **Automatic Recovery:** Når encryption key udløber men Firebase auth persists
-- **Graceful Degradation:** User-friendly danske fejlbeskeder
-- **Implemented in:** `App.vue` for `handleSaveNote()` og `handleViewerUpdate()`
+- **Graceful Degradation:** User-friendly danske fejlbeskeder (toast)
+- **Implemented in:** `App.vue` via `ensureEncryptionKey()`
 
 ## 📋 Key Files Reference
 
 ### Core Application Files
-- **`src/App.vue:683`** - Root component med all layout logic
+- **`src/App.vue`** - Root component med layout og handlers
 - **`src/main.js:11`** - Vue app initialization
 - **`src/style.css`** - Tailwind @apply component system
-- **`CLAUDE.md`** - Claude Code development instructions
+- **`AGENTS.md`** - Codex development instructions
 
 ### Critical Store Files  
 - **`src/stores/auth.js`** - Authentication og session management
@@ -265,9 +268,10 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 5. **Developer Experience:** Extensive @apply system, comprehensive documentation
 6. **AI Integration:** Seamless AI features med real-time feedback
 
-## 🚀 V1.0.0 Release Milestones
+## 🚀 V1.x Release Milestones (historical)
 
-**V1.0.0 represents a mature, production-ready secure notes application featuring:**
+**V1.0.0** var den første production‑ready release.  
+**V1.1.x** tilføjede Google‑only auth, sanitization og toast‑notifier.
 
 ### Core Features Completed
 - ✅ **Secure Client-Side Encryption** - AES-GCM with PBKDF2 key derivation
@@ -298,3 +302,4 @@ C:\Users\mikke\Desktop\Secure-notes-vue\
 ---
 
 *Dette dokument maintaines løbende når arkitekturen ændrer sig.*
+

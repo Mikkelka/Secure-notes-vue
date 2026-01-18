@@ -1,17 +1,16 @@
-<template>
+﻿<template>
+  <NotificationToast />
   <ErrorBoundary>
-    <!-- Login Skærm -->
+    <!-- Login SkÃ¦rm -->
     <div v-if="!authStore.isLoggedIn">
       <LoginForm
         ref="loginFormRef"
         :loading="authStore.loading"
-        @login="handleLogin"
-        @register="handleRegister"
         @google-login="handleGoogleLogin"
       />
     </div>
 
-    <!-- Hovedapplikation (når bruger er logget ind) -->
+    <!-- Hovedapplikation (nÃ¥r bruger er logget ind) -->
     <!-- ANBEFALING: Hele denne v-else blok kunne med fordel flyttes til sin egen komponent, f.eks. 'MainAppLayout.vue', for at holde denne fil mere simpel. -->
     <div
       v-else
@@ -233,14 +232,14 @@
         @confirm="handleConfirmFolderDelete"
         @cancel="uiStore.closeFolderConfirmDialog"
       >
-        Er du sikker på at du vil slette denne mappe? Noter flyttes til
+        Er du sikker pÃ¥ at du vil slette denne mappe? Noter flyttes til
         Ukategoriseret.
       </BaseDialog>
 
-      <!-- NY DIALOG: Erstatter window.prompt for at ændre PIN -->
+      <!-- NY DIALOG: Erstatter window.prompt for at Ã¦ndre PIN -->
       <BaseDialog
         :is-open="isChangePinDialogOpen"
-        title="Ændr sikker PIN-kode"
+        title="Ã†ndr sikker PIN-kode"
         show-default-actions
         confirm-text="Gem"
         cancel-text="Annuller"
@@ -254,7 +253,7 @@
           v-model="newPinInput"
           type="password"
           maxlength="4"
-          placeholder="••••"
+          placeholder="â€¢â€¢â€¢â€¢"
           class="pin-input"
           @keyup.enter="handleChangeSecurePin"
         />
@@ -296,7 +295,7 @@
         
         <!-- Color Selection -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-300">Vælg farve:</label>
+          <label class="text-sm font-medium text-gray-300">VÃ¦lg farve:</label>
           <div class="grid grid-cols-6 gap-2">
             <button
               v-for="color in folderColors"
@@ -369,6 +368,8 @@ import ImportData from "./components/data/ImportData.vue";
 import AiModal from "./components/ai/AiModal.vue";
 import AppSettings from "./components/settings/AppSettings.vue";
 import BaseDialog from "./components/base/BaseDialog.vue";
+import NotificationToast from "./components/base/NotificationToast.vue";
+import { useNotificationsStore } from "./stores/notifications";
 
 // --- Store initialisering ---
 const authStore = useAuthStore();
@@ -377,6 +378,7 @@ const foldersStore = useFoldersStore();
 const uiStore = useUIStore();
 const settingsStore = useSettingsStore();
 const trashStore = useTrashStore();
+const notificationsStore = useNotificationsStore();
 
 // --- Template refs ---
 const loginFormRef = ref(null);
@@ -405,7 +407,7 @@ const filteredNotes = computed(() => {
     return trashStore.trashedNotes;
   }
 
-  // Denne linje håndterer både 'secure' og alle specifikke mappe-ID'er
+  // Denne linje hÃ¥ndterer bÃ¥de 'secure' og alle specifikke mappe-ID'er
   return baseNotes.filter(note => note.folderId === selectedFolderId);
 });
 
@@ -418,7 +420,7 @@ const getGridColumns = computed(() => {
   return isQuickNoteAdvanced.value ? '3fr 2fr' : '2fr 3fr';
 });
 
-// --- Genindlæsning af data ---
+// --- GenindlÃ¦sning af data ---
 const reloadAllData = async () => {
   if (authStore.user && authStore.encryptionKey) {
     try {
@@ -427,24 +429,17 @@ const reloadAllData = async () => {
         foldersStore.loadFolders(authStore.user),
       ]);
     } catch (error) {
-      console.error("❌ Fejl ved genindlæsning af data:", error);
+      console.error("âŒ Fejl ved genindlÃ¦sning af data:", error);
     }
   }
 };
 
+const ensureEncryptionKey = async () => {
+  if (authStore.encryptionKey) return true;
+  return await authStore.recoverEncryptionKey();
+};
+
 // --- Auth Handlers ---
-const handleLogin = async (email, password) => {
-  const result = await authStore.handleLogin(email, password);
-  if (result.success) loginFormRef.value?.clearForm();
-  else loginFormRef.value?.setError(result.error);
-};
-
-const handleRegister = async (email, password) => {
-  const result = await authStore.handleRegister(email, password);
-  if (result.success) loginFormRef.value?.clearForm();
-  else loginFormRef.value?.setError(result.error);
-};
-
 const handleGoogleLogin = async () => {
   const result = await authStore.handleGoogleLogin();
   if (!result.success) loginFormRef.value?.setError(result.error);
@@ -463,6 +458,12 @@ const handleSaveNote = async (title, content) => {
       : foldersStore.selectedFolderId;
 
   try {
+    const hasKey = await ensureEncryptionKey();
+    if (!hasKey) {
+      notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
+      return false;
+    }
+
     const success = await notesStore.saveNote(
       title, content, targetFolderId, authStore.user
     );
@@ -474,7 +475,7 @@ const handleSaveNote = async (title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         try {
           const success = await notesStore.saveNote(
@@ -485,26 +486,31 @@ const handleSaveNote = async (title, content) => {
           }
           return success;
         } catch (retryError) {
-          console.error('❌ Note save failed even after key recovery:', retryError);
-          alert('Fejl ved oprettelse af note. Prøv at logge ind igen.');
+          console.error('âŒ Note save failed even after key recovery:', retryError);
+          notificationsStore.notify("Fejl ved oprettelse af note. PrÃ¸v at logge ind igen.", "error");
           return false;
         }
-      } else {
-        console.error('❌ Could not recover encryption key');
-        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
-        return false;
       }
-    } else {
-      // Other errors
-      console.error('❌ Fejl ved oprettelse af note:', error);
-      alert('Fejl ved oprettelse af note: ' + error.message);
+      console.error('âŒ Could not recover encryption key');
+      notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
+
+    // Other errors
+    console.error('âŒ Fejl ved oprettelse af note:', error);
+    notificationsStore.notify(`Fejl ved oprettelse af note: ${error.message}`, "error");
+    return false;
   }
 };
 
 const handleViewerUpdate = async (noteId, title, content) => {
   try {
+    const hasKey = await ensureEncryptionKey();
+    if (!hasKey) {
+      notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
+      return false;
+    }
+
     const success = await notesStore.updateNote(
       noteId, title, content
     );
@@ -518,7 +524,7 @@ const handleViewerUpdate = async (noteId, title, content) => {
   } catch (error) {
     // Handle encryption key timeout - try to recover automatically
     if (error.message?.includes('Encryption key not available')) {
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         try {
           const success = await notesStore.updateNote(
@@ -532,23 +538,22 @@ const handleViewerUpdate = async (noteId, title, content) => {
           }
           return success;
         } catch (retryError) {
-          console.error('❌ Note update failed even after key recovery:', retryError);
+          console.error('âŒ Note update failed even after key recovery:', retryError);
           // Show user-friendly error message
-          alert('Fejl ved opdatering af note. Prøv at logge ind igen.');
+          notificationsStore.notify("Fejl ved opdatering af note. PrÃ¸v at logge ind igen.", "error");
           return false;
         }
-      } else {
-        console.error('❌ Could not recover encryption key');
-        // Show user-friendly error message
-        alert('Session udløbet. Log venligst ind igen for at gemme noter.');
-        return false;
       }
-    } else {
-      // Other errors
-      console.error('❌ Fejl ved opdatering af note:', error);
-      alert('Fejl ved opdatering af note: ' + error.message);
+      console.error('âŒ Could not recover encryption key');
+      // Show user-friendly error message
+      notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
+
+    // Other errors
+    console.error('âŒ Fejl ved opdatering af note:', error);
+    notificationsStore.notify(`Fejl ved opdatering af note: ${error.message}`, "error");
+    return false;
   }
 };
 
@@ -566,7 +571,7 @@ const handleToggleFavorite = async (noteId) => {
 const handleMoveNoteToFolder = async (noteId, newFolderId) => {
   // Check if user has access to the target folder
   if (newFolderId === FOLDER_IDS.SECURE && foldersStore.lockedFolders.has(FOLDER_IDS.SECURE)) {
-    alert('Du skal først låse op for den sikre mappe');
+    notificationsStore.notify("Du skal fÃ¸rst lÃ¥se op for den sikre mappe", "warning");
     return false;
   }
 
@@ -587,7 +592,7 @@ const handleMoveNoteToFolder = async (noteId, newFolderId) => {
     return success;
   } catch (error) {
     console.error('Fejl ved flytning af note:', error);
-    alert('Kunne ikke flytte noten. Prøv igen.');
+    notificationsStore.notify("Kunne ikke flytte noten. PrÃ¸v igen.", "error");
     return false;
   }
 };
@@ -600,11 +605,11 @@ const handleDuplicateNote = async (noteId) => {
       // Close the note viewer after duplicating
       uiStore.closeNoteViewer();
     } else {
-      alert('Kunne ikke kopiere noten. Prøv igen.');
+      notificationsStore.notify("Kunne ikke kopiere noten. PrÃ¸v igen.", "error");
     }
   } catch (error) {
     console.error('Fejl ved kopiering af note:', error);
-    alert('Kunne ikke kopiere noten. Prøv igen.');
+    notificationsStore.notify("Kunne ikke kopiere noten. PrÃ¸v igen.", "error");
   }
 };
 
@@ -701,13 +706,13 @@ const handleChangeSecurePin = async () => {
       authStore.user
     );
     if (success) {
-      alert("PIN ændret succesfuldt!");
+      notificationsStore.notify("PIN Ã¦ndret succesfuldt!", "success");
       isChangePinDialogOpen.value = false;
     } else {
-      alert("Kunne ikke ændre PIN. Prøv igen.");
+      notificationsStore.notify("Kunne ikke Ã¦ndre PIN. PrÃ¸v igen.", "error");
     }
   } else {
-    alert("PIN skal være 4 cifre.");
+    notificationsStore.notify("PIN skal vÃ¦re 4 cifre.", "warning");
   }
 };
 
@@ -754,10 +759,10 @@ const handleQuickNoteMode = (isAdvanced) => {
   isQuickNoteAdvanced.value = isAdvanced;
 };
 
-// REFAKTORERET: Undgår hård genindlæsning af siden
+// REFAKTORERET: UndgÃ¥r hÃ¥rd genindlÃ¦sning af siden
 const handleImportComplete = async () => {
   uiStore.closeImportData();
-  await reloadAllData(); // Genindlæs data elegant
+  await reloadAllData(); // GenindlÃ¦s data elegant
 };
 
 
@@ -773,7 +778,7 @@ watch(
       await reloadAllData();
     } else if (user && !encryptionKey) {
       // User is logged in but encryption key is missing - try recovery
-      const recovered = await authStore.recoverEncryptionKey();
+      const recovered = await ensureEncryptionKey();
       if (recovered) {
         // Small delay to ensure Vue reactivity propagates
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -812,3 +817,6 @@ onUnmounted(() => {
   if (cleanupActivityListeners) cleanupActivityListeners();
 });
 </script>
+
+
+

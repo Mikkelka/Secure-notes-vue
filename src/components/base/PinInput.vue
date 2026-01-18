@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div v-if="isVisible" class="fixed inset-0 bg-black/50 centered z-50 p-4">
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-sm mx-auto">
       <h3 class="text-white font-medium mb-4 text-center">{{ title }}</h3>
@@ -108,21 +108,9 @@ const props = defineProps({
 
 const emit = defineEmits(['complete', 'cancel', 'masterPasswordUnlock'])
 
-// Beregn master password hint baseret på login type
+// Google-only: brug email som master password
 const masterPasswordHint = computed(() => {
-  if (!props.user?.uid) {
-    return 'Indtast din hovedadgangskode...'
-  }
-  
-  const loginType = localStorage.getItem(`loginType_${props.user.uid}`)
-  
-  if (loginType === 'google') {
-    return 'Indtast din Google email adresse'
-  } else if (loginType === 'email') {
-    return 'Indtast dit login password'
-  }
-  
-  return 'Indtast din hovedadgangskode...'
+  return 'Indtast din Google email adresse'
 })
 
 // PIN state
@@ -258,3 +246,4 @@ defineExpose({
   setError
 })
 </script>
+

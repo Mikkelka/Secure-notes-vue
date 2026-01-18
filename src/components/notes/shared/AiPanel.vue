@@ -212,7 +212,9 @@ const handleAiProcess = async () => {
     
   } catch (error) {
     console.error('AI processing error:', error)
-    alert(error.message || 'AI processing fejlede')
+    const { useNotificationsStore } = await import('../../../stores/notifications')
+    const notificationsStore = useNotificationsStore()
+    notificationsStore.notify(error.message || 'AI processing fejlede', 'error')
   } finally {
     isAiProcessing.value = false
     isStreaming.value = false

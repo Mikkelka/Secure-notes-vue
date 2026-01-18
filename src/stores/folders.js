@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import {
   collection,
@@ -13,11 +13,9 @@ import {
   getDoc
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { encryptText, decryptText, verifyPassword } from '../utils/encryption'
+import { encryptText, decryptText } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
 import { FOLDER_IDS } from '../constants/folderIds'
-// ANBEFALING: Du skal bruge en password verifikationsfunktion her for master password unlock.
-// import { verifyPassword } from '../utils/encryption' 
 
 // --- Helper-funktioner til brugerindstillinger (holdes adskilt for klarhed) ---
 
@@ -33,7 +31,7 @@ const fetchEncryptedFolders = async (userId) => {
 
 // Helper til at dekryptere en enkelt mappe
 const decryptSingleFolder = async (folderData, encryptionKey) => {
-  // Håndterer både nye krypterede og gamle ukrypterede mapper
+  // HÃ¥ndterer bÃ¥de nye krypterede og gamle ukrypterede mapper
   const decryptedName = folderData.encryptedName
     ? await decryptText(folderData.encryptedName, encryptionKey)
     : folderData.name
@@ -91,13 +89,13 @@ const loadUserSettings = async (userId) => {
       }
     }
   } catch (error) {
-    console.error('Fejl ved indlæsning af brugerindstillinger:', error)
+    console.error('Fejl ved indlÃ¦sning af brugerindstillinger:', error)
   }
   
   // Returner standardindstillinger, hvis ingen findes, eller hvis der opstod en fejl.
   return { 
     securePin: '1234', // Standard PIN
-    // passwordVerifier: null, // Du bør gemme en verifier her
+    // passwordVerifier: null, // Du bÃ¸r gemme en verifier her
     aiSettings: {
       apiKey: '',
       selectedModel: 'gemini-1.5-flash-latest',
@@ -133,7 +131,7 @@ export const useFoldersStore = defineStore('folders', () => {
   // --- State ---
   const folders = ref([])
   const selectedFolderId = ref(FOLDER_IDS.RECENT)
-  const lockedFolders = ref(new Set([FOLDER_IDS.SECURE])) // 'secure' er altid låst fra start
+  const lockedFolders = ref(new Set([FOLDER_IDS.SECURE])) // 'secure' er altid lÃ¥st fra start
   const userSettings = ref({})
   const securePin = ref('1234') // Lokal kopi af PIN for hurtig adgang
 
@@ -143,11 +141,11 @@ export const useFoldersStore = defineStore('folders', () => {
     if (!user?.uid) return
 
     try {
-      // Indlæs brugerindstillinger (inkl. PIN) først.
-      // Dette kaldes separat for at sikre, at indstillinger er tilgængelige hurtigt.
+      // IndlÃ¦s brugerindstillinger (inkl. PIN) fÃ¸rst.
+      // Dette kaldes separat for at sikre, at indstillinger er tilgÃ¦ngelige hurtigt.
       await loadSettings(user)
       
-      // Tjek om encryption key er tilgængelig før vi fortsætter
+      // Tjek om encryption key er tilgÃ¦ngelig fÃ¸r vi fortsÃ¦tter
       if (!SecureStorage.hasEncryptionKey()) {
         console.warn('Encryption key not available, skipping folders loading')
         return
@@ -160,7 +158,7 @@ export const useFoldersStore = defineStore('folders', () => {
       folders.value = decryptedFolders
 
     } catch (error) {
-      console.error('Fejl under indlæsning af mapper:', error)
+      console.error('Fejl under indlÃ¦sning af mapper:', error)
     }
   }
 
@@ -249,7 +247,7 @@ export const useFoldersStore = defineStore('folders', () => {
   const unlockFolder = (folderId, pin) => {
     if (folderId === FOLDER_IDS.SECURE && pin === securePin.value) {
       lockedFolders.value.delete(folderId)
-      selectFolder(folderId) // Vælg automatisk mappen efter oplåsning
+      selectFolder(folderId) // VÃ¦lg automatisk mappen efter oplÃ¥sning
       return true
     }
     return false
@@ -261,29 +259,13 @@ export const useFoldersStore = defineStore('folders', () => {
     }
 
     try {
-      // Tjek hvordan brugeren er logget ind
-      const loginType = localStorage.getItem(`loginType_${user.uid}`);
-      
-      if (loginType === 'google') {
-        // For Google brugere: brug deres email som master password
-        if (masterPassword === user.email) {
-          lockedFolders.value.delete(folderId);
-          selectFolder(folderId);
-          return true;
-        }
-      } else if (loginType === 'email') {
-        // For email/password brugere: verificer mod password verifier
-        const passwordVerifier = localStorage.getItem(`passwordVerifier_${user.uid}`)
-        if (passwordVerifier) {
-          const isValid = await verifyPassword(masterPassword, user.uid, passwordVerifier)
-          if (isValid) {
-            lockedFolders.value.delete(folderId);
-            selectFolder(folderId);
-            return true;
-          }
-        }
+      // Google-only: brug email som master password
+      if (masterPassword === user.email) {
+        lockedFolders.value.delete(folderId);
+        selectFolder(folderId);
+        return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Fejl ved master password verifikation:', error);
@@ -361,3 +343,4 @@ export const useFoldersStore = defineStore('folders', () => {
     resetFolders
   }
 })
+
