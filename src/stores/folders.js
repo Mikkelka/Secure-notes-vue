@@ -13,7 +13,7 @@ import {
   getDoc
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { encryptText, decryptText } from '../utils/encryption'
+import { encryptText, decryptText, verifyPassword } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
 import { FOLDER_IDS } from '../constants/folderIds'
 // ANBEFALING: Du skal bruge en password verifikationsfunktion her for master password unlock.
@@ -272,11 +272,11 @@ export const useFoldersStore = defineStore('folders', () => {
           return true;
         }
       } else if (loginType === 'email') {
-        // For email/password brugere: sammenlign med deres gemte password
-        const encryptedPassword = localStorage.getItem(`encryptedPassword_${user.uid}`);
-        if (encryptedPassword) {
-          const storedPassword = atob(encryptedPassword);
-          if (masterPassword === storedPassword) {
+        // For email/password brugere: verificer mod password verifier
+        const passwordVerifier = localStorage.getItem(`passwordVerifier_${user.uid}`)
+        if (passwordVerifier) {
+          const isValid = await verifyPassword(masterPassword, user.uid, passwordVerifier)
+          if (isValid) {
             lockedFolders.value.delete(folderId);
             selectFolder(folderId);
             return true;

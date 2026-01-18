@@ -197,26 +197,27 @@ const handleExport = async () => {
       }
       // Use UID as the actual encryption password for Google users
       actualPassword = props.user.uid
-    } else if (loginType === 'email') {
-      // For email users: check if entered password matches stored password
-      const encryptedPassword = localStorage.getItem(`encryptedPassword_${props.user.uid}`)
-      if (encryptedPassword) {
-        const storedPassword = atob(encryptedPassword)
-        if (actualPassword !== storedPassword) {
-          result.value = { 
-            success: false, 
-            message: 'Forkert password. Indtast dit login password.' 
+        } else if (loginType === 'email') {
+          // For email users: verify against stored password verifier
+          const passwordVerifier = localStorage.getItem(`passwordVerifier_${props.user.uid}`)
+          if (passwordVerifier) {
+            const { verifyPassword } = await import('../../utils/encryption')
+            const isValid = await verifyPassword(actualPassword, props.user.uid, passwordVerifier)
+            if (!isValid) {
+              result.value = { 
+                success: false, 
+                message: 'Forkert password. Indtast dit login password.' 
+              }
+              return
+            }
+          } else {
+            result.value = { 
+              success: false, 
+              message: 'Kunne ikke verificere password.' 
+            }
+            return
           }
-          return
         }
-      } else {
-        result.value = { 
-          success: false, 
-          message: 'Kunne ikke verificere password.' 
-        }
-        return
-      }
-    }
 
     // Create export data - notes are already decrypted in the store
     const exportData = {
