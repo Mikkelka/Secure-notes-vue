@@ -6,7 +6,7 @@
         <Clock class="icon-sm" />
         {{ formatDate(createdAt, true) }}
       </div>
-      <CopyTextButton :html-content="content" />
+      <CopyTextButton :html-content="sanitizedContent" />
     </div>
     
     <!-- Content display -->
@@ -14,16 +14,17 @@
       <div 
         class="text-gray-300 leading-relaxed prose-content"
         :class="isMobile ? 'text-base' : 'text-sm'"
-        v-html="content"
+        v-html="sanitizedContent"
       ></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed as _computed } from 'vue'
+import { computed } from 'vue'
 import { Clock } from 'lucide-vue-next'
 import CopyTextButton from '../../base/CopyTextButton.vue'
+import { sanitizeNoteContent } from '../../../utils/sanitizeHtml.js'
 
 const _props = defineProps({
   content: {
@@ -39,6 +40,8 @@ const _props = defineProps({
     default: false
   }
 })
+
+const sanitizedContent = computed(() => sanitizeNoteContent(_props.content))
 
 // Date formatting utility
 const formatDate = (date, includeTime = false) => {

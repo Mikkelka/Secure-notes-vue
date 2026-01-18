@@ -10,6 +10,7 @@ const FORMATTING_INSTRUCTIONS = `Formatering: BEVAR AL EKSISTERENDE FORMATERING 
 
 HTML FORMATERING: Du MÅ tilføje passende HTML formatering hvor det forbedrer struktur og læsbarhed: <h1>, <h2>, <h3> for overskrifter, <strong> for vigtige ord/sætninger, <em> for fremhævning, <u> for understregning, <s> for gennemstregning, <ul><li> for lister, <p> for almindelige afsnit, <hr> for adskillelse mellem sektioner, <pre><code> for kodeblokke, <code> for inline kode. Returner KUN valid HTML - ingen markdown. Organiser indholdet logisk med passende overskrifter og fremhæv nøgleord med ** hvor det giver mening.
 
+VIGTIGT: Brug IKKE billeder, badges eller <img>-tags (inkl. data-mce-*). Brug kun tekst og de nævnte HTML-tags.
 VIGTIGT: Brug ALDRIG borders, rammer, border-stil, eller CSS borders i outputtet - ignorer eksisterende borders i input. Returner kun den færdige note.`;
 
 const PRODUCTION_SYSTEM_INSTRUCTION = `${NOTE_ORGANIZER_INSTRUCTION} ${FORMATTING_INSTRUCTIONS}`;

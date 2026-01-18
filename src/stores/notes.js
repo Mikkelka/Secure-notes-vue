@@ -16,6 +16,7 @@ import { encryptText, decryptText } from '../utils/encryption'
 import { SecureStorage } from '../utils/secureStorage'
 import { useTrashStore } from './trash'
 import { FOLDER_IDS } from '../constants/folderIds'
+import { sanitizeNoteContent } from '../utils/sanitizeHtml'
 
 // Helper til at udtrække ren tekst fra HTML indhold.
 const extractTextFromContent = (content) => {
@@ -241,13 +242,14 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   const saveNote = async (title, content, folderId, user) => {
-    if (!title.trim() || !content.trim() || !user) return false
+    const sanitizedContent = sanitizeNoteContent(content)
+    if (!title.trim() || !sanitizedContent.trim() || !user) return false
     
     try {
       const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(title, encryptionKey),
-        encryptText(content, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
       
       const now = new Date()
@@ -268,7 +270,7 @@ export const useNotesStore = defineStore('notes', () => {
       const newNote = {
         id: docRef.id,
         title,
-        content,
+        content: sanitizedContent,
         folderId: folderId || null,
         isFavorite: false,
         isDeleted: false,
@@ -286,13 +288,14 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   const updateNote = async (noteId, newTitle, newContent) => {
-    if (!noteId || !newTitle || !newContent) return false
+    const sanitizedContent = sanitizeNoteContent(newContent)
+    if (!noteId || !newTitle.trim() || !sanitizedContent.trim()) return false
     
     try {
       const encryptionKey = SecureStorage.getEncryptionKey()
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(newTitle, encryptionKey),
-        encryptText(newContent, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
       
       const now = new Date()
@@ -307,7 +310,7 @@ export const useNotesStore = defineStore('notes', () => {
         allNotes.value[noteIndex] = { 
           ...allNotes.value[noteIndex], 
           title: newTitle,
-          content: newContent, 
+          content: sanitizedContent, 
           updatedAt: now 
         }
       }
@@ -366,6 +369,7 @@ export const useNotesStore = defineStore('notes', () => {
     if (!originalNote || !user) return false
 
     try {
+      const sanitizedContent = sanitizeNoteContent(originalNote.content)
       const encryptionKey = SecureStorage.getEncryptionKey()
 
       // Lav kopi af titel med " (Kopi)" suffix
@@ -374,7 +378,7 @@ export const useNotesStore = defineStore('notes', () => {
       // Krypter titel og content
       const [encryptedTitle, encryptedContent] = await Promise.all([
         encryptText(duplicatedTitle, encryptionKey),
-        encryptText(originalNote.content, encryptionKey)
+        encryptText(sanitizedContent, encryptionKey)
       ])
 
       const now = new Date()
@@ -397,7 +401,7 @@ export const useNotesStore = defineStore('notes', () => {
       const newNote = {
         id: docRef.id,
         title: duplicatedTitle,
-        content: originalNote.content,
+        content: sanitizedContent,
         folderId: originalNote.folderId || null,
         isFavorite: false,
         isDeleted: false,
