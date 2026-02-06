@@ -26,7 +26,7 @@ const ALLOWED_ATTR = [
   'data-mce-href'
 ]
 const SAFE_URI_REGEX = /^(https?:|mailto:|tel:)/i
-const URL_REGEX = /\b((?:https?:\/\/|www\.)[^\s<]+[^\s<\.)])/gi
+const URL_REGEX = /\b((?:https?:\/\/|www\.)[^\s<]+[^\s<.)])/gi
 const SANITIZE_CACHE = new Map()
 const MAX_CACHE_ENTRIES = 200
 let hooksInstalled = false

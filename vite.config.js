@@ -85,5 +85,18 @@ export default defineConfig({
         clientsClaim: true
       }
     })
-  ]
+  ],
+  test: {
+    environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      thresholds: {
+        branches: 1,
+        functions: 1,
+        lines: 1,
+        statements: 1
+      }
+    }
+  }
 })

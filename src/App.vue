@@ -429,7 +429,7 @@ const reloadAllData = async () => {
         foldersStore.loadFolders(authStore.user),
       ]);
     } catch (error) {
-      console.error("âŒ Fejl ved genindlÃ¦sning af data:", error);
+      console.error("Fejl ved genindlaesning af data:", error);
     }
   }
 };
@@ -486,18 +486,18 @@ const handleSaveNote = async (title, content) => {
           }
           return success;
         } catch (retryError) {
-          console.error('âŒ Note save failed even after key recovery:', retryError);
+          console.error('Note save failed even after key recovery:', retryError);
           notificationsStore.notify("Fejl ved oprettelse af note. PrÃ¸v at logge ind igen.", "error");
           return false;
         }
       }
-      console.error('âŒ Could not recover encryption key');
+      console.error('Could not recover encryption key');
       notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
 
     // Other errors
-    console.error('âŒ Fejl ved oprettelse af note:', error);
+    console.error('Fejl ved oprettelse af note:', error);
     notificationsStore.notify(`Fejl ved oprettelse af note: ${error.message}`, "error");
     return false;
   }
@@ -538,20 +538,20 @@ const handleViewerUpdate = async (noteId, title, content) => {
           }
           return success;
         } catch (retryError) {
-          console.error('âŒ Note update failed even after key recovery:', retryError);
+          console.error('Note update failed even after key recovery:', retryError);
           // Show user-friendly error message
           notificationsStore.notify("Fejl ved opdatering af note. PrÃ¸v at logge ind igen.", "error");
           return false;
         }
       }
-      console.error('âŒ Could not recover encryption key');
+      console.error('Could not recover encryption key');
       // Show user-friendly error message
       notificationsStore.notify("Session udlÃ¸bet. Log venligst ind igen for at gemme noter.", "error");
       return false;
     }
 
     // Other errors
-    console.error('âŒ Fejl ved opdatering af note:', error);
+    console.error('Fejl ved opdatering af note:', error);
     notificationsStore.notify(`Fejl ved opdatering af note: ${error.message}`, "error");
     return false;
   }
