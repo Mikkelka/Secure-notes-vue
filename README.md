@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Lines of Code](https://img.shields.io/badge/lines%20of%20code-2227%20lines-blue?style=for-the-badge)](.)
 
-A modern, secure note-taking application built with Vue.js 3 and Firebase, implementing client-side encryption for maximum data security. Features Danish UI with offline capabilities and AI integration.
+A modern, secure note-taking application built with Vue.js 3 and Firebase, implementing client-side encryption for maximum data security. Features Danish UI, Google-only auth, offline capabilities, and AI integration.
 
 ## 🔐 Security First
 
@@ -49,13 +49,17 @@ A modern, secure note-taking application built with Vue.js 3 and Firebase, imple
 - Google Generative AI (Gemini models)
 - Workbox PWA capabilities
 
-**Development:**
+**Development & Quality:**
 - Vite 6, ESLint 9, Firebase CLI
+- Vitest 4 + jsdom + coverage (V8)
+- vue-tsc (type checks for JS/Vue)
+- Knip (unused files/exports detection)
+- GitHub Actions quality workflow
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js v18+, npm/yarn
+- Node.js v20+ (CI runs on Node 20), npm/yarn
 - Firebase project with Firestore and Authentication
 - Google AI API key (optional)
 
@@ -70,7 +74,7 @@ npm install
 
 **Create Firebase Project:**
 1. [Firebase Console](https://console.firebase.google.com/) → Add project
-2. Authentication → Enable Email/Password and Google providers  
+2. Authentication → Enable **Google** provider
 3. Firestore Database → Create in test mode
 4. Apply security rules:
 
@@ -116,6 +120,12 @@ VITE_SESSION_TIMEOUT=1800000
 ```bash
 npm run dev  # http://localhost:5173
 ```
+
+### 5. Run Full Quality Pipeline (Recommended)
+```bash
+npm run test:all
+```
+This runs linting, type checks, Knip, unit tests with coverage, and production build.
 
 ## 🏗️ Architecture
 
@@ -167,13 +177,27 @@ src/
 ```bash
 npm run build              # Production build
 npm run lint              # Code quality check  
+npm run test:all          # Full quality gate (lint + typecheck + knip + tests + build)
 npm run preview           # Preview build locally
 
 # Deploy to Firebase
 firebase login
 firebase init hosting
 firebase deploy
+
+# Or use script
+npm run deploy
 ```
+
+## ✅ CI Quality Workflow
+
+GitHub Actions workflow: `.github/workflows/quality.yml`
+
+- Trigger: push + pull request
+- Runtime: Ubuntu + Node 20
+- Pipeline:
+  - `npm ci`
+  - `npm run test:all`
 
 ## 🔧 Advanced Configuration
 
@@ -194,11 +218,11 @@ VITE_GOOGLE_AI_API_KEY=your_key   # Enable AI integration
 **Firebase Errors:**
 - Verify environment variables and project ID
 - Check Firestore database creation and security rules
-- Ensure authentication providers are enabled
+- Ensure the Google auth provider is enabled
 
 **Build Issues:**
 - Delete `node_modules`, run `npm install`
-- Check Node.js version (18+)
+- Check Node.js version (20+)
 - Verify TinyMCE files in `public/tinymce/`
 
 ## 🤝 Contributing
