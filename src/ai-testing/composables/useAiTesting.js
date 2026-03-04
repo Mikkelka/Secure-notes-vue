@@ -61,9 +61,9 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
 
   // API Key management with environment variable support (Google cookbook best practice)
   const saveApiKey = () => {
-    if (apiKey.value.trim()) {
-      localStorage.setItem('ai-test-api-key', apiKey.value.trim())
-    }
+    // Intentionally no persistence: keep sensitive API key in-memory for this session only.
+    // The method is kept to avoid changing component callers.
+    return apiKey.value.trim().length > 0
   }
 
   const loadSavedApiKey = () => {
@@ -75,11 +75,7 @@ risici identificeret: third party payment api har været ustabil sidste uge, bac
       return
     }
     
-    // Fallback to localStorage
-    const savedApiKey = localStorage.getItem('ai-test-api-key')
-    if (savedApiKey) {
-      apiKey.value = savedApiKey
-    }
+    // No storage fallback by design (avoid clear-text persistence).
   }
 
   // Clear results

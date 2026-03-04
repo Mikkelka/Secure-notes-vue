@@ -207,11 +207,27 @@ const handleContentChange = debounceVue(() => {
   const _currentValue = htmlContent.value
 }, 300)
 
+const htmlToPlainText = (html) => {
+  if (!html) return ''
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html')
+
+  // Preserve useful line structure before extracting text.
+  doc.querySelectorAll('br').forEach((node) => node.replaceWith('\n'))
+  doc.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').forEach((node) => {
+    node.insertAdjacentText('beforeend', '\n')
+  })
+
+  return (doc.body.textContent || '')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    .trim()
+}
+
 // Content Management
 const getCurrentContent = () => {
   if (isAdvancedMode.value) {
-    // Convert HTML to plain text for validation
-    return htmlContent.value ? htmlContent.value.replace(/<[^>]*>/g, '').trim() : ''
+    return htmlToPlainText(htmlContent.value)
   }
   return content.value
 }
@@ -223,14 +239,7 @@ const convertTextToHtml = (text) => {
 }
 
 const convertHtmlToText = (html) => {
-  if (!html) return ''
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<p[^>]*>/gi, '')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\n\s*\n\s*\n+/g, '\n\n')
-    .trim()
+  return htmlToPlainText(html)
 }
 
 // Mode Toggle

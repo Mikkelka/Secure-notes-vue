@@ -25,19 +25,37 @@ export const isHtmlContent = (content) => {
 
 export const extractPlainText = (htmlContent) => {
   if (!htmlContent) return "";
+  if (typeof DOMParser !== "undefined") {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<body>${htmlContent}</body>`, "text/html");
+    return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+  }
 
   // Simpel HTML → plain text konvertering
-  return htmlContent
-    .replace(/<[^>]*>/g, ' ') // Fjern HTML tags
-    .replace(/\s+/g, ' ') // Sammenfold whitespace
-    .trim();
+  return String(htmlContent).trim();
 };
 
 export const convertHtmlToPlainText = (htmlContent) => {
   if (!htmlContent) return "";
+  if (typeof DOMParser !== "undefined") {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<body>${htmlContent}</body>`, "text/html");
+
+    doc.querySelectorAll('br').forEach((node) => node.replaceWith('\n'));
+    doc.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((node) => {
+      node.insertAdjacentText('beforebegin', '\n');
+      node.insertAdjacentText('beforeend', '\n\n');
+    });
+    doc.querySelectorAll('p').forEach((node) => node.insertAdjacentText('beforeend', '\n\n'));
+    doc.querySelectorAll('li').forEach((node) => node.insertAdjacentText('beforebegin', '- '));
+
+    return (doc.body.textContent || '')
+      .replace(/\n\s*\n\s*\n+/g, '\n\n')
+      .trim();
+  }
   
   // Simpel HTML → plain text konvertering der bevarer grundlæggende struktur
-  return htmlContent
+  return extractPlainText(htmlContent); /*
     .replace(/<br\s*\/?>/gi, '\n') // <br> → line break
     .replace(/<\/p>/gi, '\n\n') // </p> → double line break
     .replace(/<h[1-6][^>]*>/gi, '\n') // Start of headings
@@ -47,7 +65,7 @@ export const convertHtmlToPlainText = (htmlContent) => {
     .replace(/<[^>]*>/g, '') // Remove all other HTML tags
     .replace(/\n\s*\n\s*\n+/g, '\n\n') // Max 2 consecutive newlines
     .replace(/^\s+|\s+$/g, '') // Trim
-    .trim();
+    .trim(); */
 };
 
 export const convertTextToHtml = (text) => {
